@@ -1,0 +1,41 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { withBase } from "@/utils/site";
+---
+
+<BaseLayout title="关于我" description="关于这个网站、个人兴趣、技术栈和联系方式。">
+  <section class="container grid gap-10 py-12 md:grid-cols-[0.9fr_1.1fr] md:py-18">
+    <aside>
+      <div class="sticky top-28">
+        <img class="aspect-[4/5] w-full rounded-md border border-[var(--line)] object-cover grayscale photo-shadow" src={withBase("/images/gallery-workspace.png")} alt="桌面上的笔记和咖啡" />
+        <div class="mt-5 border-t border-[var(--line)] pt-5">
+          <p class="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">Profile</p>
+          <h1 class="mt-3 text-5xl font-semibold">Micy</h1>
+          <p class="mt-3 text-sm leading-6 text-[var(--muted)]">写作、影像、前端工程和小型工具爱好者。</p>
+        </div>
+      </div>
+    </aside>
+
+    <div class="prose max-w-none border-t border-[var(--line)] pt-2 md:pt-0">
+      <h2>关于这个网站</h2>
+      <p>
+        这是一个从零搭建的个人网站模板，使用 Astro、TypeScript 和 Tailwind CSS。它适合用来沉淀文章、图集、项目和个人介绍。
+      </p>
+      <p>
+        网站结构保持轻量：内容优先，视觉克制，移动端可读。以后可以继续扩展 RSS、站内搜索、标签归档和更完整的图片优化流程。
+      </p>
+
+      <h2>我关注什么</h2>
+      <ul>
+        <li>内容系统：让写作、整理和发布更顺手。</li>
+        <li>前端体验：界面层级、动效克制、性能和可维护性。</li>
+        <li>个人工具：把重复的小事变成可靠的自动化。</li>
+      </ul>
+
+      <h2>联系</h2>
+      <p>
+        你可以把这里替换为邮箱、GitHub、X、即刻、LinkedIn 或任何你想公开的联系方式。
+      </p>
+    </div>
+  </section>
+</BaseLayout>

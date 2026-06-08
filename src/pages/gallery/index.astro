@@ -1,0 +1,46 @@
+---
+import { galleryItems } from "@/data/gallery";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { withBase } from "@/utils/site";
+---
+
+<BaseLayout title="图集" description="瀑布流图片卡片展示，保存影像、场景和视觉笔记。">
+  <section class="container py-12 md:py-18">
+    <div class="grid gap-8 border-b border-[var(--line)] pb-10 md:grid-cols-[0.8fr_1.2fr] md:items-end">
+      <div>
+        <p class="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">Frames</p>
+        <h1 class="mt-4 text-5xl font-semibold leading-none md:text-7xl">图集</h1>
+      </div>
+      <p class="max-w-2xl text-lg leading-8 text-[var(--muted)]">
+        以网格方式保存图片样本。默认保持黑白，悬停时恢复颜色，让页面更接近开发者作品索引。
+      </p>
+    </div>
+
+    <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {galleryItems.map((item, index) => (
+        <figure class="group rounded-md border border-[var(--line)] bg-[var(--surface)] p-2">
+          <div class="relative overflow-hidden rounded border border-[var(--line)] bg-black">
+            <img
+              class:list={[
+                "w-full object-cover grayscale transition duration-500 group-hover:grayscale-0",
+                item.height === "tall" && "aspect-[4/5]",
+                item.height === "wide" && "aspect-[16/10]",
+                item.height === "medium" && "aspect-[5/4]",
+              ]}
+              src={withBase(item.image)}
+              alt={item.title}
+              loading="lazy"
+            />
+          </div>
+          <figcaption class="flex items-start justify-between gap-4 px-1 py-3">
+            <div>
+              <h2 class="font-semibold">{item.title}</h2>
+              <p class="mt-1 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
+            </div>
+            <span class="font-mono text-xs text-[var(--muted)]">{String(index + 1).padStart(2, "0")}</span>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

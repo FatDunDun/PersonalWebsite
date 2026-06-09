@@ -28,12 +28,13 @@ const enabled = repo && repoId && category && categoryId;
       data-input-position="top"
       data-theme="preferred_color_scheme"
       data-lang="zh-CN"
+      data-loading="lazy"
       crossorigin="anonymous"
       async
     />
   ) : (
     <div class="rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface-soft)] p-5 text-sm leading-6 text-[var(--muted)]">
-      giscus 已接入到文章模板。配置仓库的 giscus 环境变量后，这里会显示评论区。
+      评论区已接入文章模板。启用 GitHub Discussions，并配置 giscus 仓库变量后，这里会显示互动评论。
     </div>
   )}
 </section>

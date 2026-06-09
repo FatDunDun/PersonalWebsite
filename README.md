@@ -156,7 +156,9 @@ PersonalPhoto 用于生活照、风景照和前台图集页展示。推荐在隐
 
 ## 配置 giscus 评论
 
-文章详情页已经集成 giscus。你需要先在目标 GitHub 仓库开启 Discussions，并在 [giscus.app](https://giscus.app/) 生成配置，然后在 GitHub Pages 的仓库变量或本地 `.env` 中设置：
+文章详情页已经集成 giscus。你需要先在目标 GitHub 仓库开启 Discussions，并在 [giscus.app](https://giscus.app/) 生成配置。
+
+线上 GitHub Pages 使用仓库变量。打开 `Settings -> Secrets and variables -> Actions -> Variables`，新增：
 
 ```bash
 PUBLIC_GISCUS_REPO="owner/repo"
@@ -164,6 +166,8 @@ PUBLIC_GISCUS_REPO_ID="..."
 PUBLIC_GISCUS_CATEGORY="Announcements"
 PUBLIC_GISCUS_CATEGORY_ID="..."
 ```
+
+这些值会在 GitHub Actions 构建时注入到 Astro。保存变量后，重新运行一次 Pages workflow 或推送一次提交，文章页底部就会显示评论区。
 
 本地可以创建 `.env` 文件保存这些值，`.env` 已加入 `.gitignore`，不会被提交。
 

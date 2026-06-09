@@ -1,5 +1,17 @@
 export const galleryItems = [
   {
+    title: "新上传的图片",
+    description: "从本地管理页上传并加入图集。",
+    image: "/images/1780977422819-image.png",
+    height: "medium",
+  },
+  {
+    title: "新上传的图片 2",
+    description: "从本地管理页上传并加入图集。",
+    image: "/images/1780977579055-image.png",
+    height: "tall",
+  },
+  {
     title: "晨光里的笔记",
     description: "把一天开始前最安静的十五分钟留给纸面。",
     image: "/images/gallery-workspace.png",

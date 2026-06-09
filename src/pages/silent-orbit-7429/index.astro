@@ -1,0 +1,1301 @@
+---
+import "@/styles/global.css";
+import { galleryItems } from "@/data/gallery";
+import { projects } from "@/data/projects";
+import { getCollection } from "astro:content";
+import { readdirSync } from "node:fs";
+
+const posts = await getCollection("posts");
+const imageNames = readdirSync(new URL("../../../public/images/", import.meta.url)).filter((name) => /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(name));
+
+const initialData = {
+  posts: posts
+    .map((post) => ({
+      name: `${post.id}.mdx`,
+      path: `src/content/posts/${post.id}.mdx`,
+      data: post.data,
+      body: post.body || "",
+    }))
+    .sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()),
+  projects,
+  gallery: galleryItems,
+  images: imageNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
+    name,
+    path: `public/images/${name}`,
+    publicPath: `/images/${name}`,
+  })),
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Silent Orbit</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23171717'/%3E%3Cpath d='M10 17h12M16 10v12' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <style>
+      .orbit-shell {
+        background:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px),
+          var(--background);
+        background-size: 80px 80px;
+      }
+
+      .orbit-panel {
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--surface) 92%, transparent);
+        box-shadow: 0 24px 80px rgb(0 0 0 / 0.08);
+      }
+
+      .orbit-input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--background);
+        padding: 0.72rem 0.82rem;
+        color: var(--foreground);
+        outline: none;
+      }
+
+      .orbit-input:focus {
+        border-color: var(--accent);
+      }
+
+      .orbit-button {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.62rem 0.9rem;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+      }
+
+      .orbit-button:hover,
+      .orbit-button[data-active="true"] {
+        border-color: var(--foreground);
+      }
+
+      .orbit-button-primary {
+        border-color: var(--foreground);
+        background: var(--foreground);
+        color: var(--background);
+      }
+
+      .orbit-danger {
+        border-color: color-mix(in srgb, #dc2626 36%, var(--line));
+        color: #dc2626;
+      }
+
+      .orbit-danger:hover {
+        border-color: #dc2626;
+      }
+
+      .orbit-card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--background);
+      }
+
+      .orbit-card[data-active="true"] {
+        border-color: var(--foreground);
+      }
+
+      .orbit-view[hidden] {
+        display: none;
+      }
+
+      .orbit-list {
+        scrollbar-width: thin;
+      }
+    </style>
+  </head>
+  <body class="orbit-shell min-h-screen text-[var(--foreground)]">
+    <main class="mx-auto flex min-h-screen w-[min(1440px,calc(100%-1.5rem))] flex-col gap-4 py-4 md:w-[min(1440px,calc(100%-2rem))] md:py-6">
+      <header class="orbit-panel rounded-xl p-4">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <p class="font-mono text-xs uppercase tracking-[0.26em] text-[var(--accent)]">Silent Orbit</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-normal md:text-5xl">内容工作台</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+              文章、项目、图集和图片统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
+            </p>
+          </div>
+
+          <form class="grid gap-3 lg:min-w-[560px] lg:grid-cols-[1fr_auto] lg:items-end" data-auth-form>
+            <label class="block">
+              <span class="font-mono text-xs text-[var(--muted)]">GitHub Token</span>
+              <input
+                class="orbit-input mt-2 font-mono text-sm"
+                data-token-input
+                type="password"
+                autocomplete="off"
+                placeholder="github_pat_..."
+              />
+            </label>
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="flex items-center gap-2 text-sm text-[var(--muted)]">
+                <input data-remember-token type="checkbox" />
+                记住
+              </label>
+              <button class="orbit-button orbit-button-primary" data-save-token type="button">connect</button>
+              <button class="orbit-button" data-clear-token type="button">clear</button>
+            </div>
+          </form>
+        </div>
+      </header>
+
+      <div class="grid flex-1 gap-4 xl:grid-cols-[240px_360px_1fr]">
+        <aside class="orbit-panel rounded-xl p-3">
+          <nav class="grid gap-2">
+            <button class="orbit-button flex items-center justify-between text-left" data-section="posts" data-active="true" type="button">
+              <span>文章</span>
+              <span class="text-[var(--muted)]" data-count="posts">0</span>
+            </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="projects" type="button">
+              <span>项目</span>
+              <span class="text-[var(--muted)]" data-count="projects">0</span>
+            </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="gallery" type="button">
+              <span>图集</span>
+              <span class="text-[var(--muted)]" data-count="gallery">0</span>
+            </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="images" type="button">
+              <span>图片库</span>
+              <span class="text-[var(--muted)]" data-count="images">0</span>
+            </button>
+          </nav>
+
+          <section class="mt-4 rounded-lg border border-[var(--line)] bg-[var(--background)] p-3">
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Status</p>
+            <p class="mt-3 min-h-12 text-sm leading-6 text-[var(--muted)]" data-status>正在读取公开内容。</p>
+          </section>
+
+          <section class="mt-4 rounded-lg border border-[var(--line)] bg-[var(--background)] p-3">
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Publish</p>
+            <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
+              每次保存都会成为一次 Git commit。GitHub Actions 会自动重新部署网站。
+            </p>
+          </section>
+        </aside>
+
+        <section class="orbit-panel rounded-xl p-3">
+          <div class="flex items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
+            <div>
+              <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--muted)]" data-list-kicker>Posts</p>
+              <h2 class="mt-1 text-xl font-semibold" data-list-title>文章列表</h2>
+            </div>
+            <button class="orbit-button orbit-button-primary" data-new-current type="button">new</button>
+          </div>
+          <div class="orbit-list mt-3 grid max-h-[calc(100vh-290px)] gap-2 overflow-auto pr-1" data-list>
+            <p class="text-sm text-[var(--muted)]">连接后加载内容。</p>
+          </div>
+        </section>
+
+        <section class="orbit-panel rounded-xl p-4">
+          <section class="orbit-view" data-view="posts">
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Post Editor</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-post-title>新建文章</h2>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button class="orbit-button" data-post-upload-cover type="button">上传封面</button>
+                <button class="orbit-button orbit-button-primary" data-save-post type="button">保存文章</button>
+                <button class="orbit-button orbit-danger" data-delete-post type="button">删除文章</button>
+                <input class="hidden" data-post-cover-file type="file" accept="image/*" />
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 2xl:grid-cols-[1fr_0.8fr]">
+              <form class="grid gap-4">
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Slug</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="slug" placeholder="my-new-post" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Publish Date</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="publishDate" type="date" />
+                  </label>
+                </div>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Title</span>
+                  <input class="orbit-input mt-2 text-sm" data-post-field="title" placeholder="文章标题" />
+                </label>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Description</span>
+                  <textarea class="orbit-input mt-2 min-h-20 text-sm leading-6" data-post-field="description" placeholder="文章摘要"></textarea>
+                </label>
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Cover</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="cover" placeholder="/images/cover.png" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Tags</span>
+                    <input class="orbit-input mt-2 text-sm" data-post-field="tags" placeholder="生活, 前端, 随笔" />
+                  </label>
+                </div>
+                <label class="flex items-center gap-2 text-sm text-[var(--muted)]">
+                  <input data-post-field="draft" type="checkbox" />
+                  保存为草稿
+                </label>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Body</span>
+                  <textarea class="orbit-input mt-2 min-h-[420px] font-mono text-sm leading-7" data-post-field="body" placeholder="开始写 Markdown / MDX..."></textarea>
+                </label>
+              </form>
+
+              <section class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-4">
+                <div class="flex items-center justify-between border-b border-[var(--line)] pb-3">
+                  <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Preview</p>
+                  <span class="font-mono text-xs text-[var(--muted)]">Markdown</span>
+                </div>
+                <article class="prose mt-4 max-w-none" data-post-preview></article>
+              </section>
+            </div>
+          </section>
+
+          <section class="orbit-view" data-view="projects" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Project Editor</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-project-title>新建项目</h2>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button class="orbit-button orbit-button-primary" data-save-project type="button">保存项目</button>
+                <button class="orbit-button orbit-danger" data-delete-project type="button">删除项目</button>
+              </div>
+            </div>
+
+            <form class="mt-4 grid gap-4">
+              <div class="grid gap-4 md:grid-cols-2">
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Name</span>
+                  <input class="orbit-input mt-2 text-sm" data-project-field="name" placeholder="项目名称" />
+                </label>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Year</span>
+                  <input class="orbit-input mt-2 font-mono text-sm" data-project-field="year" placeholder="2026" />
+                </label>
+              </div>
+              <label>
+                <span class="font-mono text-xs text-[var(--muted)]">Description</span>
+                <textarea class="orbit-input mt-2 min-h-28 text-sm leading-6" data-project-field="description" placeholder="项目简介"></textarea>
+              </label>
+              <div class="grid gap-4 md:grid-cols-2">
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Tags</span>
+                  <input class="orbit-input mt-2 text-sm" data-project-field="tags" placeholder="Astro, Design, Tool" />
+                </label>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Link</span>
+                  <input class="orbit-input mt-2 font-mono text-sm" data-project-field="link" placeholder="https://..." />
+                </label>
+              </div>
+            </form>
+          </section>
+
+          <section class="orbit-view" data-view="gallery" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Gallery Editor</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-gallery-title>新建图集卡片</h2>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button class="orbit-button" data-gallery-upload-image type="button">上传图片</button>
+                <button class="orbit-button orbit-button-primary" data-save-gallery type="button">保存卡片</button>
+                <button class="orbit-button orbit-danger" data-delete-gallery type="button">删除卡片</button>
+                <input class="hidden" data-gallery-image-file type="file" accept="image/*" />
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 2xl:grid-cols-[1fr_320px]">
+              <form class="grid gap-4">
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Title</span>
+                  <input class="orbit-input mt-2 text-sm" data-gallery-field="title" placeholder="图片标题" />
+                </label>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Description</span>
+                  <textarea class="orbit-input mt-2 min-h-28 text-sm leading-6" data-gallery-field="description" placeholder="图片描述"></textarea>
+                </label>
+                <div class="grid gap-4 md:grid-cols-[1fr_180px]">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Image</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-gallery-field="image" placeholder="/images/example.png" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Card Height</span>
+                    <select class="orbit-input mt-2 font-mono text-sm" data-gallery-field="height">
+                      <option value="medium">medium</option>
+                      <option value="tall">tall</option>
+                      <option value="wide">wide</option>
+                    </select>
+                  </label>
+                </div>
+              </form>
+              <figure class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-2">
+                <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
+                  <img class="aspect-[4/3] w-full object-cover grayscale" data-gallery-preview src="" alt="" />
+                </div>
+                <figcaption class="p-3">
+                  <p class="font-semibold" data-gallery-preview-title>预览</p>
+                  <p class="mt-1 text-sm leading-6 text-[var(--muted)]" data-gallery-preview-description>选择图片后显示。</p>
+                </figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <section class="orbit-view" data-view="images" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Image Library</p>
+                <h2 class="mt-1 text-2xl font-semibold">图片库</h2>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button class="orbit-button orbit-button-primary" data-upload-image type="button">上传图片</button>
+                <button class="orbit-button" data-add-image-to-gallery type="button">加入图集</button>
+                <button class="orbit-button orbit-danger" data-delete-image type="button">删除选中图片</button>
+                <input class="hidden" data-image-file type="file" accept="image/*" multiple />
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
+              <div class="grid max-h-[calc(100vh-260px)] grid-cols-2 gap-3 overflow-auto pr-1 md:grid-cols-3 2xl:grid-cols-4" data-image-grid>
+                <p class="text-sm text-[var(--muted)]">连接后加载图片。</p>
+              </div>
+              <aside class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Selected</p>
+                <div class="mt-3 overflow-hidden rounded border border-[var(--line)] bg-black">
+                  <img class="aspect-[4/3] w-full object-cover" data-selected-image-preview src="" alt="" />
+                </div>
+                <input class="orbit-input mt-3 font-mono text-sm" data-selected-image-path readonly placeholder="/images/..." />
+                <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
+                  上传到图片库只是保存素材。要让它出现在前台图集页，请选中图片后点“加入图集”。
+                </p>
+              </aside>
+            </div>
+          </section>
+        </section>
+      </div>
+    </main>
+
+    <script type="application/json" id="initial-data" set:html={JSON.stringify(initialData)}></script>
+
+    <script>
+      const INITIAL_DATA = JSON.parse(document.getElementById("initial-data").textContent);
+      const OWNER = "FatDunDun";
+      const REPO = "PersonalWebsite";
+      const BRANCH = "main";
+      const POSTS_PATH = "src/content/posts";
+      const PROJECTS_PATH = "src/data/projects.ts";
+      const GALLERY_PATH = "src/data/gallery.ts";
+      const IMAGES_PATH = "public/images";
+      const TOKEN_KEY = "silent-orbit-token";
+      const BASE_URL = import.meta.env.BASE_URL;
+
+      const state = {
+        mode: "readonly",
+        localApi: false,
+        token: sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "",
+        section: "posts",
+        posts: [],
+        projects: [],
+        gallery: [],
+        images: [],
+        files: {
+          projects: null,
+          gallery: null,
+        },
+        current: {
+          post: null,
+          projectIndex: -1,
+          galleryIndex: -1,
+          image: null,
+        },
+      };
+
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+      const status = $("[data-status]");
+      const list = $("[data-list]");
+      const listKicker = $("[data-list-kicker]");
+      const listTitle = $("[data-list-title]");
+
+      const postFields = {
+        slug: $('[data-post-field="slug"]'),
+        title: $('[data-post-field="title"]'),
+        description: $('[data-post-field="description"]'),
+        publishDate: $('[data-post-field="publishDate"]'),
+        cover: $('[data-post-field="cover"]'),
+        tags: $('[data-post-field="tags"]'),
+        draft: $('[data-post-field="draft"]'),
+        body: $('[data-post-field="body"]'),
+      };
+
+      const projectFields = {
+        name: $('[data-project-field="name"]'),
+        year: $('[data-project-field="year"]'),
+        description: $('[data-project-field="description"]'),
+        tags: $('[data-project-field="tags"]'),
+        link: $('[data-project-field="link"]'),
+      };
+
+      const galleryFields = {
+        title: $('[data-gallery-field="title"]'),
+        description: $('[data-gallery-field="description"]'),
+        image: $('[data-gallery-field="image"]'),
+        height: $('[data-gallery-field="height"]'),
+      };
+
+      const labels = {
+        posts: { kicker: "Posts", title: "文章列表", empty: "暂无文章。" },
+        projects: { kicker: "Projects", title: "项目列表", empty: "暂无项目。" },
+        gallery: { kicker: "Gallery", title: "图集卡片", empty: "暂无图集卡片。" },
+        images: { kicker: "Images", title: "图片文件", empty: "暂无图片。" },
+      };
+
+      const setStatus = (message) => {
+        status.textContent = message;
+      };
+
+      const escapeHtml = (value = "") =>
+        String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+
+      const formatDate = (value) => {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.valueOf())) return String(value);
+        return new Intl.DateTimeFormat("zh-CN", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }).format(date);
+      };
+
+      const postSlug = (post) => post.slug || post.name?.replace(/\.(md|mdx)$/, "") || "";
+      const postDisplayTitle = (post) => post.data?.title || post.title || postSlug(post) || "未命名文章";
+
+      const slugify = (value) =>
+        value
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 80);
+
+      const slugifyFile = (value) =>
+        value
+          .trim()
+          .toLowerCase()
+          .normalize("NFKD")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 60);
+
+      const toBase64 = (text) => {
+        const bytes = new TextEncoder().encode(text);
+        let binary = "";
+        for (let index = 0; index < bytes.length; index += 1) binary += String.fromCharCode(bytes[index]);
+        return btoa(binary);
+      };
+
+      const fromBase64 = (base64) => {
+        const binary = atob(base64.replace(/\n/g, ""));
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      };
+
+      const arrayBufferToBase64 = (buffer) => {
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let index = 0; index < bytes.length; index += 1) binary += String.fromCharCode(bytes[index]);
+        return btoa(binary);
+      };
+
+      const withBase = (path) => {
+        if (!path) return "";
+        return new URL(`${BASE_URL}${path.replace(/^\/+/, "")}`, location.origin).toString();
+      };
+
+      const clone = (value) => JSON.parse(JSON.stringify(value));
+
+      const localEndpoint = (path) => `${location.origin}/__silent_orbit_local${path}`;
+
+      const localApi = async (path, options = {}) => {
+        const response = await fetch(localEndpoint(path), options);
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.message || `Local API error ${response.status}`);
+        return data;
+      };
+
+      const detectLocalApi = async () => {
+        try {
+          const data = await localApi("/status");
+          state.localApi = !!data.ok;
+          state.mode = "local";
+        } catch {
+          state.localApi = false;
+          state.mode = state.token ? "github" : "readonly";
+        }
+      };
+
+      const requireWriteAccess = () => {
+        if (state.mode === "local") return;
+        if (!state.token) throw new Error("线上保存、删除、上传需要先输入 GitHub Token。本地 npm run dev 时可直接写入项目文件。");
+      };
+
+      const github = async (path, options = {}) => {
+        const method = options.method || "GET";
+        const isWrite = method !== "GET";
+        if (isWrite && !state.token) throw new Error("保存、删除、上传需要先输入 GitHub Token");
+        const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}${path}`, {
+          ...options,
+          headers: {
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
+            ...(options.headers || {}),
+          },
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.message || `GitHub API error ${response.status}`);
+        return data;
+      };
+
+      const getFile = async (path) => {
+        if (state.mode === "local") return localApi(`/contents?path=${encodeURIComponent(path)}`);
+        return github(`/contents/${path}?ref=${BRANCH}`);
+      };
+
+      const getDir = async (path) => {
+        if (state.mode === "local") return localApi(`/contents?path=${encodeURIComponent(path)}`);
+        return github(`/contents/${path}?ref=${BRANCH}`);
+      };
+
+      const putFile = async ({ path, content, message, sha }) => {
+        if (state.mode === "local") {
+          return localApi("/write", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path, content }),
+          });
+        }
+
+        return github(`/contents/${path}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            message,
+            content,
+            branch: BRANCH,
+            ...(sha ? { sha } : {}),
+          }),
+        });
+      };
+
+      const deleteFile = async ({ path, sha, message }) => {
+        if (state.mode === "local") {
+          return localApi("/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path }),
+          });
+        }
+
+        return github(`/contents/${path}`, {
+          method: "DELETE",
+          body: JSON.stringify({
+            message,
+            sha,
+            branch: BRANCH,
+          }),
+        });
+      };
+
+      const parseFrontmatter = (content) => {
+        const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+        if (!match) return { data: {}, body: content };
+        const data = {};
+        for (const line of match[1].split("\n")) {
+          const [rawKey, ...rest] = line.split(":");
+          if (!rawKey || rest.length === 0) continue;
+          const key = rawKey.trim();
+          const value = rest.join(":").trim();
+          if (value.startsWith("[") && value.endsWith("]")) {
+            data[key] = value
+              .slice(1, -1)
+              .split(",")
+              .map((item) => item.trim().replace(/^"|"$/g, ""))
+              .filter(Boolean);
+          } else if (value === "true" || value === "false") {
+            data[key] = value === "true";
+          } else {
+            data[key] = value.replace(/^"|"$/g, "");
+          }
+        }
+        return { data, body: match[2] };
+      };
+
+      const readExportedArray = (content, exportName) => {
+        const match = content.match(new RegExp(`export\\s+const\\s+${exportName}\\s*=\\s*([\\s\\S]*);?\\s*$`));
+        if (!match) throw new Error(`无法解析 ${exportName}`);
+        return Function(`"use strict"; return (${match[1].replace(/;\s*$/, "")});`)();
+      };
+
+      const stringifyArrayModule = (exportName, items) => `export const ${exportName} = ${JSON.stringify(items, null, 2)};\n`;
+
+      const stringifyPost = () => {
+        const tags = postFields.tags.value
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean);
+        const lines = [
+          "---",
+          `title: "${postFields.title.value.trim().replaceAll('"', '\\"')}"`,
+          `description: "${postFields.description.value.trim().replaceAll('"', '\\"')}"`,
+          `publishDate: ${postFields.publishDate.value}`,
+        ];
+        if (postFields.cover.value.trim()) lines.push(`cover: "${postFields.cover.value.trim()}"`);
+        lines.push(`tags: [${tags.map((tag) => `"${tag.replaceAll('"', '\\"')}"`).join(", ")}]`);
+        if (postFields.draft.checked) lines.push("draft: true");
+        lines.push("---", "", postFields.body.value.trim(), "");
+        return lines.join("\n");
+      };
+
+      const renderMarkdownPreview = () => {
+        const body = postFields.body.value || "";
+        const html = escapeHtml(body)
+          .replace(/^### (.*)$/gm, "<h3>$1</h3>")
+          .replace(/^## (.*)$/gm, "<h2>$1</h2>")
+          .replace(/^# (.*)$/gm, "<h1>$1</h1>")
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .split(/\n{2,}/)
+          .map((block) => (block.startsWith("<h") ? block : `<p>${block.replace(/\n/g, "<br />")}</p>`))
+          .join("");
+        $("[data-post-preview]").innerHTML = html || "<p>预览会显示在这里。</p>";
+      };
+
+      const updateCounts = () => {
+        $('[data-count="posts"]').textContent = state.posts.length;
+        $('[data-count="projects"]').textContent = state.projects.length;
+        $('[data-count="gallery"]').textContent = state.gallery.length;
+        $('[data-count="images"]').textContent = state.images.length;
+      };
+
+      const selectSection = (section) => {
+        state.section = section;
+        $$("[data-section]").forEach((button) => {
+          button.dataset.active = String(button.dataset.section === section);
+        });
+        $$("[data-view]").forEach((view) => {
+          view.hidden = view.dataset.view !== section;
+        });
+        listKicker.textContent = labels[section].kicker;
+        listTitle.textContent = labels[section].title;
+        renderList();
+      };
+
+      const renderList = () => {
+        list.innerHTML = "";
+        const section = state.section;
+        const items =
+          section === "posts" ? state.posts : section === "projects" ? state.projects : section === "gallery" ? state.gallery : state.images;
+
+        if (!items.length) {
+          list.innerHTML = `<p class="text-sm text-[var(--muted)]">${labels[section].empty}</p>`;
+          renderImageGrid();
+          return;
+        }
+
+        items.forEach((item, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "orbit-card p-3 text-left transition hover:border-[var(--foreground)]";
+          if (section === "posts") {
+            button.dataset.active = String(state.current.post?.path === item.path);
+            const meta = [
+              formatDate(item.data?.publishDate),
+              ...(Array.isArray(item.data?.tags) ? item.data.tags : []),
+            ].filter(Boolean);
+            button.innerHTML = `
+              <p class="font-semibold leading-snug">${escapeHtml(postDisplayTitle(item))}</p>
+              ${item.data?.description ? `<p class="mt-2 text-sm leading-6 text-[var(--muted)]">${escapeHtml(item.data.description)}</p>` : ""}
+              <p class="mt-2 font-mono text-xs text-[var(--muted)]">${escapeHtml(meta.join(" · "))}</p>
+              <p class="mt-1 font-mono text-xs text-[var(--muted)]">slug: ${escapeHtml(postSlug(item))}</p>
+            `;
+            button.addEventListener("click", () => loadPost(item));
+          } else if (section === "projects") {
+            button.dataset.active = String(state.current.projectIndex === index);
+            button.innerHTML = `
+              <p class="font-semibold">${escapeHtml(item.name || "未命名项目")}</p>
+              <p class="mt-1 text-sm text-[var(--muted)]">${escapeHtml(item.year || "")} · ${(item.tags || []).map(escapeHtml).join(", ")}</p>
+            `;
+            button.addEventListener("click", () => fillProject(index));
+          } else if (section === "gallery") {
+            button.dataset.active = String(state.current.galleryIndex === index);
+            button.innerHTML = `
+              <p class="font-semibold">${escapeHtml(item.title || "未命名图片")}</p>
+              <p class="mt-1 font-mono text-xs text-[var(--muted)]">${escapeHtml(item.image || "")}</p>
+            `;
+            button.addEventListener("click", () => fillGallery(index));
+          } else {
+            button.dataset.active = String(state.current.image?.path === item.path);
+            button.innerHTML = `
+              <div class="mb-2 overflow-hidden rounded border border-[var(--line)] bg-black">
+                <img class="aspect-[16/10] w-full object-cover" src="${withBase(item.publicPath)}" alt="" loading="lazy" />
+              </div>
+              <p class="break-all font-mono text-xs">${escapeHtml(item.publicPath)}</p>
+            `;
+            button.addEventListener("click", () => selectImage(item));
+          }
+          list.append(button);
+        });
+        renderImageGrid();
+      };
+
+      const renderImageGrid = () => {
+        const grid = $("[data-image-grid]");
+        if (!grid) return;
+        grid.innerHTML = "";
+        if (!state.images.length) {
+          grid.innerHTML = '<p class="text-sm text-[var(--muted)]">暂无图片。</p>';
+          return;
+        }
+        state.images.forEach((image) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "orbit-card overflow-hidden p-2 text-left transition hover:border-[var(--foreground)]";
+          button.dataset.active = String(state.current.image?.path === image.path);
+          button.innerHTML = `
+            <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
+              <img class="aspect-[4/3] w-full object-cover" src="${withBase(image.publicPath)}" alt="" loading="lazy" />
+            </div>
+            <p class="mt-2 break-all font-mono text-xs">${escapeHtml(image.publicPath)}</p>
+          `;
+          button.addEventListener("click", () => selectImage(image));
+          grid.append(button);
+        });
+      };
+
+      const loadPosts = async () => {
+        const files = await getDir(POSTS_PATH);
+        const postFiles = files.filter((file) => /\.(md|mdx)$/.test(file.name));
+        state.posts = await Promise.all(
+          postFiles.map(async (item) => {
+            const file = await getFile(item.path);
+            const parsed = parseFrontmatter(fromBase64(file.content));
+            return {
+              ...item,
+              sha: file.sha,
+              data: parsed.data,
+              body: parsed.body,
+            };
+          }),
+        );
+        state.posts.sort((a, b) => new Date(b.data?.publishDate || 0).valueOf() - new Date(a.data?.publishDate || 0).valueOf());
+      };
+
+      const loadProjects = async () => {
+        const file = await getFile(PROJECTS_PATH);
+        state.files.projects = file;
+        state.projects = readExportedArray(fromBase64(file.content), "projects");
+      };
+
+      const loadGallery = async () => {
+        const file = await getFile(GALLERY_PATH);
+        state.files.gallery = file;
+        state.gallery = readExportedArray(fromBase64(file.content), "galleryItems");
+      };
+
+      const loadImages = async () => {
+        const files = await getDir(IMAGES_PATH);
+        state.images = files
+          .filter((file) => file.type === "file" && /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(file.name))
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((file) => ({ ...file, publicPath: `/images/${file.name}` }));
+      };
+
+      const applyInitialData = () => {
+        state.posts = clone(INITIAL_DATA.posts);
+        state.projects = clone(INITIAL_DATA.projects);
+        state.gallery = clone(INITIAL_DATA.gallery);
+        state.images = clone(INITIAL_DATA.images);
+        state.files.projects = null;
+        state.files.gallery = null;
+        updateCounts();
+        renderList();
+        if (!state.current.post) newPost();
+        if (state.current.projectIndex < 0) newProject();
+        if (state.current.galleryIndex < 0) newGallery();
+      };
+
+      const loadAll = async () => {
+        if (state.mode === "local") {
+          setStatus("本地模式：读取项目文件中...");
+          await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadImages()]);
+          updateCounts();
+          renderList();
+          if (!state.current.post) newPost();
+          if (state.current.projectIndex < 0) newProject();
+          if (state.current.galleryIndex < 0) newGallery();
+          setStatus("本地模式已启用。保存、删除、上传会直接写入当前项目文件夹。");
+          return;
+        }
+
+        if (!state.token) {
+          setStatus("读取当前网站内置内容中...");
+          applyInitialData();
+          setStatus("只读模式：内容已加载。线上保存、删除、上传需要 GitHub Token。");
+          return;
+        }
+
+        state.mode = "github";
+        setStatus("GitHub 模式：同步仓库内容中...");
+        await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadImages()]);
+        updateCounts();
+        renderList();
+        if (!state.current.post) newPost();
+        if (state.current.projectIndex < 0) newProject();
+        if (state.current.galleryIndex < 0) newGallery();
+        setStatus("GitHub 模式已连接。保存会直接提交到 main 分支。");
+      };
+
+      const newPost = () => {
+        state.current.post = { slug: "", sha: "", path: "", data: { publishDate: new Date().toISOString().slice(0, 10), tags: [] }, body: "" };
+        postFields.slug.value = "";
+        postFields.title.value = "";
+        postFields.description.value = "";
+        postFields.publishDate.value = new Date().toISOString().slice(0, 10);
+        postFields.cover.value = "";
+        postFields.tags.value = "";
+        postFields.draft.checked = false;
+        postFields.body.value = "";
+        $("[data-post-title]").textContent = "新建文章";
+        renderMarkdownPreview();
+        renderList();
+      };
+
+      const loadPost = async (item) => {
+        setStatus("读取文章中...");
+        const file = state.mode === "local" || state.token ? await getFile(item.path) : null;
+        const parsed = file ? parseFrontmatter(fromBase64(file.content)) : { data: item.data || {}, body: item.body || "" };
+        state.current.post = {
+          slug: item.name.replace(/\.(md|mdx)$/, ""),
+          path: item.path,
+          sha: file?.sha || item.sha || "",
+          data: parsed.data,
+          body: parsed.body,
+        };
+        postFields.slug.value = state.current.post.slug;
+        postFields.title.value = parsed.data.title || "";
+        postFields.description.value = parsed.data.description || "";
+        postFields.publishDate.value = String(parsed.data.publishDate || new Date().toISOString().slice(0, 10)).slice(0, 10);
+        postFields.cover.value = parsed.data.cover || "";
+        postFields.tags.value = Array.isArray(parsed.data.tags) ? parsed.data.tags.join(", ") : "";
+        postFields.draft.checked = !!parsed.data.draft;
+        postFields.body.value = parsed.body || "";
+        $("[data-post-title]").textContent = `编辑文章：${parsed.data.title || state.current.post.slug}`;
+        renderMarkdownPreview();
+        renderList();
+        setStatus("文章已载入。");
+      };
+
+      const savePost = async () => {
+        requireWriteAccess();
+        const slug = slugify(postFields.slug.value || postFields.title.value);
+        if (!slug) throw new Error("请填写文章标题或 slug");
+        if (!postFields.publishDate.value) throw new Error("请选择发布日期");
+        postFields.slug.value = slug;
+
+        const path = `${POSTS_PATH}/${slug}.mdx`;
+        const current = state.current.post;
+        let sha = current?.sha && current.path === path ? current.sha : "";
+        if (!sha && current?.path === path) {
+          const remoteFile = await getFile(path);
+          sha = remoteFile.sha;
+        }
+        const content = stringifyPost();
+        const result = await putFile({
+          path,
+          content: toBase64(content),
+          message: current?.path ? `Update post: ${slug}` : `Add post: ${slug}`,
+          sha: sha || undefined,
+        });
+
+        if (current?.sha && current.path && current.path !== path) {
+          await deleteFile({ path: current.path, sha: current.sha, message: `Remove old post slug: ${current.slug}` });
+        } else if (current?.path && current.path !== path) {
+          const oldFile = await getFile(current.path);
+          await deleteFile({ path: current.path, sha: oldFile.sha, message: `Remove old post slug: ${current.slug}` });
+        }
+
+        state.current.post = { ...current, slug, path, sha: result.content.sha };
+        await loadPosts();
+        updateCounts();
+        renderList();
+        setStatus("文章已保存，GitHub Pages 将自动部署。");
+      };
+
+      const deletePost = async () => {
+        requireWriteAccess();
+        const current = state.current.post;
+        if (!current?.path) throw new Error("请选择一篇已有文章");
+        if (!confirm(`确定删除文章「${current.slug}」吗？`)) return;
+        const sha = current.sha || (await getFile(current.path)).sha;
+        await deleteFile({ path: current.path, sha, message: `Delete post: ${current.slug}` });
+        await loadPosts();
+        updateCounts();
+        newPost();
+        setStatus("文章已删除。");
+      };
+
+      const newProject = () => {
+        state.current.projectIndex = -1;
+        projectFields.name.value = "";
+        projectFields.year.value = new Date().getFullYear().toString();
+        projectFields.description.value = "";
+        projectFields.tags.value = "";
+        projectFields.link.value = "";
+        $("[data-project-title]").textContent = "新建项目";
+        renderList();
+      };
+
+      const fillProject = (index) => {
+        const project = state.projects[index];
+        state.current.projectIndex = index;
+        projectFields.name.value = project?.name || "";
+        projectFields.year.value = project?.year || "";
+        projectFields.description.value = project?.description || "";
+        projectFields.tags.value = Array.isArray(project?.tags) ? project.tags.join(", ") : "";
+        projectFields.link.value = project?.link || "";
+        $("[data-project-title]").textContent = `编辑项目：${projectFields.name.value || "未命名"}`;
+        renderList();
+      };
+
+      const saveProject = async () => {
+        requireWriteAccess();
+        const project = {
+          name: projectFields.name.value.trim(),
+          year: projectFields.year.value.trim(),
+          description: projectFields.description.value.trim(),
+          tags: projectFields.tags.value.split(",").map((tag) => tag.trim()).filter(Boolean),
+          link: projectFields.link.value.trim() || "#",
+        };
+        if (!project.name) throw new Error("请填写项目名称");
+        if (!project.description) throw new Error("请填写项目简介");
+        const items = [...state.projects];
+        if (state.current.projectIndex >= 0) items[state.current.projectIndex] = project;
+        else items.unshift(project);
+        const sha = state.files.projects?.sha || (await getFile(PROJECTS_PATH)).sha;
+        const result = await putFile({
+          path: PROJECTS_PATH,
+          content: toBase64(stringifyArrayModule("projects", items)),
+          message: state.current.projectIndex >= 0 ? `Update project: ${project.name}` : `Add project: ${project.name}`,
+          sha,
+        });
+        state.projects = items;
+        state.files.projects = { ...state.files.projects, sha: result.content.sha };
+        state.current.projectIndex = items.findIndex((item) => item === project);
+        updateCounts();
+        renderList();
+        setStatus("项目已保存。");
+      };
+
+      const deleteProject = async () => {
+        requireWriteAccess();
+        if (state.current.projectIndex < 0) throw new Error("请选择一个已有项目");
+        const project = state.projects[state.current.projectIndex];
+        if (!confirm(`确定删除项目「${project.name}」吗？`)) return;
+        const items = state.projects.filter((_, index) => index !== state.current.projectIndex);
+        const sha = state.files.projects?.sha || (await getFile(PROJECTS_PATH)).sha;
+        const result = await putFile({
+          path: PROJECTS_PATH,
+          content: toBase64(stringifyArrayModule("projects", items)),
+          message: `Delete project: ${project.name}`,
+          sha,
+        });
+        state.projects = items;
+        state.files.projects = { ...state.files.projects, sha: result.content.sha };
+        updateCounts();
+        newProject();
+        setStatus("项目已删除。");
+      };
+
+      const newGallery = () => {
+        state.current.galleryIndex = -1;
+        galleryFields.title.value = "";
+        galleryFields.description.value = "";
+        galleryFields.image.value = "";
+        galleryFields.height.value = "medium";
+        $("[data-gallery-title]").textContent = "新建图集卡片";
+        renderGalleryPreview();
+        renderList();
+      };
+
+      const fillGallery = (index) => {
+        const item = state.gallery[index];
+        state.current.galleryIndex = index;
+        galleryFields.title.value = item?.title || "";
+        galleryFields.description.value = item?.description || "";
+        galleryFields.image.value = item?.image || "";
+        galleryFields.height.value = item?.height || "medium";
+        $("[data-gallery-title]").textContent = `编辑卡片：${galleryFields.title.value || "未命名"}`;
+        renderGalleryPreview();
+        renderList();
+      };
+
+      const renderGalleryPreview = () => {
+        const image = galleryFields.image.value.trim();
+        const preview = $("[data-gallery-preview]");
+        preview.src = image ? withBase(image) : "";
+        preview.alt = galleryFields.title.value.trim();
+        $("[data-gallery-preview-title]").textContent = galleryFields.title.value.trim() || "预览";
+        $("[data-gallery-preview-description]").textContent = galleryFields.description.value.trim() || "选择图片后显示。";
+      };
+
+      const saveGallery = async () => {
+        requireWriteAccess();
+        const item = {
+          title: galleryFields.title.value.trim(),
+          description: galleryFields.description.value.trim(),
+          image: galleryFields.image.value.trim(),
+          height: galleryFields.height.value,
+        };
+        if (!item.title) throw new Error("请填写图集标题");
+        if (!item.image) throw new Error("请选择或上传图片");
+        const items = [...state.gallery];
+        if (state.current.galleryIndex >= 0) items[state.current.galleryIndex] = item;
+        else items.unshift(item);
+        const sha = state.files.gallery?.sha || (await getFile(GALLERY_PATH)).sha;
+        const result = await putFile({
+          path: GALLERY_PATH,
+          content: toBase64(stringifyArrayModule("galleryItems", items)),
+          message: state.current.galleryIndex >= 0 ? `Update gallery item: ${item.title}` : `Add gallery item: ${item.title}`,
+          sha,
+        });
+        state.gallery = items;
+        state.files.gallery = { ...state.files.gallery, sha: result.content.sha };
+        state.current.galleryIndex = items.findIndex((entry) => entry === item);
+        updateCounts();
+        renderList();
+        setStatus("图集卡片已保存。");
+      };
+
+      const addSelectedImageToGallery = async () => {
+        requireWriteAccess();
+        const image = state.current.image;
+        if (!image?.publicPath) throw new Error("请先选中一张图片");
+        const existing = state.gallery.find((item) => item.image === image.publicPath);
+        if (existing && !confirm("这张图片已经在图集里了，要继续重复添加吗？")) return;
+
+        const title = image.name.replace(/\.[^.]+$/, "").replace(/^\d+-/, "").replace(/-[a-z0-9]{8}$/, "").replace(/-/g, " ") || "新图片";
+        const item = {
+          title,
+          description: "",
+          image: image.publicPath,
+          height: "medium",
+        };
+        const items = [item, ...state.gallery];
+        const sha = state.files.gallery?.sha || (await getFile(GALLERY_PATH)).sha;
+        const result = await putFile({
+          path: GALLERY_PATH,
+          content: toBase64(stringifyArrayModule("galleryItems", items)),
+          message: `Add gallery image: ${title}`,
+          sha,
+        });
+        state.gallery = items;
+        state.files.gallery = { ...state.files.gallery, sha: result.content.sha };
+        state.current.galleryIndex = 0;
+        updateCounts();
+        selectSection("gallery");
+        fillGallery(0);
+        setStatus("已加入图集。前台图集页刷新后会显示这张图片。");
+      };
+
+      const deleteGallery = async () => {
+        requireWriteAccess();
+        if (state.current.galleryIndex < 0) throw new Error("请选择一个已有图集卡片");
+        const item = state.gallery[state.current.galleryIndex];
+        if (!confirm(`确定删除图集卡片「${item.title}」吗？图片文件不会自动删除。`)) return;
+        const items = state.gallery.filter((_, index) => index !== state.current.galleryIndex);
+        const sha = state.files.gallery?.sha || (await getFile(GALLERY_PATH)).sha;
+        const result = await putFile({
+          path: GALLERY_PATH,
+          content: toBase64(stringifyArrayModule("galleryItems", items)),
+          message: `Delete gallery item: ${item.title}`,
+          sha,
+        });
+        state.gallery = items;
+        state.files.gallery = { ...state.files.gallery, sha: result.content.sha };
+        updateCounts();
+        newGallery();
+        setStatus("图集卡片已删除。");
+      };
+
+      const makeImageName = (file) => {
+        const typeExtensions = {
+          "image/jpeg": "jpg",
+          "image/png": "png",
+          "image/webp": "webp",
+          "image/gif": "gif",
+          "image/avif": "avif",
+          "image/svg+xml": "svg",
+        };
+        const extension = typeExtensions[file.type] || (file.name.split(".").pop() || "png").toLowerCase();
+        const baseName = slugifyFile(file.name.replace(/\.[^.]+$/, "")) || "image";
+        const suffix = crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10);
+        return `${Date.now()}-${baseName}-${suffix}.${extension}`;
+      };
+
+      const uploadImageFile = async (file) => {
+        const safeName = makeImageName(file);
+        const path = `${IMAGES_PATH}/${safeName}`;
+        const result = await putFile({
+          path,
+          content: arrayBufferToBase64(await file.arrayBuffer()),
+          message: `Upload image: ${safeName}`,
+        });
+        return { name: safeName, path, sha: result.content.sha, publicPath: `/images/${safeName}` };
+      };
+
+      const uploadImages = async (files) => {
+        requireWriteAccess();
+        if (!files.length) return [];
+        setStatus(`上传 ${files.length} 张图片中...`);
+        const uploaded = [];
+        for (const file of files) {
+          uploaded.push(await uploadImageFile(file));
+        }
+        await loadImages();
+        updateCounts();
+        renderList();
+        selectImage(uploaded.at(-1));
+        setStatus("图片已上传。");
+        return uploaded;
+      };
+
+      const selectImage = (image) => {
+        state.current.image = image;
+        $("[data-selected-image-preview]").src = image?.publicPath ? withBase(image.publicPath) : "";
+        $("[data-selected-image-path]").value = image?.publicPath || "";
+        renderList();
+      };
+
+      const deleteImage = async () => {
+        requireWriteAccess();
+        const image = state.current.image;
+        if (!image?.path) throw new Error("请选择一张图片");
+        if (!confirm(`确定删除图片「${image.name}」吗？如果文章或图集还在引用它，页面会显示破图。`)) return;
+        const sha = image.sha || (await getFile(image.path)).sha;
+        await deleteFile({ path: image.path, sha, message: `Delete image: ${image.name}` });
+        state.current.image = null;
+        await loadImages();
+        updateCounts();
+        selectImage(null);
+        renderList();
+        setStatus("图片已删除。");
+      };
+
+      const connect = async () => {
+        const token = $("[data-token-input]").value.trim();
+        if (!token) return;
+        state.token = token;
+        if (!state.localApi) state.mode = "github";
+        sessionStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        const storage = $("[data-remember-token]").checked ? localStorage : sessionStorage;
+        storage.setItem(TOKEN_KEY, token);
+        await loadAll();
+      };
+
+      const clearToken = async () => {
+        state.token = "";
+        sessionStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        $("[data-token-input]").value = "";
+        state.mode = state.localApi ? "local" : "readonly";
+        await loadAll();
+      };
+
+      const run = async (task) => {
+        try {
+          await task();
+        } catch (error) {
+          setStatus(error.message || "操作失败");
+        }
+      };
+
+      $$("[data-section]").forEach((button) => {
+        button.addEventListener("click", () => selectSection(button.dataset.section));
+      });
+
+      $("[data-save-token]").addEventListener("click", () => run(connect));
+      $("[data-auth-form]").addEventListener("submit", (event) => {
+        event.preventDefault();
+        run(connect);
+      });
+      $("[data-clear-token]").addEventListener("click", () => run(clearToken));
+      $("[data-new-current]").addEventListener("click", () => {
+        if (state.section === "posts") newPost();
+        if (state.section === "projects") newProject();
+        if (state.section === "gallery") newGallery();
+        if (state.section === "images") $("[data-image-file]").click();
+      });
+
+      $("[data-save-post]").addEventListener("click", () => run(savePost));
+      $("[data-delete-post]").addEventListener("click", () => run(deletePost));
+      $("[data-post-upload-cover]").addEventListener("click", () => $("[data-post-cover-file]").click());
+      $("[data-post-cover-file]").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        run(async () => {
+          const [image] = await uploadImages([file]);
+          postFields.cover.value = image.publicPath;
+        });
+      });
+
+      $("[data-save-project]").addEventListener("click", () => run(saveProject));
+      $("[data-delete-project]").addEventListener("click", () => run(deleteProject));
+
+      $("[data-save-gallery]").addEventListener("click", () => run(saveGallery));
+      $("[data-delete-gallery]").addEventListener("click", () => run(deleteGallery));
+      $("[data-gallery-upload-image]").addEventListener("click", () => $("[data-gallery-image-file]").click());
+      $("[data-gallery-image-file]").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        run(async () => {
+          const [image] = await uploadImages([file]);
+          galleryFields.image.value = image.publicPath;
+          renderGalleryPreview();
+        });
+      });
+
+      $("[data-upload-image]").addEventListener("click", () => $("[data-image-file]").click());
+      $("[data-image-file]").addEventListener("change", (event) => run(() => uploadImages(Array.from(event.target.files || []))));
+      $("[data-add-image-to-gallery]").addEventListener("click", () => run(addSelectedImageToGallery));
+      $("[data-delete-image]").addEventListener("click", () => run(deleteImage));
+
+      Object.values(postFields).forEach((field) => field.addEventListener("input", renderMarkdownPreview));
+      Object.values(galleryFields).forEach((field) => field.addEventListener("input", renderGalleryPreview));
+
+      updateCounts();
+      selectSection("posts");
+      newPost();
+      newProject();
+      newGallery();
+
+      const initialize = async () => {
+        if (state.token) $("[data-token-input]").value = state.token;
+        await detectLocalApi();
+        await loadAll();
+      };
+
+      run(initialize);
+    </script>
+  </body>
+</html>

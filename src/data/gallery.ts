@@ -18,12 +18,6 @@ export const galleryItems = [
     "height": "medium"
   },
   {
-    "title": "周末重构",
-    "description": "把想法拆小，再慢慢拼回可运行的形状。",
-    "image": "/images/gallery-night.png",
-    "height": "tall"
-  },
-  {
     "title": "给未来的草稿",
     "description": "很多答案先以涂鸦的形态出现。",
     "image": "/images/gallery-workspace.png",

@@ -33,7 +33,7 @@ const { Content } = await render(post);
     </header>
 
     {post.data.cover && (
-      <img class="mt-10 aspect-[16/9] w-full rounded-md border border-[var(--line)] object-cover grayscale photo-shadow" src={withBase(post.data.cover)} alt="" />
+      <img class="mt-10 aspect-[16/9] w-full rounded-md border border-[var(--line)] object-cover photo-shadow" src={withBase(post.data.cover)} alt="" />
     )}
 
     <div class="prose mx-auto mt-12 max-w-3xl">

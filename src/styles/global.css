@@ -62,6 +62,25 @@ img {
   display: block;
 }
 
+#cursor-field {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.dark #cursor-field {
+  mix-blend-mode: screen;
+}
+
+header,
+main,
+footer {
+  position: relative;
+  z-index: 2;
+}
+
 .container {
   width: min(1180px, calc(100% - 2rem));
   margin-inline: auto;

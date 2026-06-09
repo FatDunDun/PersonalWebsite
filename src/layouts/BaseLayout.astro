@@ -1,6 +1,7 @@
 ---
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
+import CursorField from "@/components/CursorField.astro";
 import "@/styles/global.css";
 import { absoluteUrl, siteConfig } from "@/utils/site";
 
@@ -51,6 +52,7 @@ const ogImage = image.startsWith("http") ? image : absoluteUrl(image);
     </script>
   </head>
   <body>
+    <CursorField />
     <Header />
     <main>
       <slot />

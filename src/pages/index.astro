@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import AnniversaryTimer from "@/components/AnniversaryTimer.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
@@ -62,6 +63,7 @@ const featuredFrames = galleryItems.slice(0, 3);
           <p class="mt-2 text-3xl font-semibold">{projects.length}</p>
         </div>
       </div>
+      <AnniversaryTimer />
     </div>
   </section>
 

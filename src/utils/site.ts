@@ -7,6 +7,12 @@ export const siteConfig = {
   ogImage: "/images/hero.png",
 };
 
+export const anniversaryConfig = {
+  label: "When Begin",
+  title: "和西伯利亚无敌飞天棒棒猪已经在一起",
+  startAt: "2024-01-20T20:00:00+08:00",
+};
+
 export const navItems = [
   { href: "/", label: "首页" },
   { href: "/articles/", label: "文章" },

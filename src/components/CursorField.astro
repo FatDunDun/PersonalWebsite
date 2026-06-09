@@ -1,0 +1,209 @@
+---
+---
+
+<canvas id="cursor-field" aria-hidden="true"></canvas>
+
+<script>
+  const canvas = document.getElementById("cursor-field") as HTMLCanvasElement | null;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  if (canvas && !reduceMotion.matches) {
+    const context = canvas.getContext("2d", { alpha: true });
+    const pointer = {
+      x: window.innerWidth * 0.5,
+      y: window.innerHeight * 0.42,
+      targetX: window.innerWidth * 0.5,
+      targetY: window.innerHeight * 0.42,
+    };
+
+    let width = 0;
+    let height = 0;
+    let raf = 0;
+
+    const resize = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * ratio);
+      canvas.height = Math.floor(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context?.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
+
+    const colorForTheme = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      return isDark ? "190, 205, 225" : "78, 86, 102";
+    };
+
+    const drawLine = (
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      alpha: number,
+      color: string,
+      width = 1,
+    ) => {
+      if (!context) return;
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.strokeStyle = `rgba(${color}, ${alpha})`;
+      context.lineWidth = width;
+      context.lineCap = "round";
+      context.stroke();
+    };
+
+    const drawNode = (x: number, y: number, alpha: number, color: string) => {
+      if (!context) return;
+      context.beginPath();
+      context.arc(x, y, 1.45, 0, Math.PI * 2);
+      context.fillStyle = `rgba(${color}, ${alpha})`;
+      context.fill();
+    };
+
+    const signedPower = (value: number, exponent: number) =>
+      Math.sign(value) * Math.abs(value) ** exponent;
+
+    const pointOnFan = (
+      centerX: number,
+      centerY: number,
+      scale: number,
+      angle: number,
+      radius: number,
+      phase: number,
+      index: number,
+      t: number,
+    ) => {
+      const exponent = 0.72 + Math.sin(phase * 0.9) * 0.045;
+      const rose = 1 + Math.sin(angle * 3 - phase * 1.6) * 0.12;
+      const breath = 1 + Math.sin(phase * 2.1 + t * Math.PI) * 0.045;
+      const lissajousX = Math.sin(phase * 2.4 + index * 1.618) * 8 * scale;
+      const lissajousY = Math.cos(phase * 1.9 + index * 2.414) * 7 * scale;
+      const superX = signedPower(Math.cos(angle), exponent) * radius * rose * breath;
+      const superY = signedPower(Math.sin(angle), exponent) * radius * 0.72 * rose;
+
+      return {
+        x: centerX + superX * scale + lissajousX,
+        y: centerY + superY * scale + lissajousY,
+      };
+    };
+
+    const drawRecursiveArc = (
+      points: Array<{ x: number; y: number }>,
+      start: number,
+      end: number,
+      depth: number,
+      color: string,
+    ) => {
+      if (depth <= 0 || end - start < 2) return;
+
+      const middle = Math.floor((start + end) / 2);
+      const a = points[start];
+      const b = points[middle];
+      const c = points[end];
+
+      drawLine(a.x, a.y, b.x, b.y, 0.045 + depth * 0.012, color);
+      drawLine(b.x, b.y, c.x, c.y, 0.045 + depth * 0.012, color);
+      drawLine(a.x, a.y, c.x, c.y, 0.026 + depth * 0.01, color);
+
+      drawRecursiveArc(points, start, middle, depth - 1, color);
+      drawRecursiveArc(points, middle, end, depth - 1, color);
+    };
+
+    const drawTriangulatedFan = (time: number) => {
+      if (!context) return;
+
+      const color = colorForTheme();
+      const phase = time * 0.00145;
+      const scale = Math.min(width, height) < 640 ? 0.72 : 1;
+      const centerX = pointer.x + Math.sin(phase * 1.3) * 18 * scale;
+      const centerY = pointer.y + Math.cos(phase * 1.1) * 14 * scale;
+      const baseRadius = 112 + Math.sin(phase * 1.5) * 10;
+      const startAngle = -2.9 + Math.sin(phase * 1.1) * 0.18;
+      const endAngle = 1.22 + Math.cos(phase * 0.95) * 0.16;
+      const rotation = phase * 0.58;
+      const count = 19;
+
+      const outer = Array.from({ length: count }, (_, index) => {
+        const t = index / (count - 1);
+        const eased = 0.5 - Math.cos(t * Math.PI) / 2;
+        const angle = startAngle + (endAngle - startAngle) * eased + rotation;
+        const spiral = baseRadius * (0.76 + eased * 0.34);
+        const scallop =
+          Math.sin(t * Math.PI * 2 + phase * 2.4) * 8 +
+          Math.cos(t * Math.PI * 5 + phase * 1.2) * 4;
+        return pointOnFan(centerX, centerY, scale, angle, spiral + scallop, phase, index, eased);
+      });
+
+      const inner = outer.map((point, index) => ({
+        x: centerX + (point.x - centerX) * (0.44 + Math.sin(phase * 1.7 + index) * 0.05),
+        y: centerY + (point.y - centerY) * (0.44 + Math.cos(phase * 1.7 + index) * 0.05),
+      }));
+
+      for (let index = 0; index < outer.length - 1; index += 1) {
+        const alpha = 0.075 + Math.sin(phase + index * 0.7) * 0.018;
+        drawLine(outer[index].x, outer[index].y, outer[index + 1].x, outer[index + 1].y, alpha, color, 1.05);
+      }
+
+      for (let index = 0; index < inner.length - 1; index += 1) {
+        drawLine(inner[index].x, inner[index].y, inner[index + 1].x, inner[index + 1].y, 0.035, color);
+      }
+
+      for (let index = 1; index < outer.length - 1; index += 2) {
+        drawLine(centerX, centerY, outer[index].x, outer[index].y, 0.05, color);
+        const goldenTarget = (index + 5) % outer.length;
+        drawLine(inner[index].x, inner[index].y, outer[goldenTarget].x, outer[goldenTarget].y, 0.041, color);
+      }
+
+      for (let index = 0; index < outer.length - 4; index += 3) {
+        drawLine(outer[index].x, outer[index].y, inner[index + 3].x, inner[index + 3].y, 0.035, color);
+      }
+
+      drawRecursiveArc(outer, 0, outer.length - 1, 3, color);
+
+      const tailA = outer[0];
+      const tailB = outer[outer.length - 1];
+      drawLine(tailA.x, tailA.y, tailA.x - 34 * scale, tailA.y + 62 * scale, 0.045, color);
+      drawLine(tailB.x, tailB.y, tailB.x + 46 * scale, tailB.y + 42 * scale, 0.045, color);
+      drawLine(centerX, centerY, tailB.x + 46 * scale, tailB.y + 42 * scale, 0.026, color);
+
+      drawNode(centerX, centerY, 0.22, color);
+      for (const point of outer) {
+        drawNode(point.x, point.y, 0.12, color);
+      }
+    };
+
+    const draw = (time = performance.now()) => {
+      if (!context) return;
+
+      context.clearRect(0, 0, width, height);
+
+      pointer.x += (pointer.targetX - pointer.x) * 0.018;
+      pointer.y += (pointer.targetY - pointer.y) * 0.018;
+
+      drawTriangulatedFan(time);
+      raf = window.requestAnimationFrame(draw);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      pointer.targetX = event.clientX;
+      pointer.targetY = event.clientY;
+    };
+
+    resize();
+    draw();
+
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    reduceMotion.addEventListener("change", () => {
+      if (reduceMotion.matches) {
+        window.cancelAnimationFrame(raf);
+        context.clearRect(0, 0, width, height);
+      } else {
+        draw();
+      }
+    });
+  }
+</script>

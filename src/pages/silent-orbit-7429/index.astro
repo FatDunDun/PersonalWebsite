@@ -519,7 +519,8 @@ const initialData = {
 
       const withBase = (path) => {
         if (!path) return "";
-        return new URL(`${BASE_URL}${path.replace(/^\/+/, "")}`, location.origin).toString();
+        const base = BASE_URL.endsWith("/") ? BASE_URL : `${BASE_URL}/`;
+        return new URL(`${base}${path.replace(/^\/+/, "")}`, location.origin).toString();
       };
 
       const clone = (value) => JSON.parse(JSON.stringify(value));

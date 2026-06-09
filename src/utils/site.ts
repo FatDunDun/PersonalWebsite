@@ -22,12 +22,17 @@ export const navItems = [
 ];
 
 export function withBase(path = "/") {
-  const base = import.meta.env.BASE_URL;
+  const base = import.meta.env.BASE_URL.endsWith("/")
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
   if (path === "/") return base;
   return `${base}${path.replace(/^\/+/, "")}`;
 }
 
 export function absoluteUrl(path: string) {
-  const base = new URL(import.meta.env.BASE_URL, import.meta.env.SITE);
+  const basePath = import.meta.env.BASE_URL.endsWith("/")
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
+  const base = new URL(basePath, import.meta.env.SITE);
   return new URL(path.replace(/^\/+/, ""), base).toString();
 }

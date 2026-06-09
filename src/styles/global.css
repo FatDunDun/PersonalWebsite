@@ -169,6 +169,22 @@ footer {
   padding-left: 1rem;
 }
 
+.prose img {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-block: 1.6rem;
+  object-fit: cover;
+}
+
+.prose video {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #050505;
+  margin-block: 1.6rem;
+}
+
 .prose code {
   border: 1px solid var(--line);
   border-radius: 6px;

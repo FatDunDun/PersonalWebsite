@@ -22,7 +22,11 @@ function localContentApi() {
     "src/content/posts",
     "src/data/projects.ts",
     "src/data/gallery.ts",
+    "src/data/videos.ts",
     "public/images",
+    "public/personal-photo",
+    "public/videos",
+    "public/personal-video",
   ];
 
   const send = (res, status, data) => {

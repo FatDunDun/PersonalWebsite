@@ -2,11 +2,15 @@
 import "@/styles/global.css";
 import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
+import { videoItems } from "@/data/videos";
 import { getCollection } from "astro:content";
 import { readdirSync } from "node:fs";
 
 const posts = await getCollection("posts");
-const imageNames = readdirSync(new URL("../../../public/images/", import.meta.url)).filter((name) => /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(name));
+const imageDirectory = new URL("../../../public/images/", import.meta.url);
+const imageNames = readdirSync(imageDirectory).filter((name) => /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(name));
+const videoDirectory = new URL("../../../public/videos/", import.meta.url);
+const videoNames = readdirSync(videoDirectory).filter((name) => /\.(mp4|webm|mov|m4v)$/i.test(name));
 
 const initialData = {
   posts: posts
@@ -19,10 +23,16 @@ const initialData = {
     .sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()),
   projects,
   gallery: galleryItems,
+  personalVideos: videoItems,
   images: imageNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
     name,
     path: `public/images/${name}`,
     publicPath: `/images/${name}`,
+  })),
+  videos: videoNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
+    name,
+    path: `public/videos/${name}`,
+    publicPath: `/videos/${name}`,
   })),
 };
 ---
@@ -46,8 +56,10 @@ const initialData = {
 
       .orbit-panel {
         border: 1px solid var(--line);
-        background: color-mix(in srgb, var(--surface) 92%, transparent);
-        box-shadow: 0 24px 80px rgb(0 0 0 / 0.08);
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        box-shadow: 0 28px 90px rgb(0 0 0 / 0.075);
+        backdrop-filter: blur(18px);
       }
 
       .orbit-input {
@@ -55,7 +67,7 @@ const initialData = {
         border: 1px solid var(--line);
         border-radius: 8px;
         background: var(--background);
-        padding: 0.72rem 0.82rem;
+        padding: 0.68rem 0.78rem;
         color: var(--foreground);
         outline: none;
       }
@@ -66,16 +78,17 @@ const initialData = {
 
       .orbit-button {
         border: 1px solid var(--line);
-        border-radius: 999px;
-        padding: 0.62rem 0.9rem;
+        border-radius: 8px;
+        padding: 0.58rem 0.78rem;
         font-family: var(--font-mono);
-        font-size: 0.78rem;
-        transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+        font-size: 0.75rem;
+        transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
       }
 
       .orbit-button:hover,
       .orbit-button[data-active="true"] {
         border-color: var(--foreground);
+        transform: translateY(-1px);
       }
 
       .orbit-button-primary {
@@ -95,12 +108,13 @@ const initialData = {
 
       .orbit-card {
         border: 1px solid var(--line);
-        border-radius: 10px;
-        background: var(--background);
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--background) 92%, transparent);
       }
 
       .orbit-card[data-active="true"] {
         border-color: var(--foreground);
+        box-shadow: inset 0 0 0 1px var(--foreground);
       }
 
       .orbit-view[hidden] {
@@ -110,21 +124,34 @@ const initialData = {
       .orbit-list {
         scrollbar-width: thin;
       }
+
+      .orbit-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 0.5rem;
+      }
+
+      @media (min-width: 1024px) {
+        .orbit-actions {
+          justify-content: flex-end;
+        }
+      }
     </style>
   </head>
   <body class="orbit-shell min-h-screen text-[var(--foreground)]">
-    <main class="mx-auto flex min-h-screen w-[min(1440px,calc(100%-1.5rem))] flex-col gap-4 py-4 md:w-[min(1440px,calc(100%-2rem))] md:py-6">
-      <header class="orbit-panel rounded-xl p-4">
-        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <main class="mx-auto flex min-h-screen w-[min(1680px,calc(100%-1.25rem))] flex-col gap-5 py-4 md:w-[min(1680px,calc(100%-2rem))] md:py-6">
+      <header class="orbit-panel p-4 md:p-5">
+        <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p class="font-mono text-xs uppercase tracking-[0.26em] text-[var(--accent)]">Silent Orbit</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-normal md:text-5xl">内容工作台</h1>
+            <h1 class="mt-2 text-3xl font-semibold tracking-normal md:text-4xl">内容工作台</h1>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              文章、项目、图集和图片统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
+              文章、项目、PersonalPhoto、PersonalVideo、素材图片和素材视频统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
             </p>
           </div>
 
-          <form class="grid gap-3 lg:min-w-[560px] lg:grid-cols-[1fr_auto] lg:items-end" data-auth-form>
+          <form class="grid gap-3 lg:min-w-[500px] lg:grid-cols-[1fr_auto] lg:items-end" data-auth-form>
             <label class="block">
               <span class="font-mono text-xs text-[var(--muted)]">GitHub Token</span>
               <input
@@ -147,9 +174,9 @@ const initialData = {
         </div>
       </header>
 
-      <div class="grid flex-1 gap-4 xl:grid-cols-[240px_360px_1fr]">
-        <aside class="orbit-panel rounded-xl p-3">
-          <nav class="grid gap-2">
+      <div class="grid flex-1 gap-5 xl:grid-cols-[220px_minmax(0,1fr)]">
+        <aside class="orbit-panel p-3 xl:sticky xl:top-6 xl:self-start">
+          <nav class="grid gap-1.5">
             <button class="orbit-button flex items-center justify-between text-left" data-section="posts" data-active="true" type="button">
               <span>文章</span>
               <span class="text-[var(--muted)]" data-count="posts">0</span>
@@ -159,21 +186,29 @@ const initialData = {
               <span class="text-[var(--muted)]" data-count="projects">0</span>
             </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="gallery" type="button">
-              <span>图集</span>
+              <span>PersonalPhoto</span>
               <span class="text-[var(--muted)]" data-count="gallery">0</span>
             </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="personalVideos" type="button">
+              <span>PersonalVideo</span>
+              <span class="text-[var(--muted)]" data-count="personalVideos">0</span>
+            </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="images" type="button">
-              <span>图片库</span>
+              <span>素材图片库</span>
               <span class="text-[var(--muted)]" data-count="images">0</span>
+            </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="videos" type="button">
+              <span>素材视频库</span>
+              <span class="text-[var(--muted)]" data-count="videos">0</span>
             </button>
           </nav>
 
-          <section class="mt-4 rounded-lg border border-[var(--line)] bg-[var(--background)] p-3">
+          <section class="mt-4 rounded-lg border border-[var(--line)] bg-[var(--background)]/70 p-3">
             <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Status</p>
             <p class="mt-3 min-h-12 text-sm leading-6 text-[var(--muted)]" data-status>正在读取公开内容。</p>
           </section>
 
-          <section class="mt-4 rounded-lg border border-[var(--line)] bg-[var(--background)] p-3">
+          <section class="mt-3 rounded-lg border border-[var(--line)] bg-[var(--background)]/70 p-3">
             <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Publish</p>
             <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
               每次保存都会成为一次 Git commit。GitHub Actions 会自动重新部署网站。
@@ -181,7 +216,8 @@ const initialData = {
           </section>
         </aside>
 
-        <section class="orbit-panel rounded-xl p-3">
+        <div class="grid min-w-0 gap-5 xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)]">
+        <section class="orbit-panel p-4">
           <div class="flex items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
             <div>
               <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--muted)]" data-list-kicker>Posts</p>
@@ -189,23 +225,28 @@ const initialData = {
             </div>
             <button class="orbit-button orbit-button-primary" data-new-current type="button">new</button>
           </div>
-          <div class="orbit-list mt-3 grid max-h-[calc(100vh-290px)] gap-2 overflow-auto pr-1" data-list>
+          <div class="orbit-list mt-3 grid max-h-[calc(100vh-250px)] gap-2 overflow-auto pr-1" data-list>
             <p class="text-sm text-[var(--muted)]">连接后加载内容。</p>
           </div>
         </section>
 
-        <section class="orbit-panel rounded-xl p-4">
+        <section class="orbit-panel min-w-0 p-4 md:p-5">
           <section class="orbit-view" data-view="posts">
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Post Editor</p>
                 <h2 class="mt-1 text-2xl font-semibold" data-post-title>新建文章</h2>
               </div>
-              <div class="flex flex-wrap gap-2">
-                <button class="orbit-button" data-post-upload-cover type="button">上传封面</button>
+              <div class="orbit-actions">
+                <button class="orbit-button" data-post-upload-cover type="button">封面</button>
+                <button class="orbit-button" data-post-upload-body-image type="button">插入图片</button>
+                <button class="orbit-button" data-post-upload-video type="button">插入视频</button>
+                <button class="orbit-button" data-post-insert-selected-image type="button">用选中图</button>
                 <button class="orbit-button orbit-button-primary" data-save-post type="button">保存文章</button>
                 <button class="orbit-button orbit-danger" data-delete-post type="button">删除文章</button>
                 <input class="hidden" data-post-cover-file type="file" accept="image/*" />
+                <input class="hidden" data-post-body-image-file type="file" accept="image/*" />
+                <input class="hidden" data-post-video-file type="file" accept="video/mp4,video/webm,video/quicktime" />
               </div>
             </div>
 
@@ -245,6 +286,7 @@ const initialData = {
                 </label>
                 <label>
                   <span class="font-mono text-xs text-[var(--muted)]">Body</span>
+                  <span class="ml-2 text-xs text-[var(--muted)]">图片会进入素材图片库；视频会进入 videos，并插入到光标位置。</span>
                   <textarea class="orbit-input mt-2 min-h-[420px] font-mono text-sm leading-7" data-post-field="body" placeholder="开始写 Markdown / MDX..."></textarea>
                 </label>
               </form>
@@ -265,7 +307,7 @@ const initialData = {
                 <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Project Editor</p>
                 <h2 class="mt-1 text-2xl font-semibold" data-project-title>新建项目</h2>
               </div>
-              <div class="flex flex-wrap gap-2">
+              <div class="orbit-actions">
                 <button class="orbit-button orbit-button-primary" data-save-project type="button">保存项目</button>
                 <button class="orbit-button orbit-danger" data-delete-project type="button">删除项目</button>
               </div>
@@ -302,13 +344,13 @@ const initialData = {
           <section class="orbit-view" data-view="gallery" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Gallery Editor</p>
-                <h2 class="mt-1 text-2xl font-semibold" data-gallery-title>新建图集卡片</h2>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">PersonalPhoto Editor</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-gallery-title>新建照片卡片</h2>
               </div>
-              <div class="flex flex-wrap gap-2">
-                <button class="orbit-button" data-gallery-upload-image type="button">上传图片</button>
-                <button class="orbit-button orbit-button-primary" data-save-gallery type="button">保存卡片</button>
-                <button class="orbit-button orbit-danger" data-delete-gallery type="button">删除卡片</button>
+              <div class="orbit-actions">
+                <button class="orbit-button" data-gallery-upload-image type="button">上传 PersonalPhoto</button>
+                <button class="orbit-button orbit-button-primary" data-save-gallery type="button">保存照片</button>
+                <button class="orbit-button orbit-danger" data-delete-gallery type="button">删除照片</button>
                 <input class="hidden" data-gallery-image-file type="file" accept="image/*" />
               </div>
             </div>
@@ -326,7 +368,7 @@ const initialData = {
                 <div class="grid gap-4 md:grid-cols-[1fr_180px]">
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Image</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-gallery-field="image" placeholder="/images/example.png" />
+                    <input class="orbit-input mt-2 font-mono text-sm" data-gallery-field="image" placeholder="/personal-photo/example.png" />
                   </label>
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Card Height</span>
@@ -339,12 +381,18 @@ const initialData = {
                 </div>
               </form>
               <figure class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-2">
-                <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
-                  <img class="aspect-[4/3] w-full object-cover" data-gallery-preview src="" alt="" />
+                <div class="relative overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
+                  <div class="grid aspect-[4/3] w-full place-items-center px-6 text-center" data-gallery-empty>
+                    <div>
+                      <p class="font-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">No Image</p>
+                      <p class="mt-2 text-sm leading-6 text-[var(--muted)]">上传 PersonalPhoto 后这里会显示预览。</p>
+                    </div>
+                  </div>
+                  <img class="hidden aspect-[4/3] w-full object-cover" data-gallery-preview alt="" />
                 </div>
                 <figcaption class="p-3">
                   <p class="font-semibold" data-gallery-preview-title>预览</p>
-                  <p class="mt-1 text-sm leading-6 text-[var(--muted)]" data-gallery-preview-description>选择图片后显示。</p>
+                  <p class="mt-1 text-sm leading-6 text-[var(--muted)]" data-gallery-preview-description>上传或选择照片后显示。</p>
                 </figcaption>
               </figure>
             </div>
@@ -353,12 +401,11 @@ const initialData = {
           <section class="orbit-view" data-view="images" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Image Library</p>
-                <h2 class="mt-1 text-2xl font-semibold">图片库</h2>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Asset Library</p>
+                <h2 class="mt-1 text-2xl font-semibold">素材图片库</h2>
               </div>
-              <div class="flex flex-wrap gap-2">
+              <div class="orbit-actions">
                 <button class="orbit-button orbit-button-primary" data-upload-image type="button">上传图片</button>
-                <button class="orbit-button" data-add-image-to-gallery type="button">加入图集</button>
                 <button class="orbit-button orbit-danger" data-delete-image type="button">删除选中图片</button>
                 <input class="hidden" data-image-file type="file" accept="image/*" multiple />
               </div>
@@ -370,17 +417,122 @@ const initialData = {
               </div>
               <aside class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-4">
                 <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Selected</p>
-                <div class="mt-3 overflow-hidden rounded border border-[var(--line)] bg-black">
-                  <img class="aspect-[4/3] w-full object-cover" data-selected-image-preview src="" alt="" />
+                <div class="relative mt-3 overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
+                  <div class="grid aspect-[4/3] w-full place-items-center px-6 text-center" data-selected-image-empty>
+                    <div>
+                      <p class="font-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">No Image</p>
+                      <p class="mt-2 text-sm leading-6 text-[var(--muted)]">从左侧素材库选择图片后预览。</p>
+                    </div>
+                  </div>
+                  <img class="hidden aspect-[4/3] w-full object-cover" data-selected-image-preview alt="" />
                 </div>
                 <input class="orbit-input mt-3 font-mono text-sm" data-selected-image-path readonly placeholder="/images/..." />
                 <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-                  上传到图片库只是保存素材。要让它出现在前台图集页，请选中图片后点“加入图集”。
+                  素材图片库用于文章正文、封面或项目引用。写文章时可以选中这里的图片，再回到文章编辑页点击“插入选中图片”。
+                </p>
+              </aside>
+            </div>
+          </section>
+
+          <section class="orbit-view" data-view="personalVideos" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">PersonalVideo Editor</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-personal-video-title>新建视频记录</h2>
+              </div>
+              <div class="orbit-actions">
+                <button class="orbit-button" data-personal-video-upload type="button">上传 PersonalVideo</button>
+                <button class="orbit-button" data-personal-video-poster-upload type="button">上传封面图</button>
+                <button class="orbit-button orbit-button-primary" data-save-personal-video type="button">保存视频</button>
+                <button class="orbit-button orbit-danger" data-delete-personal-video type="button">删除视频</button>
+                <input class="hidden" data-personal-video-file type="file" accept="video/mp4,video/webm,video/quicktime" />
+                <input class="hidden" data-personal-video-poster-file type="file" accept="image/*" />
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 2xl:grid-cols-[1fr_360px]">
+              <form class="grid gap-4">
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Title</span>
+                    <input class="orbit-input mt-2 text-sm" data-personal-video-field="title" placeholder="视频标题" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Date</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-personal-video-field="date" type="date" />
+                  </label>
+                </div>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Description</span>
+                  <textarea class="orbit-input mt-2 min-h-28 text-sm leading-6" data-personal-video-field="description" placeholder="视频说明"></textarea>
+                </label>
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Video</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-personal-video-field="video" placeholder="/personal-video/example.mp4" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Poster</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-personal-video-field="poster" placeholder="/images/poster.png" />
+                  </label>
+                </div>
+              </form>
+              <figure class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-2">
+                <div class="relative overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
+                  <div class="grid aspect-video w-full place-items-center px-6 text-center" data-personal-video-empty>
+                    <div>
+                      <p class="font-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">No Video</p>
+                      <p class="mt-2 text-sm leading-6 text-[var(--muted)]">上传 PersonalVideo 后这里会显示预览。</p>
+                    </div>
+                  </div>
+                  <video class="hidden aspect-video w-full object-cover bg-black" data-personal-video-preview controls playsinline preload="metadata"></video>
+                </div>
+                <figcaption class="p-3">
+                  <p class="font-semibold" data-personal-video-preview-title>预览</p>
+                  <p class="mt-1 text-sm leading-6 text-[var(--muted)]" data-personal-video-preview-description>上传或选择视频后显示。</p>
+                </figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <section class="orbit-view" data-view="videos" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Video Asset Library</p>
+                <h2 class="mt-1 text-2xl font-semibold">素材视频库</h2>
+              </div>
+              <div class="orbit-actions">
+                <button class="orbit-button orbit-button-primary" data-upload-video type="button">上传视频</button>
+                <button class="orbit-button" data-insert-selected-video type="button">插入选中视频</button>
+                <button class="orbit-button orbit-danger" data-delete-video type="button">删除选中视频</button>
+                <input class="hidden" data-video-file type="file" accept="video/mp4,video/webm,video/quicktime" multiple />
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_360px]">
+              <div class="grid max-h-[calc(100vh-260px)] grid-cols-1 gap-3 overflow-auto pr-1 2xl:grid-cols-2" data-video-grid>
+                <p class="text-sm text-[var(--muted)]">连接后加载视频。</p>
+              </div>
+              <aside class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Selected</p>
+                <div class="relative mt-3 overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
+                  <div class="grid aspect-video w-full place-items-center px-6 text-center" data-selected-video-empty>
+                    <div>
+                      <p class="font-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">No Video</p>
+                      <p class="mt-2 text-sm leading-6 text-[var(--muted)]">从左侧素材库选择视频后预览。</p>
+                    </div>
+                  </div>
+                  <video class="hidden aspect-video w-full object-cover bg-black" data-selected-video-preview controls playsinline preload="metadata"></video>
+                </div>
+                <input class="orbit-input mt-3 font-mono text-sm" data-selected-video-path readonly placeholder="/videos/..." />
+                <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
+                  素材视频库用于文章正文或项目引用。写文章时可以选中这里的视频，再点击“插入选中视频”。
                 </p>
               </aside>
             </div>
           </section>
         </section>
+        </div>
       </div>
     </main>
 
@@ -394,7 +546,11 @@ const initialData = {
       const POSTS_PATH = "src/content/posts";
       const PROJECTS_PATH = "src/data/projects.ts";
       const GALLERY_PATH = "src/data/gallery.ts";
+      const PERSONAL_VIDEOS_DATA_PATH = "src/data/videos.ts";
       const IMAGES_PATH = "public/images";
+      const PERSONAL_PHOTO_PATH = "public/personal-photo";
+      const VIDEOS_PATH = "public/videos";
+      const PERSONAL_VIDEO_PATH = "public/personal-video";
       const TOKEN_KEY = "silent-orbit-token";
       const BASE_URL = import.meta.env.BASE_URL;
 
@@ -406,16 +562,21 @@ const initialData = {
         posts: [],
         projects: [],
         gallery: [],
+        personalVideos: [],
         images: [],
+        videos: [],
         files: {
           projects: null,
           gallery: null,
+          personalVideos: null,
         },
         current: {
           post: null,
           projectIndex: -1,
           galleryIndex: -1,
+          personalVideoIndex: -1,
           image: null,
+          video: null,
         },
       };
 
@@ -452,11 +613,21 @@ const initialData = {
         height: $('[data-gallery-field="height"]'),
       };
 
+      const personalVideoFields = {
+        title: $('[data-personal-video-field="title"]'),
+        description: $('[data-personal-video-field="description"]'),
+        date: $('[data-personal-video-field="date"]'),
+        video: $('[data-personal-video-field="video"]'),
+        poster: $('[data-personal-video-field="poster"]'),
+      };
+
       const labels = {
         posts: { kicker: "Posts", title: "文章列表", empty: "暂无文章。" },
         projects: { kicker: "Projects", title: "项目列表", empty: "暂无项目。" },
-        gallery: { kicker: "Gallery", title: "图集卡片", empty: "暂无图集卡片。" },
-        images: { kicker: "Images", title: "图片文件", empty: "暂无图片。" },
+        gallery: { kicker: "PersonalPhoto", title: "生活照片", empty: "暂无照片。" },
+        personalVideos: { kicker: "PersonalVideo", title: "视频记录", empty: "暂无视频记录。" },
+        images: { kicker: "Assets", title: "素材图片", empty: "暂无素材图片。" },
+        videos: { kicker: "Video Assets", title: "素材视频", empty: "暂无素材视频。" },
       };
 
       const setStatus = (message) => {
@@ -522,6 +693,8 @@ const initialData = {
         const base = BASE_URL.endsWith("/") ? BASE_URL : `${BASE_URL}/`;
         return new URL(`${base}${path.replace(/^\/+/, "")}`, location.origin).toString();
       };
+
+      const publicPathToRepoPath = (path) => (path?.startsWith("/") ? `public${path}` : "");
 
       const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -642,7 +815,7 @@ const initialData = {
       };
 
       const readExportedArray = (content, exportName) => {
-        const match = content.match(new RegExp(`export\\s+const\\s+${exportName}\\s*=\\s*([\\s\\S]*);?\\s*$`));
+        const match = content.match(new RegExp(`export\\s+const\\s+${exportName}(?:\\s*:[^=]+)?\\s*=\\s*([\\s\\S]*);?\\s*$`));
         if (!match) throw new Error(`无法解析 ${exportName}`);
         return Function(`"use strict"; return (${match[1].replace(/;\s*$/, "")});`)();
       };
@@ -670,22 +843,58 @@ const initialData = {
       const renderMarkdownPreview = () => {
         const body = postFields.body.value || "";
         const html = escapeHtml(body)
+          .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, src) => {
+            const url = src.startsWith("/") ? withBase(src) : src;
+            return `<img src="${url}" alt="${alt}" loading="lazy" />`;
+          })
+          .replace(/&lt;video class=&quot;post-video&quot; controls playsinline preload=&quot;metadata&quot; src=&quot;([^&]+)&quot;&gt;&lt;\/video&gt;/g, (_match, src) => {
+            const url = src.startsWith("/") ? withBase(src) : src;
+            return `<video class="post-video" controls playsinline preload="metadata" src="${url}"></video>`;
+          })
           .replace(/^### (.*)$/gm, "<h3>$1</h3>")
           .replace(/^## (.*)$/gm, "<h2>$1</h2>")
           .replace(/^# (.*)$/gm, "<h1>$1</h1>")
           .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
           .replace(/`([^`]+)`/g, "<code>$1</code>")
           .split(/\n{2,}/)
-          .map((block) => (block.startsWith("<h") ? block : `<p>${block.replace(/\n/g, "<br />")}</p>`))
+          .map((block) => (/^<(h[1-3]|img|video)\b/.test(block) ? block : `<p>${block.replace(/\n/g, "<br />")}</p>`))
           .join("");
         $("[data-post-preview]").innerHTML = html || "<p>预览会显示在这里。</p>";
+      };
+
+      const insertMarkdownAtCursor = (snippet) => {
+        const textarea = postFields.body;
+        const start = textarea.selectionStart ?? textarea.value.length;
+        const end = textarea.selectionEnd ?? textarea.value.length;
+        const before = textarea.value.slice(0, start);
+        const after = textarea.value.slice(end);
+        const prefix = before && !before.endsWith("\n") ? "\n\n" : "";
+        const suffix = after && !after.startsWith("\n") ? "\n\n" : "";
+        textarea.value = `${before}${prefix}${snippet}${suffix}${after}`;
+        const cursor = before.length + prefix.length + snippet.length;
+        textarea.focus();
+        textarea.setSelectionRange(cursor, cursor);
+        renderMarkdownPreview();
+      };
+
+      const insertImageMarkdown = (image, altText = "") => {
+        if (!image?.publicPath) throw new Error("请先上传或选中一张素材图片");
+        const fallbackAlt = image.name?.replace(/\.[^.]+$/, "").replace(/^\d+-/, "").replace(/-[a-z0-9]{8}$/, "").replace(/-/g, " ") || "图片";
+        insertMarkdownAtCursor(`![${altText || fallbackAlt}](${image.publicPath})`);
+      };
+
+      const insertVideoHtml = (video) => {
+        if (!video?.publicPath) throw new Error("请先上传一个视频");
+        insertMarkdownAtCursor(`<video class="post-video" controls playsinline preload="metadata" src="${video.publicPath}"></video>`);
       };
 
       const updateCounts = () => {
         $('[data-count="posts"]').textContent = state.posts.length;
         $('[data-count="projects"]').textContent = state.projects.length;
         $('[data-count="gallery"]').textContent = state.gallery.length;
+        $('[data-count="personalVideos"]').textContent = state.personalVideos.length;
         $('[data-count="images"]').textContent = state.images.length;
+        $('[data-count="videos"]').textContent = state.videos.length;
       };
 
       const selectSection = (section) => {
@@ -705,11 +914,22 @@ const initialData = {
         list.innerHTML = "";
         const section = state.section;
         const items =
-          section === "posts" ? state.posts : section === "projects" ? state.projects : section === "gallery" ? state.gallery : state.images;
+          section === "posts"
+            ? state.posts
+            : section === "projects"
+              ? state.projects
+              : section === "gallery"
+                ? state.gallery
+                : section === "personalVideos"
+                  ? state.personalVideos
+                  : section === "images"
+                    ? state.images
+                    : state.videos;
 
         if (!items.length) {
           list.innerHTML = `<p class="text-sm text-[var(--muted)]">${labels[section].empty}</p>`;
           renderImageGrid();
+          renderVideoGrid();
           return;
         }
 
@@ -740,11 +960,19 @@ const initialData = {
           } else if (section === "gallery") {
             button.dataset.active = String(state.current.galleryIndex === index);
             button.innerHTML = `
-              <p class="font-semibold">${escapeHtml(item.title || "未命名图片")}</p>
+              <p class="font-semibold">${escapeHtml(item.title || "未命名照片")}</p>
               <p class="mt-1 font-mono text-xs text-[var(--muted)]">${escapeHtml(item.image || "")}</p>
             `;
             button.addEventListener("click", () => fillGallery(index));
-          } else {
+          } else if (section === "personalVideos") {
+            button.dataset.active = String(state.current.personalVideoIndex === index);
+            button.innerHTML = `
+              <p class="font-semibold">${escapeHtml(item.title || "未命名视频")}</p>
+              <p class="mt-1 text-sm text-[var(--muted)]">${escapeHtml(item.date || "")}</p>
+              <p class="mt-1 font-mono text-xs text-[var(--muted)]">${escapeHtml(item.video || "")}</p>
+            `;
+            button.addEventListener("click", () => fillPersonalVideo(index));
+          } else if (section === "images") {
             button.dataset.active = String(state.current.image?.path === item.path);
             button.innerHTML = `
               <div class="mb-2 overflow-hidden rounded border border-[var(--line)] bg-black">
@@ -753,10 +981,20 @@ const initialData = {
               <p class="break-all font-mono text-xs">${escapeHtml(item.publicPath)}</p>
             `;
             button.addEventListener("click", () => selectImage(item));
+          } else {
+            button.dataset.active = String(state.current.video?.path === item.path);
+            button.innerHTML = `
+              <div class="mb-2 overflow-hidden rounded border border-[var(--line)] bg-black">
+                <video class="aspect-video w-full object-cover" src="${withBase(item.publicPath)}" preload="metadata" muted playsinline></video>
+              </div>
+              <p class="break-all font-mono text-xs">${escapeHtml(item.publicPath)}</p>
+            `;
+            button.addEventListener("click", () => selectVideo(item));
           }
           list.append(button);
         });
         renderImageGrid();
+        renderVideoGrid();
       };
 
       const renderImageGrid = () => {
@@ -779,6 +1017,30 @@ const initialData = {
             <p class="mt-2 break-all font-mono text-xs">${escapeHtml(image.publicPath)}</p>
           `;
           button.addEventListener("click", () => selectImage(image));
+          grid.append(button);
+        });
+      };
+
+      const renderVideoGrid = () => {
+        const grid = $("[data-video-grid]");
+        if (!grid) return;
+        grid.innerHTML = "";
+        if (!state.videos.length) {
+          grid.innerHTML = '<p class="text-sm text-[var(--muted)]">暂无视频。</p>';
+          return;
+        }
+        state.videos.forEach((video) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "orbit-card overflow-hidden p-2 text-left transition hover:border-[var(--foreground)]";
+          button.dataset.active = String(state.current.video?.path === video.path);
+          button.innerHTML = `
+            <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
+              <video class="aspect-video w-full object-cover" src="${withBase(video.publicPath)}" preload="metadata" muted playsinline></video>
+            </div>
+            <p class="mt-2 break-all font-mono text-xs">${escapeHtml(video.publicPath)}</p>
+          `;
+          button.addEventListener("click", () => selectVideo(video));
           grid.append(button);
         });
       };
@@ -813,6 +1075,12 @@ const initialData = {
         state.gallery = readExportedArray(fromBase64(file.content), "galleryItems");
       };
 
+      const loadPersonalVideos = async () => {
+        const file = await getFile(PERSONAL_VIDEOS_DATA_PATH);
+        state.files.personalVideos = file;
+        state.personalVideos = readExportedArray(fromBase64(file.content), "videoItems");
+      };
+
       const loadImages = async () => {
         const files = await getDir(IMAGES_PATH);
         state.images = files
@@ -821,29 +1089,42 @@ const initialData = {
           .map((file) => ({ ...file, publicPath: `/images/${file.name}` }));
       };
 
+      const loadVideos = async () => {
+        const files = await getDir(VIDEOS_PATH);
+        state.videos = files
+          .filter((file) => file.type === "file" && /\.(mp4|webm|mov|m4v)$/i.test(file.name))
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((file) => ({ ...file, publicPath: `/videos/${file.name}` }));
+      };
+
       const applyInitialData = () => {
         state.posts = clone(INITIAL_DATA.posts);
         state.projects = clone(INITIAL_DATA.projects);
         state.gallery = clone(INITIAL_DATA.gallery);
+        state.personalVideos = clone(INITIAL_DATA.personalVideos);
         state.images = clone(INITIAL_DATA.images);
+        state.videos = clone(INITIAL_DATA.videos);
         state.files.projects = null;
         state.files.gallery = null;
+        state.files.personalVideos = null;
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
         if (state.current.projectIndex < 0) newProject();
         if (state.current.galleryIndex < 0) newGallery();
+        if (state.current.personalVideoIndex < 0) newPersonalVideo();
       };
 
       const loadAll = async () => {
         if (state.mode === "local") {
           setStatus("本地模式：读取项目文件中...");
-          await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadImages()]);
+          await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
           updateCounts();
           renderList();
           if (!state.current.post) newPost();
           if (state.current.projectIndex < 0) newProject();
           if (state.current.galleryIndex < 0) newGallery();
+          if (state.current.personalVideoIndex < 0) newPersonalVideo();
           setStatus("本地模式已启用。保存、删除、上传会直接写入当前项目文件夹。");
           return;
         }
@@ -857,12 +1138,13 @@ const initialData = {
 
         state.mode = "github";
         setStatus("GitHub 模式：同步仓库内容中...");
-        await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadImages()]);
+        await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
         if (state.current.projectIndex < 0) newProject();
         if (state.current.galleryIndex < 0) newGallery();
+        if (state.current.personalVideoIndex < 0) newPersonalVideo();
         setStatus("GitHub 模式已连接。保存会直接提交到 main 分支。");
       };
 
@@ -1033,7 +1315,7 @@ const initialData = {
         galleryFields.description.value = "";
         galleryFields.image.value = "";
         galleryFields.height.value = "medium";
-        $("[data-gallery-title]").textContent = "新建图集卡片";
+        $("[data-gallery-title]").textContent = "新建照片卡片";
         renderGalleryPreview();
         renderList();
       };
@@ -1045,7 +1327,7 @@ const initialData = {
         galleryFields.description.value = item?.description || "";
         galleryFields.image.value = item?.image || "";
         galleryFields.height.value = item?.height || "medium";
-        $("[data-gallery-title]").textContent = `编辑卡片：${galleryFields.title.value || "未命名"}`;
+        $("[data-gallery-title]").textContent = `编辑照片：${galleryFields.title.value || "未命名"}`;
         renderGalleryPreview();
         renderList();
       };
@@ -1053,10 +1335,15 @@ const initialData = {
       const renderGalleryPreview = () => {
         const image = galleryFields.image.value.trim();
         const preview = $("[data-gallery-preview]");
-        preview.src = image ? withBase(image) : "";
+        const empty = $("[data-gallery-empty]");
+        preview.hidden = !image;
+        preview.classList.toggle("hidden", !image);
+        empty.hidden = !!image;
+        if (image) preview.src = withBase(image);
+        else preview.removeAttribute("src");
         preview.alt = galleryFields.title.value.trim();
         $("[data-gallery-preview-title]").textContent = galleryFields.title.value.trim() || "预览";
-        $("[data-gallery-preview-description]").textContent = galleryFields.description.value.trim() || "选择图片后显示。";
+        $("[data-gallery-preview-description]").textContent = galleryFields.description.value.trim() || "上传或选择照片后显示。";
       };
 
       const saveGallery = async () => {
@@ -1067,8 +1354,8 @@ const initialData = {
           image: galleryFields.image.value.trim(),
           height: galleryFields.height.value,
         };
-        if (!item.title) throw new Error("请填写图集标题");
-        if (!item.image) throw new Error("请选择或上传图片");
+        if (!item.title) throw new Error("请填写照片标题");
+        if (!item.image) throw new Error("请选择或上传照片");
         const items = [...state.gallery];
         if (state.current.galleryIndex >= 0) items[state.current.galleryIndex] = item;
         else items.unshift(item);
@@ -1076,7 +1363,7 @@ const initialData = {
         const result = await putFile({
           path: GALLERY_PATH,
           content: toBase64(stringifyArrayModule("galleryItems", items)),
-          message: state.current.galleryIndex >= 0 ? `Update gallery item: ${item.title}` : `Add gallery item: ${item.title}`,
+          message: state.current.galleryIndex >= 0 ? `Update personal photo: ${item.title}` : `Add personal photo: ${item.title}`,
           sha,
         });
         state.gallery = items;
@@ -1084,61 +1371,148 @@ const initialData = {
         state.current.galleryIndex = items.findIndex((entry) => entry === item);
         updateCounts();
         renderList();
-        setStatus("图集卡片已保存。");
-      };
-
-      const addSelectedImageToGallery = async () => {
-        requireWriteAccess();
-        const image = state.current.image;
-        if (!image?.publicPath) throw new Error("请先选中一张图片");
-        const existing = state.gallery.find((item) => item.image === image.publicPath);
-        if (existing && !confirm("这张图片已经在图集里了，要继续重复添加吗？")) return;
-
-        const title = image.name.replace(/\.[^.]+$/, "").replace(/^\d+-/, "").replace(/-[a-z0-9]{8}$/, "").replace(/-/g, " ") || "新图片";
-        const item = {
-          title,
-          description: "",
-          image: image.publicPath,
-          height: "medium",
-        };
-        const items = [item, ...state.gallery];
-        const sha = state.files.gallery?.sha || (await getFile(GALLERY_PATH)).sha;
-        const result = await putFile({
-          path: GALLERY_PATH,
-          content: toBase64(stringifyArrayModule("galleryItems", items)),
-          message: `Add gallery image: ${title}`,
-          sha,
-        });
-        state.gallery = items;
-        state.files.gallery = { ...state.files.gallery, sha: result.content.sha };
-        state.current.galleryIndex = 0;
-        updateCounts();
-        selectSection("gallery");
-        fillGallery(0);
-        setStatus("已加入图集。前台图集页刷新后会显示这张图片。");
+        setStatus("PersonalPhoto 已保存。");
       };
 
       const deleteGallery = async () => {
         requireWriteAccess();
-        if (state.current.galleryIndex < 0) throw new Error("请选择一个已有图集卡片");
+        if (state.current.galleryIndex < 0) throw new Error("请选择一个已有照片");
         const item = state.gallery[state.current.galleryIndex];
-        if (!confirm(`确定删除图集卡片「${item.title}」吗？图片文件不会自动删除。`)) return;
+        if (!confirm(`确定删除 PersonalPhoto「${item.title}」吗？`)) return;
         const items = state.gallery.filter((_, index) => index !== state.current.galleryIndex);
         const sha = state.files.gallery?.sha || (await getFile(GALLERY_PATH)).sha;
         const result = await putFile({
           path: GALLERY_PATH,
           content: toBase64(stringifyArrayModule("galleryItems", items)),
-          message: `Delete gallery item: ${item.title}`,
+          message: `Delete personal photo: ${item.title}`,
           sha,
         });
         state.gallery = items;
         state.files.gallery = { ...state.files.gallery, sha: result.content.sha };
         updateCounts();
         newGallery();
-        setStatus("图集卡片已删除。");
+
+        let fileStatus = "";
+        const canDeletePhotoFile = item.image?.startsWith("/personal-photo/") && !items.some((entry) => entry.image === item.image);
+        if (canDeletePhotoFile && confirm("这张 PersonalPhoto 没有被其他照片卡片引用，是否同时删除图片文件？")) {
+          const imagePath = publicPathToRepoPath(item.image);
+          try {
+            const imageFile = await getFile(imagePath);
+            await deleteFile({ path: imagePath, sha: imageFile.sha, message: `Delete personal photo file: ${item.title}` });
+            fileStatus = "图片文件也已删除。";
+          } catch (error) {
+            fileStatus = `但图片文件未删除：${error.message || "文件读取失败"}。`;
+          }
+        }
+
+        setStatus(`PersonalPhoto 已删除。${fileStatus}`);
       };
 
-      const makeImageName = (file) => {
+      const newPersonalVideo = () => {
+        state.current.personalVideoIndex = -1;
+        personalVideoFields.title.value = "";
+        personalVideoFields.description.value = "";
+        personalVideoFields.date.value = new Date().toISOString().slice(0, 10);
+        personalVideoFields.video.value = "";
+        personalVideoFields.poster.value = "";
+        $("[data-personal-video-title]").textContent = "新建视频记录";
+        renderPersonalVideoPreview();
+        renderList();
+      };
+
+      const fillPersonalVideo = (index) => {
+        const item = state.personalVideos[index];
+        state.current.personalVideoIndex = index;
+        personalVideoFields.title.value = item?.title || "";
+        personalVideoFields.description.value = item?.description || "";
+        personalVideoFields.date.value = item?.date || new Date().toISOString().slice(0, 10);
+        personalVideoFields.video.value = item?.video || "";
+        personalVideoFields.poster.value = item?.poster || "";
+        $("[data-personal-video-title]").textContent = `编辑视频：${personalVideoFields.title.value || "未命名"}`;
+        renderPersonalVideoPreview();
+        renderList();
+      };
+
+      const renderPersonalVideoPreview = () => {
+        const video = personalVideoFields.video.value.trim();
+        const poster = personalVideoFields.poster.value.trim();
+        const preview = $("[data-personal-video-preview]");
+        const empty = $("[data-personal-video-empty]");
+        preview.hidden = !video;
+        preview.classList.toggle("hidden", !video);
+        empty.hidden = !!video;
+        if (video) preview.src = withBase(video);
+        else preview.removeAttribute("src");
+        preview.poster = poster ? withBase(poster) : "";
+        $("[data-personal-video-preview-title]").textContent = personalVideoFields.title.value.trim() || "预览";
+        $("[data-personal-video-preview-description]").textContent =
+          personalVideoFields.description.value.trim() || "上传或选择视频后显示。";
+      };
+
+      const savePersonalVideo = async () => {
+        requireWriteAccess();
+        const item = {
+          title: personalVideoFields.title.value.trim(),
+          description: personalVideoFields.description.value.trim(),
+          video: personalVideoFields.video.value.trim(),
+          poster: personalVideoFields.poster.value.trim(),
+          date: personalVideoFields.date.value,
+        };
+        if (!item.title) throw new Error("请填写视频标题");
+        if (!item.video) throw new Error("请上传或填写视频路径");
+        const items = [...state.personalVideos];
+        if (state.current.personalVideoIndex >= 0) items[state.current.personalVideoIndex] = item;
+        else items.unshift(item);
+        const sha = state.files.personalVideos?.sha || (await getFile(PERSONAL_VIDEOS_DATA_PATH)).sha;
+        const result = await putFile({
+          path: PERSONAL_VIDEOS_DATA_PATH,
+          content: toBase64(stringifyArrayModule("videoItems", items)),
+          message: state.current.personalVideoIndex >= 0 ? `Update personal video: ${item.title}` : `Add personal video: ${item.title}`,
+          sha,
+        });
+        state.personalVideos = items;
+        state.files.personalVideos = { ...state.files.personalVideos, sha: result.content.sha };
+        state.current.personalVideoIndex = items.findIndex((entry) => entry === item);
+        updateCounts();
+        renderList();
+        setStatus("PersonalVideo 已保存。");
+      };
+
+      const deletePersonalVideo = async () => {
+        requireWriteAccess();
+        if (state.current.personalVideoIndex < 0) throw new Error("请选择一个已有视频记录");
+        const item = state.personalVideos[state.current.personalVideoIndex];
+        if (!confirm(`确定删除 PersonalVideo「${item.title}」吗？`)) return;
+        const items = state.personalVideos.filter((_, index) => index !== state.current.personalVideoIndex);
+        const sha = state.files.personalVideos?.sha || (await getFile(PERSONAL_VIDEOS_DATA_PATH)).sha;
+        const result = await putFile({
+          path: PERSONAL_VIDEOS_DATA_PATH,
+          content: toBase64(stringifyArrayModule("videoItems", items)),
+          message: `Delete personal video: ${item.title}`,
+          sha,
+        });
+        state.personalVideos = items;
+        state.files.personalVideos = { ...state.files.personalVideos, sha: result.content.sha };
+        updateCounts();
+        newPersonalVideo();
+
+        let fileStatus = "";
+        const canDeleteVideoFile = item.video?.startsWith("/personal-video/") && !items.some((entry) => entry.video === item.video);
+        if (canDeleteVideoFile && confirm("这段 PersonalVideo 没有被其他视频记录引用，是否同时删除视频文件？")) {
+          const videoPath = publicPathToRepoPath(item.video);
+          try {
+            const videoFile = await getFile(videoPath);
+            await deleteFile({ path: videoPath, sha: videoFile.sha, message: `Delete personal video file: ${item.title}` });
+            fileStatus = "视频文件也已删除。";
+          } catch (error) {
+            fileStatus = `但视频文件未删除：${error.message || "文件读取失败"}。`;
+          }
+        }
+
+        setStatus(`PersonalVideo 已删除。${fileStatus}`);
+      };
+
+      const makeUploadName = (file) => {
         const typeExtensions = {
           "image/jpeg": "jpg",
           "image/png": "png",
@@ -1146,44 +1520,89 @@ const initialData = {
           "image/gif": "gif",
           "image/avif": "avif",
           "image/svg+xml": "svg",
+          "video/mp4": "mp4",
+          "video/webm": "webm",
+          "video/quicktime": "mov",
         };
         const extension = typeExtensions[file.type] || (file.name.split(".").pop() || "png").toLowerCase();
-        const baseName = slugifyFile(file.name.replace(/\.[^.]+$/, "")) || "image";
+        const baseName = slugifyFile(file.name.replace(/\.[^.]+$/, "")) || "media";
         const suffix = crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10);
         return `${Date.now()}-${baseName}-${suffix}.${extension}`;
       };
 
-      const uploadImageFile = async (file) => {
-        const safeName = makeImageName(file);
-        const path = `${IMAGES_PATH}/${safeName}`;
+      const uploadMediaFile = async (file, directory = IMAGES_PATH, publicRoot = "/images") => {
+        const safeName = makeUploadName(file);
+        const path = `${directory}/${safeName}`;
         const result = await putFile({
           path,
           content: arrayBufferToBase64(await file.arrayBuffer()),
-          message: `Upload image: ${safeName}`,
+          message: `Upload media: ${safeName}`,
         });
-        return { name: safeName, path, sha: result.content.sha, publicPath: `/images/${safeName}` };
+        return { name: safeName, path, sha: result.content.sha, publicPath: `${publicRoot}/${safeName}` };
       };
 
-      const uploadImages = async (files) => {
+      const uploadImages = async (files, options = {}) => {
         requireWriteAccess();
         if (!files.length) return [];
+        const directory = options.directory || IMAGES_PATH;
+        const publicRoot = options.publicRoot || "/images";
+        const reloadAssets = options.reloadAssets ?? directory === IMAGES_PATH;
         setStatus(`上传 ${files.length} 张图片中...`);
         const uploaded = [];
         for (const file of files) {
-          uploaded.push(await uploadImageFile(file));
+          uploaded.push(await uploadMediaFile(file, directory, publicRoot));
         }
-        await loadImages();
+        if (reloadAssets) await loadImages();
         updateCounts();
         renderList();
-        selectImage(uploaded.at(-1));
+        if (reloadAssets) selectImage(uploaded.at(-1));
         setStatus("图片已上传。");
         return uploaded;
       };
 
+      const uploadVideo = async (file, options = {}) => {
+        requireWriteAccess();
+        const maxSize = 50 * 1024 * 1024;
+        if (file.size > maxSize) throw new Error("视频太大了。建议压缩到 50MB 以内再上传，GitHub Pages 更适合小视频。");
+        if (!/^video\/(mp4|webm|quicktime)$/.test(file.type)) throw new Error("建议上传 MP4 或 WebM。MOV 可能在部分浏览器里不能直接播放。");
+        const directory = options.directory || VIDEOS_PATH;
+        const publicRoot = options.publicRoot || "/videos";
+        const reloadAssets = options.reloadAssets ?? directory === VIDEOS_PATH;
+        setStatus("上传视频中...");
+        const video = await uploadMediaFile(file, directory, publicRoot);
+        if (reloadAssets) {
+          await loadVideos();
+          selectVideo(video);
+          updateCounts();
+          renderList();
+        }
+        setStatus("视频已上传。");
+        return video;
+      };
+
       const selectImage = (image) => {
         state.current.image = image;
-        $("[data-selected-image-preview]").src = image?.publicPath ? withBase(image.publicPath) : "";
+        const preview = $("[data-selected-image-preview]");
+        const empty = $("[data-selected-image-empty]");
+        preview.hidden = !image?.publicPath;
+        preview.classList.toggle("hidden", !image?.publicPath);
+        empty.hidden = !!image?.publicPath;
+        if (image?.publicPath) preview.src = withBase(image.publicPath);
+        else preview.removeAttribute("src");
         $("[data-selected-image-path]").value = image?.publicPath || "";
+        renderList();
+      };
+
+      const selectVideo = (video) => {
+        state.current.video = video;
+        const preview = $("[data-selected-video-preview]");
+        const empty = $("[data-selected-video-empty]");
+        preview.hidden = !video?.publicPath;
+        preview.classList.toggle("hidden", !video?.publicPath);
+        empty.hidden = !!video?.publicPath;
+        if (video?.publicPath) preview.src = withBase(video.publicPath);
+        else preview.removeAttribute("src");
+        $("[data-selected-video-path]").value = video?.publicPath || "";
         renderList();
       };
 
@@ -1200,6 +1619,21 @@ const initialData = {
         selectImage(null);
         renderList();
         setStatus("图片已删除。");
+      };
+
+      const deleteVideo = async () => {
+        requireWriteAccess();
+        const video = state.current.video;
+        if (!video?.path) throw new Error("请选择一个视频");
+        if (!confirm(`确定删除视频「${video.name}」吗？如果文章或项目还在引用它，页面会显示无法播放。`)) return;
+        const sha = video.sha || (await getFile(video.path)).sha;
+        await deleteFile({ path: video.path, sha, message: `Delete video: ${video.name}` });
+        state.current.video = null;
+        await loadVideos();
+        updateCounts();
+        selectVideo(null);
+        renderList();
+        setStatus("视频已删除。");
       };
 
       const connect = async () => {
@@ -1245,7 +1679,9 @@ const initialData = {
         if (state.section === "posts") newPost();
         if (state.section === "projects") newProject();
         if (state.section === "gallery") newGallery();
+        if (state.section === "personalVideos") newPersonalVideo();
         if (state.section === "images") $("[data-image-file]").click();
+        if (state.section === "videos") $("[data-video-file]").click();
       });
 
       $("[data-save-post]").addEventListener("click", () => run(savePost));
@@ -1259,6 +1695,32 @@ const initialData = {
           postFields.cover.value = image.publicPath;
         });
       });
+      $("[data-post-upload-body-image]").addEventListener("click", () => $("[data-post-body-image-file]").click());
+      $("[data-post-body-image-file]").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        run(async () => {
+          const [image] = await uploadImages([file]);
+          insertImageMarkdown(image);
+          setStatus("图片已上传到素材图片库，并插入正文。");
+        });
+      });
+      $("[data-post-upload-video]").addEventListener("click", () => $("[data-post-video-file]").click());
+      $("[data-post-video-file]").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        run(async () => {
+          const video = await uploadVideo(file);
+          insertVideoHtml(video);
+          setStatus("视频已上传到 videos，并插入正文。");
+        });
+      });
+      $("[data-post-insert-selected-image]").addEventListener("click", () =>
+        run(async () => {
+          insertImageMarkdown(state.current.image);
+          setStatus("已把选中的素材图片插入正文。");
+        }),
+      );
 
       $("[data-save-project]").addEventListener("click", () => run(saveProject));
       $("[data-delete-project]").addEventListener("click", () => run(deleteProject));
@@ -1270,25 +1732,76 @@ const initialData = {
         const file = event.target.files?.[0];
         if (!file) return;
         run(async () => {
-          const [image] = await uploadImages([file]);
+          const [image] = await uploadImages([file], {
+            directory: PERSONAL_PHOTO_PATH,
+            publicRoot: "/personal-photo",
+            reloadAssets: false,
+          });
           galleryFields.image.value = image.publicPath;
           renderGalleryPreview();
+          setStatus("PersonalPhoto 已上传，请补充标题和描述后保存照片。");
+        });
+      });
+
+      $("[data-save-personal-video]").addEventListener("click", () => run(savePersonalVideo));
+      $("[data-delete-personal-video]").addEventListener("click", () => run(deletePersonalVideo));
+      $("[data-personal-video-upload]").addEventListener("click", () => $("[data-personal-video-file]").click());
+      $("[data-personal-video-file]").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        run(async () => {
+          const video = await uploadVideo(file, {
+            directory: PERSONAL_VIDEO_PATH,
+            publicRoot: "/personal-video",
+            reloadAssets: false,
+          });
+          personalVideoFields.video.value = video.publicPath;
+          renderPersonalVideoPreview();
+          setStatus("PersonalVideo 已上传，请补充标题和描述后保存视频。");
+        });
+      });
+      $("[data-personal-video-poster-upload]").addEventListener("click", () => $("[data-personal-video-poster-file]").click());
+      $("[data-personal-video-poster-file]").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        run(async () => {
+          const [image] = await uploadImages([file]);
+          personalVideoFields.poster.value = image.publicPath;
+          renderPersonalVideoPreview();
+          setStatus("视频封面图已上传到素材图片库。");
         });
       });
 
       $("[data-upload-image]").addEventListener("click", () => $("[data-image-file]").click());
       $("[data-image-file]").addEventListener("change", (event) => run(() => uploadImages(Array.from(event.target.files || []))));
-      $("[data-add-image-to-gallery]").addEventListener("click", () => run(addSelectedImageToGallery));
       $("[data-delete-image]").addEventListener("click", () => run(deleteImage));
+
+      $("[data-upload-video]").addEventListener("click", () => $("[data-video-file]").click());
+      $("[data-video-file]").addEventListener("change", (event) => {
+        const files = Array.from(event.target.files || []);
+        run(async () => {
+          for (const file of files) await uploadVideo(file);
+        });
+      });
+      $("[data-insert-selected-video]").addEventListener("click", () =>
+        run(async () => {
+          insertVideoHtml(state.current.video);
+          setStatus("已把选中的素材视频插入正文。");
+          selectSection("posts");
+        }),
+      );
+      $("[data-delete-video]").addEventListener("click", () => run(deleteVideo));
 
       Object.values(postFields).forEach((field) => field.addEventListener("input", renderMarkdownPreview));
       Object.values(galleryFields).forEach((field) => field.addEventListener("input", renderGalleryPreview));
+      Object.values(personalVideoFields).forEach((field) => field.addEventListener("input", renderPersonalVideoPreview));
 
       updateCounts();
       selectSection("posts");
       newPost();
       newProject();
       newGallery();
+      newPersonalVideo();
 
       const initialize = async () => {
         if (state.token) $("[data-token-input]").value = state.token;

@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="2300" viewBox="0 0 1800 2300" role="img" aria-labelledby="title desc">
+  <title id="title">PersonalWebsite 项目修改指导图</title>
+  <desc id="desc">Astro 个人网站目录结构与常见修改位置说明</desc>
+  <defs>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#e8ebf1" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#111827" flood-opacity="0.08"/>
+    </filter>
+    <style>
+      .bg { fill: #fbfbfa; }
+      .grid { fill: url(#grid); }
+      .ink { fill: #141414; }
+      .muted { fill: #6d7280; }
+      .soft { fill: #f4f5f7; }
+      .line { stroke: #dfe3ea; stroke-width: 2; }
+      .blue { fill: #2563eb; }
+      .green { fill: #0f8a5f; }
+      .orange { fill: #d97706; }
+      .red { fill: #dc2626; }
+      .card { fill: rgba(255,255,255,0.88); stroke: #dfe3ea; stroke-width: 2; filter: url(#shadow); }
+      .mini { fill: #fff; stroke: #dfe3ea; stroke-width: 2; }
+      .tag { fill: #111; }
+      .tagText { fill: #fff; font-size: 25px; font-weight: 700; }
+      text { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; }
+      .mono { font-family: "SFMono-Regular", "Menlo", "Consolas", monospace; }
+      .h1 { font-size: 76px; font-weight: 800; letter-spacing: 0; }
+      .h2 { font-size: 42px; font-weight: 800; }
+      .h3 { font-size: 30px; font-weight: 800; }
+      .body { font-size: 27px; font-weight: 500; }
+      .small { font-size: 22px; font-weight: 500; }
+      .tiny { font-size: 19px; font-weight: 500; }
+      .path { font-size: 22px; font-weight: 700; fill: #2563eb; }
+      .code { font-size: 22px; fill: #111; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1800" height="2300"/>
+  <rect class="grid" width="1800" height="2300" opacity="0.82"/>
+
+  <g transform="translate(90 80)">
+    <text class="h1 ink" x="0" y="0" dominant-baseline="hanging">PersonalWebsite 项目地图</text>
+    <text class="body muted" x="4" y="106">以后想改文章、素材图片、素材视频、PersonalPhoto、PersonalVideo、项目、标题、样式、动效时，看这张图就能快速定位文件。</text>
+    <text class="small muted mono" x="4" y="154">Tech Stack: Astro + TypeScript + Tailwind CSS + GitHub Pages</text>
+    <rect class="tag" x="1250" y="8" rx="26" ry="26" width="315" height="58"/>
+    <text class="tagText mono" x="1282" y="38" dominant-baseline="middle">/silent-orbit-7429/</text>
+  </g>
+
+  <g transform="translate(90 300)">
+    <rect class="card" x="0" y="0" width="1620" height="420" rx="18"/>
+    <text class="h2 ink" x="42" y="42">一、日常内容怎么改</text>
+    <text class="body muted" x="42" y="96">普通更新优先用隐藏管理页；要改页面结构、布局、组件时再进代码文件。</text>
+
+    <g transform="translate(42 145)">
+      <rect class="mini" x="0" y="0" width="360" height="210" rx="16"/>
+      <text class="h3 ink" x="26" y="34">写文章</text>
+      <text class="small muted" x="26" y="78">管理页：新建 / 修改 / 删除</text>
+      <text class="path mono" x="26" y="116">src/content/posts/*.mdx</text>
+      <text class="tiny muted" x="26" y="154">frontmatter 里改标题、摘要、日期、封面、标签。</text>
+    </g>
+
+    <g transform="translate(420 145)">
+      <rect class="mini" x="0" y="0" width="360" height="210" rx="16"/>
+      <text class="h3 ink" x="26" y="34">素材媒体</text>
+      <text class="small muted" x="26" y="78">管理页：素材图片库 / 素材视频库</text>
+      <text class="path mono" x="26" y="116">public/images/ + public/videos/</text>
+      <text class="tiny muted" x="26" y="154">文章正文、封面、vlog 片段都放这里。</text>
+    </g>
+
+    <g transform="translate(798 145)">
+      <rect class="mini" x="0" y="0" width="360" height="210" rx="16"/>
+      <text class="h3 ink" x="26" y="34">Personal 影像</text>
+      <text class="small muted" x="26" y="78">管理页：PersonalPhoto / PersonalVideo</text>
+      <text class="path mono" x="26" y="116">src/data/gallery.ts + src/data/videos.ts</text>
+      <text class="tiny muted" x="26" y="154">个人照片和日常视频分别维护。</text>
+    </g>
+
+    <g transform="translate(1176 145)">
+      <rect class="mini" x="0" y="0" width="360" height="210" rx="16"/>
+      <text class="h3 ink" x="26" y="34">改项目</text>
+      <text class="small muted" x="26" y="78">管理页：项目增删改</text>
+      <text class="path mono" x="26" y="116">src/data/projects.ts</text>
+      <text class="tiny muted" x="26" y="154">控制项目页里的名称、年份、简介、标签和链接。</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 770)">
+    <rect class="card" x="0" y="0" width="780" height="680" rx="18"/>
+    <text class="h2 ink" x="42" y="42">二、页面文件在哪里</text>
+    <text class="small muted" x="42" y="92">这些文件决定每个页面长什么样、排版怎么组织。</text>
+
+    <g transform="translate(42 145)">
+      <text class="path mono" x="0" y="0">src/pages/index.astro</text>
+      <text class="body ink" x="0" y="38">首页：首屏、图像片段、最近文章、项目入口</text>
+
+      <text class="path mono" x="0" y="105">src/pages/articles/index.astro</text>
+      <text class="body ink" x="0" y="143">文章列表页：文章卡片、封面、日期和标签</text>
+
+      <text class="path mono" x="0" y="210">src/pages/articles/[slug].astro</text>
+      <text class="body ink" x="0" y="248">文章详情页：正文、封面、评论区 giscus</text>
+
+      <text class="path mono" x="0" y="315">src/pages/gallery/index.astro</text>
+      <text class="body ink" x="0" y="353">图集页：PersonalPhoto 网格、卡片高度和说明</text>
+
+      <text class="path mono" x="0" y="420">src/pages/videos/index.astro</text>
+      <text class="body ink" x="0" y="458">视频页：PersonalVideo 播放列表和说明</text>
+
+      <text class="path mono" x="0" y="525">src/pages/projects/index.astro</text>
+      <text class="body ink" x="0" y="563">项目页：项目列表展示样式</text>
+    </g>
+  </g>
+
+  <g transform="translate(930 770)">
+    <rect class="card" x="0" y="0" width="780" height="680" rx="18"/>
+    <text class="h2 ink" x="42" y="42">三、全站结构和组件</text>
+    <text class="small muted" x="42" y="92">这些文件会影响很多页面，修改前先想清楚是否是全站变化。</text>
+
+    <g transform="translate(42 145)">
+      <text class="path mono" x="0" y="0">src/layouts/BaseLayout.astro</text>
+      <text class="body ink" x="0" y="38">全站基础布局：SEO、Header、Footer、动效挂载</text>
+
+      <text class="path mono" x="0" y="105">src/components/Header.astro</text>
+      <text class="body ink" x="0" y="143">顶部导航：Logo、导航项、当前页面高亮</text>
+
+      <text class="path mono" x="0" y="210">src/components/Footer.astro</text>
+      <text class="body ink" x="0" y="248">页脚：站点说明和底部链接</text>
+
+      <text class="path mono" x="0" y="315">src/components/CursorField.astro</text>
+      <text class="body ink" x="0" y="353">鼠标跟随的数学线条动效</text>
+
+      <text class="path mono" x="0" y="420">src/components/AnniversaryTimer.astro</text>
+      <text class="body ink" x="0" y="458">首页纪念日计时器</text>
+
+      <text class="path mono" x="0" y="525">src/components/Giscus.astro</text>
+      <text class="body ink" x="0" y="563">文章底部评论系统</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 1510)">
+    <rect class="card" x="0" y="0" width="780" height="560" rx="18"/>
+    <text class="h2 ink" x="42" y="42">四、全站配置在哪里</text>
+
+    <g transform="translate(42 120)">
+      <text class="path mono" x="0" y="0">src/utils/site.ts</text>
+      <text class="body ink" x="0" y="38">站点标题、描述、作者、导航、纪念日起始时间</text>
+
+      <text class="path mono" x="0" y="105">src/styles/global.css</text>
+      <text class="body ink" x="0" y="143">全局颜色、字体、按钮、背景网格、深色模式</text>
+
+      <text class="path mono" x="0" y="210">src/content.config.ts</text>
+      <text class="body ink" x="0" y="248">文章字段规则：title、description、cover、tags 等</text>
+
+      <text class="path mono" x="0" y="315">astro.config.mjs</text>
+      <text class="body ink" x="0" y="353">Astro 配置、GitHub Pages base、本地管理 API</text>
+
+      <text class="path mono" x="0" y="420">.github/workflows/deploy.yml</text>
+      <text class="body ink" x="0" y="458">GitHub Pages 自动部署流程</text>
+    </g>
+  </g>
+
+  <g transform="translate(930 1510)">
+    <rect class="card" x="0" y="0" width="780" height="560" rx="18"/>
+    <text class="h2 ink" x="42" y="42">五、管理页和发布流程</text>
+
+    <g transform="translate(42 120)">
+      <text class="path mono" x="0" y="0">src/pages/silent-orbit-7429/index.astro</text>
+      <text class="body ink" x="0" y="38">隐藏管理页：文章、项目、PersonalPhoto、PersonalVideo、素材库 CRUD</text>
+
+      <text class="path mono" x="0" y="105">本地地址</text>
+      <text class="body ink mono" x="0" y="143">http://127.0.0.1:4322/silent-orbit-7429/</text>
+      <text class="small muted" x="0" y="178">本地模式：无需 Token，直接写当前项目文件夹。</text>
+
+      <text class="path mono" x="0" y="245">线上地址</text>
+      <text class="body ink mono" x="0" y="283">/PersonalWebsite/silent-orbit-7429/</text>
+      <text class="small muted" x="0" y="318">线上模式：需要 GitHub Token，保存后提交到 main。</text>
+
+      <text class="path mono" x="0" y="385">常用命令</text>
+      <text class="body ink mono" x="0" y="423">npm run dev      本地预览</text>
+      <text class="body ink mono" x="0" y="463">npm run build    构建检查</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 2130)">
+    <rect class="mini" x="0" y="0" width="1620" height="110" rx="18"/>
+    <text class="h3 ink" x="34" y="35">记忆口诀</text>
+    <text class="body muted" x="210" y="35">内容先找管理页；页面去 src/pages；公共结构去 components/layouts；全局样式去 global.css；站点信息去 site.ts。</text>
+    <text class="small muted" x="34" y="78">注意：素材图片/视频放 public/images 和 public/videos；个人照片/视频放 public/personal-photo 和 public/personal-video。</text>
+  </g>
+</svg>

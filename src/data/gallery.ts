@@ -1,13 +1,13 @@
 export const galleryItems = [
   {
     title: "新上传的图片",
-    description: "从本地管理页上传并加入图集。",
+    description: "从 PersonalPhoto 模块上传并保存的生活照片。",
     image: "/images/1780977422819-image.png",
     height: "medium",
   },
   {
     title: "新上传的图片 2",
-    description: "从本地管理页上传并加入图集。",
+    description: "从 PersonalPhoto 模块上传并保存的生活照片。",
     image: "/images/1780977579055-image.png",
     height: "tall",
   },

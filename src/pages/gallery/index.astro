@@ -2,6 +2,8 @@
 import { galleryItems } from "@/data/gallery";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { withBase } from "@/utils/site";
+
+const personalPhotoItems = galleryItems.filter((item) => item.image.startsWith("/personal-photo/"));
 ---
 
 <BaseLayout title="图集" description="瀑布流图片卡片展示，保存影像、场景和视觉笔记。">
@@ -17,7 +19,7 @@ import { withBase } from "@/utils/site";
     </div>
 
     <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {galleryItems.map((item, index) => (
+      {personalPhotoItems.map((item, index) => (
         <figure class="group rounded-md border border-[var(--line)] bg-[var(--surface)] p-2">
           <div class="relative overflow-hidden rounded border border-[var(--line)] bg-black">
             <img

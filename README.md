@@ -121,6 +121,8 @@ PersonalVideo 用于日常 vlog、生活片段和前台视频页展示。推荐�
 
 PersonalPhoto 用于生活照、风景照和前台图集页展示。推荐在隐藏管理页的 “PersonalPhoto” 模块上传和维护。
 
+前台图集页只展示 `PersonalPhoto`，也就是 `src/data/gallery.ts` 中 `image` 以 `/personal-photo/` 开头的项目。`public/images/` 是素材图片库，删除或新增素材图片不会直接改变前台图集。
+
 如果手动维护：
 
 1. 把照片放入 `public/personal-photo/`，例如 `public/personal-photo/travel-01.jpg`。

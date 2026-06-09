@@ -650,6 +650,7 @@ const initialData = {
 
       const postSlug = (post) => post.slug || post.name?.replace(/\.(md|mdx)$/, "") || "";
       const postDisplayTitle = (post) => post.data?.title || post.title || postSlug(post) || "未命名文章";
+      const isPersonalPhotoPath = (path = "") => path.startsWith("/personal-photo/");
 
       const slugify = (value) =>
         value
@@ -1072,7 +1073,7 @@ const initialData = {
       const loadGallery = async () => {
         const file = await getFile(GALLERY_PATH);
         state.files.gallery = file;
-        state.gallery = readExportedArray(fromBase64(file.content), "galleryItems");
+        state.gallery = readExportedArray(fromBase64(file.content), "galleryItems").filter((item) => isPersonalPhotoPath(item.image));
       };
 
       const loadPersonalVideos = async () => {
@@ -1100,7 +1101,7 @@ const initialData = {
       const applyInitialData = () => {
         state.posts = clone(INITIAL_DATA.posts);
         state.projects = clone(INITIAL_DATA.projects);
-        state.gallery = clone(INITIAL_DATA.gallery);
+        state.gallery = clone(INITIAL_DATA.gallery).filter((item) => isPersonalPhotoPath(item.image));
         state.personalVideos = clone(INITIAL_DATA.personalVideos);
         state.images = clone(INITIAL_DATA.images);
         state.videos = clone(INITIAL_DATA.videos);
@@ -1356,6 +1357,7 @@ const initialData = {
         };
         if (!item.title) throw new Error("请填写照片标题");
         if (!item.image) throw new Error("请选择或上传照片");
+        if (!isPersonalPhotoPath(item.image)) throw new Error("PersonalPhoto 只能使用 /personal-photo/ 路径。素材图片库的 /images/ 不会进入前台图集。");
         const items = [...state.gallery];
         if (state.current.galleryIndex >= 0) items[state.current.galleryIndex] = item;
         else items.unshift(item);

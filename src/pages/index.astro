@@ -11,7 +11,8 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft))
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
   .slice(0, 3);
 
-const featuredFrames = galleryItems.slice(0, 3);
+const personalPhotoItems = galleryItems.filter((item) => item.image.startsWith("/personal-photo/"));
+const featuredFrames = personalPhotoItems.slice(0, 3);
 ---
 
 <BaseLayout title={siteConfig.title} description={siteConfig.description}>
@@ -56,7 +57,7 @@ const featuredFrames = galleryItems.slice(0, 3);
         </div>
         <div class="rounded-md border border-[var(--line)] bg-[var(--surface)] p-4">
           <p class="font-mono text-xs text-[var(--muted)]">FRAMES</p>
-          <p class="mt-2 text-3xl font-semibold">{galleryItems.length}</p>
+          <p class="mt-2 text-3xl font-semibold">{personalPhotoItems.length}</p>
         </div>
         <div class="rounded-md border border-[var(--line)] bg-[var(--surface)] p-4">
           <p class="font-mono text-xs text-[var(--muted)]">WORKS</p>

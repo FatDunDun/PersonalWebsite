@@ -1,11 +1,5 @@
 export const galleryItems = [
   {
-    "title": "新上传的图片 2",
-    "description": "从 PersonalPhoto 模块上传并保存的生活照片。",
-    "image": "/images/1780977579055-image.png",
-    "height": "tall"
-  },
-  {
     "title": "晨光里的笔记",
     "description": "把一天开始前最安静的十五分钟留给纸面。",
     "image": "/images/gallery-workspace.png",

@@ -1,6 +1,6 @@
 ---
 import { getCollection, render } from "astro:content";
-import Giscus from "@/components/Giscus.astro";
+import CusdisComments from "@/components/CusdisComments.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { formatDate } from "@/utils/format";
 import { withBase } from "@/utils/site";
@@ -38,7 +38,7 @@ const { Content } = await render(post);
 
     <div class="prose mx-auto mt-12 max-w-3xl">
       <Content />
-      <Giscus />
+      <CusdisComments pageId={post.id} pageTitle={post.data.title} />
     </div>
   </article>
 </BaseLayout>

@@ -8,7 +8,7 @@
 - TypeScript：类型约束与数据结构
 - Tailwind CSS：样式系统
 - MDX：文章内容管理
-- giscus：文章评论系统
+- Cusdis：轻量文章评论系统
 - GitHub Pages：静态网站托管
 
 ## 本地开发
@@ -154,20 +154,22 @@ PersonalPhoto 用于生活照、风景照和前台图集页展示。推荐在隐
 }
 ```
 
-## 配置 giscus 评论
+## 配置 Cusdis 评论
 
-文章详情页已经集成 giscus。你需要先在目标 GitHub 仓库开启 Discussions，并在 [giscus.app](https://giscus.app/) 生成配置。
+文章详情页已经集成 Cusdis。Cusdis 支持访客用昵称和邮箱留言，不需要 GitHub 账号；评论数据存放在 Cusdis 服务里。
+
+先到 [cusdis.com](https://cusdis.com/) 创建一个站点应用，复制它生成的 `App ID`。
 
 线上 GitHub Pages 使用仓库变量。打开 `Settings -> Secrets and variables -> Actions -> Variables`，新增：
 
 ```bash
-PUBLIC_GISCUS_REPO="owner/repo"
-PUBLIC_GISCUS_REPO_ID="..."
-PUBLIC_GISCUS_CATEGORY="Announcements"
-PUBLIC_GISCUS_CATEGORY_ID="..."
+PUBLIC_CUSDIS_APP_ID="你的 Cusdis App ID"
+PUBLIC_CUSDIS_HOST="https://cusdis.com"
 ```
 
-这些值会在 GitHub Actions 构建时注入到 Astro。保存变量后，重新运行一次 Pages workflow 或推送一次提交，文章页底部就会显示评论区。
+`PUBLIC_CUSDIS_HOST` 可以不填，默认就是 `https://cusdis.com`。如果以后改成自部署 Cusdis，再把这里换成自己的服务地址。
+
+这些值会在 GitHub Actions 构建时注入到 Astro。保存变量后，重新运行一次 Pages workflow 或推送一次提交，文章页底部就会显示留言区。
 
 本地可以创建 `.env` 文件保存这些值，`.env` 已加入 `.gitignore`，不会被提交。
 

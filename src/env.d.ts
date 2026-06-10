@@ -4,8 +4,7 @@
 interface ImportMetaEnv {
   readonly PUBLIC_SITE_URL?: string;
   readonly PUBLIC_BASE_PATH?: string;
-  readonly PUBLIC_CUSDIS_APP_ID?: string;
-  readonly PUBLIC_CUSDIS_HOST?: string;
+  readonly PUBLIC_WALINE_SERVER_URL?: string;
 }
 
 interface ImportMeta {

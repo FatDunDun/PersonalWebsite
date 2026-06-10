@@ -8,7 +8,7 @@
 - TypeScript：类型约束与数据结构
 - Tailwind CSS：样式系统
 - MDX：文章内容管理
-- Cusdis：轻量文章评论系统
+- Waline：匿名留言、表情和文章反应评论系统
 - GitHub Pages：静态网站托管
 
 ## 本地开发
@@ -154,22 +154,23 @@ PersonalPhoto 用于生活照、风景照和前台图集页展示。推荐在隐
 }
 ```
 
-## 配置 Cusdis 评论
+## 配置 Waline 评论
 
-文章详情页已经集成 Cusdis。Cusdis 支持访客用昵称和邮箱留言，不需要 GitHub 账号；评论数据存放在 Cusdis 服务里。
+文章详情页已经集成 Waline。Waline 支持昵称匿名留言、邮箱、个人链接、表情和文章反应，评论数据存放在你部署的 Waline 服务里。
 
-先到 [cusdis.com](https://cusdis.com/) 创建一个站点应用，复制它生成的 `App ID`。
+先按照 [Waline 官方文档](https://waline.js.org/guide/get-started/) 部署服务。推荐使用 Vercel + 免费数据库方案。部署完成后，你会得到一个 Waline 服务地址，例如：
+
+```bash
+https://your-waline.vercel.app
+```
 
 线上 GitHub Pages 使用仓库变量。打开 `Settings -> Secrets and variables -> Actions -> Variables`，新增：
 
 ```bash
-PUBLIC_CUSDIS_APP_ID="你的 Cusdis App ID"
-PUBLIC_CUSDIS_HOST="https://cusdis.com"
+PUBLIC_WALINE_SERVER_URL="https://your-waline.vercel.app"
 ```
 
-`PUBLIC_CUSDIS_HOST` 可以不填，默认就是 `https://cusdis.com`。如果以后改成自部署 Cusdis，再把这里换成自己的服务地址。
-
-这些值会在 GitHub Actions 构建时注入到 Astro。保存变量后，重新运行一次 Pages workflow 或推送一次提交，文章页底部就会显示留言区。
+这些值会在 GitHub Actions 构建时注入到 Astro。保存变量后，重新运行一次 Pages workflow 或推送一次提交，文章页底部就会显示 Waline 留言区。
 
 本地可以创建 `.env` 文件保存这些值，`.env` 已加入 `.gitignore`，不会被提交。
 

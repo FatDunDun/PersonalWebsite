@@ -35,8 +35,7 @@ jobs:
 
       - name: Build
         env:
-          PUBLIC_CUSDIS_APP_ID: ${{ vars.PUBLIC_CUSDIS_APP_ID }}
-          PUBLIC_CUSDIS_HOST: ${{ vars.PUBLIC_CUSDIS_HOST }}
+          PUBLIC_WALINE_SERVER_URL: ${{ vars.PUBLIC_WALINE_SERVER_URL }}
         run: npm run build
 
       - name: Upload artifact

@@ -98,7 +98,7 @@
       <text class="body ink" x="0" y="143">文章列表页：文章卡片、封面、日期和标签</text>
 
       <text class="path mono" x="0" y="210">src/pages/articles/[slug].astro</text>
-      <text class="body ink" x="0" y="248">文章详情页：正文、封面、评论区 giscus</text>
+      <text class="body ink" x="0" y="248">文章详情页：正文、封面、评论区 Waline</text>
 
       <text class="path mono" x="0" y="315">src/pages/gallery/index.astro</text>
       <text class="body ink" x="0" y="353">图集页：PersonalPhoto 网格、卡片高度和说明</text>
@@ -132,7 +132,7 @@
       <text class="path mono" x="0" y="420">src/components/AnniversaryTimer.astro</text>
       <text class="body ink" x="0" y="458">首页纪念日计时器</text>
 
-      <text class="path mono" x="0" y="525">src/components/Giscus.astro</text>
+      <text class="path mono" x="0" y="525">src/components/WalineComments.astro</text>
       <text class="body ink" x="0" y="563">文章底部评论系统</text>
     </g>
   </g>

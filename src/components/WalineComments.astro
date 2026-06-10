@@ -1,0 +1,61 @@
+---
+interface Props {
+  pageId: string;
+}
+
+const { pageId } = Astro.props;
+const serverURL = import.meta.env.PUBLIC_WALINE_SERVER_URL;
+const enabled = Boolean(serverURL);
+const commentPath = `/articles/${pageId}/`;
+---
+
+{enabled && <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />}
+
+<section class="mt-14 border-t border-[var(--line)] pt-10">
+  <div class="mb-6 flex items-end justify-between gap-4">
+    <div>
+      <p class="text-sm uppercase tracking-[0.24em] text-[var(--accent)]">Comments</p>
+      <h2 class="mt-2 text-2xl font-semibold">留言区</h2>
+    </div>
+  </div>
+
+  {
+    enabled ? (
+      <div class="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
+        <div id="waline-thread" data-server-url={serverURL} data-path={commentPath} />
+      </div>
+    ) : (
+      <div class="rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface-soft)] p-5 text-sm leading-6 text-[var(--muted)]">
+        留言区已切换为 Waline。部署 Waline 服务并配置 PUBLIC_WALINE_SERVER_URL 后，访客可以用昵称留言、发送表情和参与文章反应。
+      </div>
+    )
+  }
+</section>
+
+{
+  enabled && (
+    <script type="module" is:inline>
+      import { init } from "https://unpkg.com/@waline/client@v3/dist/waline.js";
+
+      const container = document.querySelector("#waline-thread");
+
+      if (container) {
+        init({
+          el: container,
+          serverURL: container.dataset.serverUrl,
+          path: container.dataset.path,
+          lang: "zh-CN",
+          dark: "html.dark",
+          login: "disable",
+          meta: ["nick", "mail", "link"],
+          requiredMeta: ["nick"],
+          commentSorting: "latest",
+          pageSize: 10,
+          reaction: true,
+          imageUploader: false,
+          search: false,
+        });
+      }
+    </script>
+  )
+}

@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Micy 的数字花园",
   title: "Micy 的数字花园 | 写作、影像与项目",
   description:
-    "一个使用 Astro、TypeScript 和 Tailwind CSS 构建的现代个人网站，记录文章、图集、视频、项目和个人介绍。",
+    "一个使用 Astro、TypeScript 和 Tailwind CSS 构建的现代个人网站，记录文章、图集、视频、推荐、项目和个人介绍。",
   author: "Micy",
   ogImage: "/images/hero.png",
 };
@@ -18,6 +18,7 @@ export const navItems = [
   { href: "/articles/", label: "文章" },
   { href: "/gallery/", label: "图集" },
   { href: "/videos/", label: "视频" },
+  { href: "/recommendations/", label: "推荐" },
   { href: "/projects/", label: "项目" },
   { href: "/about/", label: "关于" },
 ];

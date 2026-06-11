@@ -2,6 +2,7 @@
 import "@/styles/global.css";
 import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
+import { recommendations } from "@/data/recommendations";
 import { videoItems } from "@/data/videos";
 import { getCollection } from "astro:content";
 import { readdirSync } from "node:fs";
@@ -22,6 +23,7 @@ const initialData = {
     }))
     .sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()),
   projects,
+  recommendations,
   gallery: galleryItems,
   personalVideos: videoItems,
   images: imageNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
@@ -147,7 +149,7 @@ const initialData = {
             <p class="font-mono text-xs uppercase tracking-[0.26em] text-[var(--accent)]">Silent Orbit</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-normal md:text-4xl">内容工作台</h1>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              文章、项目、PersonalPhoto、PersonalVideo、素材图片和素材视频统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
+              文章、项目、推荐、PersonalPhoto、PersonalVideo、素材图片和素材视频统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
             </p>
           </div>
 
@@ -184,6 +186,10 @@ const initialData = {
             <button class="orbit-button flex items-center justify-between text-left" data-section="projects" type="button">
               <span>项目</span>
               <span class="text-[var(--muted)]" data-count="projects">0</span>
+            </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="recommendations" type="button">
+              <span>推荐</span>
+              <span class="text-[var(--muted)]" data-count="recommendations">0</span>
             </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="gallery" type="button">
               <span>PersonalPhoto</span>
@@ -339,6 +345,92 @@ const initialData = {
                 </label>
               </div>
             </form>
+          </section>
+
+          <section class="orbit-view" data-view="recommendations" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Recommendation Editor</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-recommendation-title>新建推荐</h2>
+              </div>
+              <div class="orbit-actions">
+                <button class="orbit-button" data-recommendation-upload-image type="button">上传封面</button>
+                <button class="orbit-button" data-recommendation-use-selected-image type="button">用选中图</button>
+                <button class="orbit-button orbit-button-primary" data-save-recommendation type="button">保存推荐</button>
+                <button class="orbit-button orbit-danger" data-delete-recommendation type="button">删除推荐</button>
+                <input class="hidden" data-recommendation-image-file type="file" accept="image/*" />
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 2xl:grid-cols-[1fr_320px]">
+              <form class="grid gap-4">
+                <div class="grid gap-4 md:grid-cols-[1fr_180px]">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Title</span>
+                    <input class="orbit-input mt-2 text-sm" data-recommendation-field="title" placeholder="推荐名称" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Category</span>
+                    <select class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="category">
+                      <option value="book">book / 书籍</option>
+                      <option value="film">film / 影视</option>
+                      <option value="music">music / 歌曲</option>
+                      <option value="game">game / 游戏</option>
+                      <option value="other">other / 其他</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="grid gap-4 md:grid-cols-3">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Creator</span>
+                    <input class="orbit-input mt-2 text-sm" data-recommendation-field="creator" placeholder="作者 / 导演 / 歌手 / 厂商" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Year</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="year" placeholder="2026" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Rating</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="rating" placeholder="9.5 / 私藏" />
+                  </label>
+                </div>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Description</span>
+                  <textarea class="orbit-input mt-2 min-h-28 text-sm leading-6" data-recommendation-field="description" placeholder="为什么推荐它？"></textarea>
+                </label>
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Image</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="image" placeholder="/images/cover.png" />
+                  </label>
+                  <label>
+                    <span class="font-mono text-xs text-[var(--muted)]">Link</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="link" placeholder="https://..." />
+                  </label>
+                </div>
+                <label>
+                  <span class="font-mono text-xs text-[var(--muted)]">Tags</span>
+                  <input class="orbit-input mt-2 text-sm" data-recommendation-field="tags" placeholder="文学, 科幻, 私藏" />
+                </label>
+              </form>
+
+              <figure class="rounded-lg border border-[var(--line)] bg-[var(--background)] p-2">
+                <div class="relative overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
+                  <div class="grid aspect-[4/5] w-full place-items-center px-6 text-center" data-recommendation-empty>
+                    <div>
+                      <p class="font-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">No Cover</p>
+                      <p class="mt-2 text-sm leading-6 text-[var(--muted)]">上传或选择封面后这里会显示预览。</p>
+                    </div>
+                  </div>
+                  <img class="hidden aspect-[4/5] w-full object-cover" data-recommendation-preview alt="" />
+                </div>
+                <figcaption class="p-3">
+                  <p class="font-semibold" data-recommendation-preview-title>预览</p>
+                  <p class="mt-1 font-mono text-xs text-[var(--muted)]" data-recommendation-preview-meta>book</p>
+                  <p class="mt-2 text-sm leading-6 text-[var(--muted)]" data-recommendation-preview-description>推荐理由会显示在这里。</p>
+                </figcaption>
+              </figure>
+            </div>
           </section>
 
           <section class="orbit-view" data-view="gallery" hidden>
@@ -545,6 +637,7 @@ const initialData = {
       const BRANCH = "main";
       const POSTS_PATH = "src/content/posts";
       const PROJECTS_PATH = "src/data/projects.ts";
+      const RECOMMENDATIONS_PATH = "src/data/recommendations.ts";
       const GALLERY_PATH = "src/data/gallery.ts";
       const PERSONAL_VIDEOS_DATA_PATH = "src/data/videos.ts";
       const IMAGES_PATH = "public/images";
@@ -561,18 +654,21 @@ const initialData = {
         section: "posts",
         posts: [],
         projects: [],
+        recommendations: [],
         gallery: [],
         personalVideos: [],
         images: [],
         videos: [],
         files: {
           projects: null,
+          recommendations: null,
           gallery: null,
           personalVideos: null,
         },
         current: {
           post: null,
           projectIndex: -1,
+          recommendationIndex: -1,
           galleryIndex: -1,
           personalVideoIndex: -1,
           image: null,
@@ -606,6 +702,18 @@ const initialData = {
         link: $('[data-project-field="link"]'),
       };
 
+      const recommendationFields = {
+        title: $('[data-recommendation-field="title"]'),
+        category: $('[data-recommendation-field="category"]'),
+        creator: $('[data-recommendation-field="creator"]'),
+        year: $('[data-recommendation-field="year"]'),
+        description: $('[data-recommendation-field="description"]'),
+        image: $('[data-recommendation-field="image"]'),
+        link: $('[data-recommendation-field="link"]'),
+        rating: $('[data-recommendation-field="rating"]'),
+        tags: $('[data-recommendation-field="tags"]'),
+      };
+
       const galleryFields = {
         title: $('[data-gallery-field="title"]'),
         description: $('[data-gallery-field="description"]'),
@@ -624,6 +732,7 @@ const initialData = {
       const labels = {
         posts: { kicker: "Posts", title: "文章列表", empty: "暂无文章。" },
         projects: { kicker: "Projects", title: "项目列表", empty: "暂无项目。" },
+        recommendations: { kicker: "Taste", title: "推荐列表", empty: "暂无推荐。" },
         gallery: { kicker: "PersonalPhoto", title: "生活照片", empty: "暂无照片。" },
         personalVideos: { kicker: "PersonalVideo", title: "视频记录", empty: "暂无视频记录。" },
         images: { kicker: "Assets", title: "素材图片", empty: "暂无素材图片。" },
@@ -892,6 +1001,7 @@ const initialData = {
       const updateCounts = () => {
         $('[data-count="posts"]').textContent = state.posts.length;
         $('[data-count="projects"]').textContent = state.projects.length;
+        $('[data-count="recommendations"]').textContent = state.recommendations.length;
         $('[data-count="gallery"]').textContent = state.gallery.length;
         $('[data-count="personalVideos"]').textContent = state.personalVideos.length;
         $('[data-count="images"]').textContent = state.images.length;
@@ -919,13 +1029,15 @@ const initialData = {
             ? state.posts
             : section === "projects"
               ? state.projects
-              : section === "gallery"
-                ? state.gallery
-                : section === "personalVideos"
-                  ? state.personalVideos
-                  : section === "images"
-                    ? state.images
-                    : state.videos;
+              : section === "recommendations"
+                ? state.recommendations
+                : section === "gallery"
+                  ? state.gallery
+                  : section === "personalVideos"
+                    ? state.personalVideos
+                    : section === "images"
+                      ? state.images
+                      : state.videos;
 
         if (!items.length) {
           list.innerHTML = `<p class="text-sm text-[var(--muted)]">${labels[section].empty}</p>`;
@@ -958,6 +1070,14 @@ const initialData = {
               <p class="mt-1 text-sm text-[var(--muted)]">${escapeHtml(item.year || "")} · ${(item.tags || []).map(escapeHtml).join(", ")}</p>
             `;
             button.addEventListener("click", () => fillProject(index));
+          } else if (section === "recommendations") {
+            button.dataset.active = String(state.current.recommendationIndex === index);
+            button.innerHTML = `
+              <p class="font-semibold">${escapeHtml(item.title || "未命名推荐")}</p>
+              <p class="mt-1 text-sm text-[var(--muted)]">${escapeHtml(item.category || "other")} · ${escapeHtml(item.creator || "")} ${item.year ? `· ${escapeHtml(item.year)}` : ""}</p>
+              <p class="mt-1 font-mono text-xs text-[var(--muted)]">${escapeHtml(item.image || "")}</p>
+            `;
+            button.addEventListener("click", () => fillRecommendation(index));
           } else if (section === "gallery") {
             button.dataset.active = String(state.current.galleryIndex === index);
             button.innerHTML = `
@@ -1070,6 +1190,12 @@ const initialData = {
         state.projects = readExportedArray(fromBase64(file.content), "projects");
       };
 
+      const loadRecommendations = async () => {
+        const file = await getFile(RECOMMENDATIONS_PATH);
+        state.files.recommendations = file;
+        state.recommendations = readExportedArray(fromBase64(file.content), "recommendations");
+      };
+
       const loadGallery = async () => {
         const file = await getFile(GALLERY_PATH);
         state.files.gallery = file;
@@ -1101,17 +1227,20 @@ const initialData = {
       const applyInitialData = () => {
         state.posts = clone(INITIAL_DATA.posts);
         state.projects = clone(INITIAL_DATA.projects);
+        state.recommendations = clone(INITIAL_DATA.recommendations);
         state.gallery = clone(INITIAL_DATA.gallery).filter((item) => isPersonalPhotoPath(item.image));
         state.personalVideos = clone(INITIAL_DATA.personalVideos);
         state.images = clone(INITIAL_DATA.images);
         state.videos = clone(INITIAL_DATA.videos);
         state.files.projects = null;
+        state.files.recommendations = null;
         state.files.gallery = null;
         state.files.personalVideos = null;
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
         if (state.current.projectIndex < 0) newProject();
+        if (state.current.recommendationIndex < 0) newRecommendation();
         if (state.current.galleryIndex < 0) newGallery();
         if (state.current.personalVideoIndex < 0) newPersonalVideo();
       };
@@ -1119,11 +1248,12 @@ const initialData = {
       const loadAll = async () => {
         if (state.mode === "local") {
           setStatus("本地模式：读取项目文件中...");
-          await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
+          await Promise.all([loadPosts(), loadProjects(), loadRecommendations(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
           updateCounts();
           renderList();
           if (!state.current.post) newPost();
           if (state.current.projectIndex < 0) newProject();
+          if (state.current.recommendationIndex < 0) newRecommendation();
           if (state.current.galleryIndex < 0) newGallery();
           if (state.current.personalVideoIndex < 0) newPersonalVideo();
           setStatus("本地模式已启用。保存、删除、上传会直接写入当前项目文件夹。");
@@ -1139,11 +1269,12 @@ const initialData = {
 
         state.mode = "github";
         setStatus("GitHub 模式：同步仓库内容中...");
-        await Promise.all([loadPosts(), loadProjects(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
+        await Promise.all([loadPosts(), loadProjects(), loadRecommendations(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
         if (state.current.projectIndex < 0) newProject();
+        if (state.current.recommendationIndex < 0) newRecommendation();
         if (state.current.galleryIndex < 0) newGallery();
         if (state.current.personalVideoIndex < 0) newPersonalVideo();
         setStatus("GitHub 模式已连接。保存会直接提交到 main 分支。");
@@ -1308,6 +1439,113 @@ const initialData = {
         updateCounts();
         newProject();
         setStatus("项目已删除。");
+      };
+
+      const newRecommendation = () => {
+        state.current.recommendationIndex = -1;
+        recommendationFields.title.value = "";
+        recommendationFields.category.value = "book";
+        recommendationFields.creator.value = "";
+        recommendationFields.year.value = new Date().getFullYear().toString();
+        recommendationFields.description.value = "";
+        recommendationFields.image.value = "";
+        recommendationFields.link.value = "";
+        recommendationFields.rating.value = "";
+        recommendationFields.tags.value = "";
+        $("[data-recommendation-title]").textContent = "新建推荐";
+        renderRecommendationPreview();
+        renderList();
+      };
+
+      const fillRecommendation = (index) => {
+        const item = state.recommendations[index];
+        state.current.recommendationIndex = index;
+        recommendationFields.title.value = item?.title || "";
+        recommendationFields.category.value = item?.category || "other";
+        recommendationFields.creator.value = item?.creator || "";
+        recommendationFields.year.value = item?.year || "";
+        recommendationFields.description.value = item?.description || "";
+        recommendationFields.image.value = item?.image || "";
+        recommendationFields.link.value = item?.link || "";
+        recommendationFields.rating.value = item?.rating || "";
+        recommendationFields.tags.value = Array.isArray(item?.tags) ? item.tags.join(", ") : "";
+        $("[data-recommendation-title]").textContent = `编辑推荐：${recommendationFields.title.value || "未命名"}`;
+        renderRecommendationPreview();
+        renderList();
+      };
+
+      const renderRecommendationPreview = () => {
+        const image = recommendationFields.image.value.trim();
+        const preview = $("[data-recommendation-preview]");
+        const empty = $("[data-recommendation-empty]");
+        preview.hidden = !image;
+        preview.classList.toggle("hidden", !image);
+        empty.hidden = !!image;
+        if (image) preview.src = withBase(image);
+        else preview.removeAttribute("src");
+        preview.alt = recommendationFields.title.value.trim();
+        $("[data-recommendation-preview-title]").textContent = recommendationFields.title.value.trim() || "预览";
+        $("[data-recommendation-preview-meta]").textContent = [
+          recommendationFields.category.value,
+          recommendationFields.creator.value.trim(),
+          recommendationFields.year.value.trim(),
+          recommendationFields.rating.value.trim(),
+        ].filter(Boolean).join(" · ");
+        $("[data-recommendation-preview-description]").textContent =
+          recommendationFields.description.value.trim() || "推荐理由会显示在这里。";
+      };
+
+      const saveRecommendation = async () => {
+        requireWriteAccess();
+        const item = {
+          title: recommendationFields.title.value.trim(),
+          category: recommendationFields.category.value,
+          creator: recommendationFields.creator.value.trim(),
+          year: recommendationFields.year.value.trim(),
+          description: recommendationFields.description.value.trim(),
+          image: recommendationFields.image.value.trim(),
+          link: recommendationFields.link.value.trim() || "#",
+          rating: recommendationFields.rating.value.trim(),
+          tags: recommendationFields.tags.value.split(",").map((tag) => tag.trim()).filter(Boolean),
+        };
+        if (!item.title) throw new Error("请填写推荐名称");
+        if (!item.description) throw new Error("请填写推荐理由");
+        const items = [...state.recommendations];
+        if (state.current.recommendationIndex >= 0) items[state.current.recommendationIndex] = item;
+        else items.unshift(item);
+        const sha = state.files.recommendations?.sha || (await getFile(RECOMMENDATIONS_PATH)).sha;
+        const result = await putFile({
+          path: RECOMMENDATIONS_PATH,
+          content: toBase64(stringifyArrayModule("recommendations", items)),
+          message: state.current.recommendationIndex >= 0 ? `Update recommendation: ${item.title}` : `Add recommendation: ${item.title}`,
+          sha,
+        });
+        state.recommendations = items;
+        state.files.recommendations = { ...state.files.recommendations, sha: result.content.sha };
+        state.current.recommendationIndex = items.findIndex((entry) => entry === item);
+        updateCounts();
+        renderList();
+        setStatus("推荐已保存。");
+      };
+
+      const deleteRecommendation = async () => {
+        requireWriteAccess();
+        if (state.current.recommendationIndex < 0) throw new Error("请选择一个已有推荐");
+        const item = state.recommendations[state.current.recommendationIndex];
+        if (!confirm(`确定删除推荐「${item.title}」吗？`)) return;
+        const items = state.recommendations.filter((_, index) => index !== state.current.recommendationIndex);
+        const sha = state.files.recommendations?.sha || (await getFile(RECOMMENDATIONS_PATH)).sha;
+        const result = await putFile({
+          path: RECOMMENDATIONS_PATH,
+          content: toBase64(stringifyArrayModule("recommendations", items)),
+          message: `Delete recommendation: ${item.title}`,
+          sha,
+        });
+        state.recommendations = items;
+        state.files.recommendations = { ...state.files.recommendations, sha: result.content.sha };
+        updateCounts();
+        newRecommendation();
+        setStatus("推荐已删除。");
       };
 
       const newGallery = () => {
@@ -1680,6 +1918,7 @@ const initialData = {
       $("[data-new-current]").addEventListener("click", () => {
         if (state.section === "posts") newPost();
         if (state.section === "projects") newProject();
+        if (state.section === "recommendations") newRecommendation();
         if (state.section === "gallery") newGallery();
         if (state.section === "personalVideos") newPersonalVideo();
         if (state.section === "images") $("[data-image-file]").click();
@@ -1726,6 +1965,28 @@ const initialData = {
 
       $("[data-save-project]").addEventListener("click", () => run(saveProject));
       $("[data-delete-project]").addEventListener("click", () => run(deleteProject));
+
+      $("[data-save-recommendation]").addEventListener("click", () => run(saveRecommendation));
+      $("[data-delete-recommendation]").addEventListener("click", () => run(deleteRecommendation));
+      $("[data-recommendation-upload-image]").addEventListener("click", () => $("[data-recommendation-image-file]").click());
+      $("[data-recommendation-image-file]").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        run(async () => {
+          const [image] = await uploadImages([file]);
+          recommendationFields.image.value = image.publicPath;
+          renderRecommendationPreview();
+          setStatus("推荐封面已上传到素材图片库。");
+        });
+      });
+      $("[data-recommendation-use-selected-image]").addEventListener("click", () =>
+        run(async () => {
+          if (!state.current.image?.publicPath) throw new Error("请先在素材图片库选择一张图片");
+          recommendationFields.image.value = state.current.image.publicPath;
+          renderRecommendationPreview();
+          setStatus("已把选中的素材图片设为推荐封面。");
+        }),
+      );
 
       $("[data-save-gallery]").addEventListener("click", () => run(saveGallery));
       $("[data-delete-gallery]").addEventListener("click", () => run(deleteGallery));
@@ -1795,6 +2056,7 @@ const initialData = {
       $("[data-delete-video]").addEventListener("click", () => run(deleteVideo));
 
       Object.values(postFields).forEach((field) => field.addEventListener("input", renderMarkdownPreview));
+      Object.values(recommendationFields).forEach((field) => field.addEventListener("input", renderRecommendationPreview));
       Object.values(galleryFields).forEach((field) => field.addEventListener("input", renderGalleryPreview));
       Object.values(personalVideoFields).forEach((field) => field.addEventListener("input", renderPersonalVideoPreview));
 
@@ -1802,6 +2064,7 @@ const initialData = {
       selectSection("posts");
       newPost();
       newProject();
+      newRecommendation();
       newGallery();
       newPersonalVideo();
 

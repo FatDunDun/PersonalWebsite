@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1800" viewBox="0 0 1800 1800" role="img" aria-labelledby="title desc">
+  <title id="title">Waline、Vercel、Neon 与个人博客关系图</title>
+  <desc id="desc">解释 PersonalWebsite 静态博客如何通过 Waline 评论程序、Vercel Serverless 托管和 Neon 数据库存储实现评论功能。</desc>
+  <defs>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#e8ebf1" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 2 2 L 10 6 L 2 10 Z" fill="#2563eb"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#111827" flood-opacity="0.08"/>
+    </filter>
+    <style>
+      .bg { fill: #fbfbfa; }
+      .grid { fill: url(#grid); }
+      .card { fill: rgba(255,255,255,0.91); stroke: #dfe3ea; stroke-width: 2; filter: url(#shadow); }
+      .mini { fill: #fff; stroke: #dfe3ea; stroke-width: 2; }
+      .ink { fill: #141414; }
+      .muted { fill: #6d7280; }
+      .blue { fill: #2563eb; }
+      .green { fill: #0f8a5f; }
+      .orange { fill: #d97706; }
+      .purple { fill: #7c3aed; }
+      .softBlue { fill: #eef4ff; }
+      .softGreen { fill: #edf8f3; }
+      .softOrange { fill: #fff7ed; }
+      .softPurple { fill: #f4f0ff; }
+      .line { stroke: #dfe3ea; stroke-width: 2; }
+      .arrow { stroke: #2563eb; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .arrowMuted { stroke: #8a93a3; stroke-width: 3; fill: none; marker-end: url(#arrow); opacity: 0.75; }
+      .chip { fill: #111; }
+      .chipText { fill: #fff; font-size: 24px; font-weight: 700; }
+      text { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; }
+      .mono { font-family: "SFMono-Regular", "Menlo", "Consolas", monospace; }
+      .h1 { font-size: 70px; font-weight: 800; letter-spacing: 0; }
+      .h2 { font-size: 40px; font-weight: 800; }
+      .h3 { font-size: 31px; font-weight: 800; }
+      .body { font-size: 26px; font-weight: 500; }
+      .small { font-size: 22px; font-weight: 500; }
+      .tiny { font-size: 18px; font-weight: 500; }
+      .code { font-size: 21px; fill: #111; }
+      .path { font-size: 22px; font-weight: 700; fill: #2563eb; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1800" height="1800"/>
+  <rect class="grid" width="1800" height="1800" opacity="0.82"/>
+
+  <g transform="translate(90 78)">
+    <text class="h1 ink" x="0" y="0" dominant-baseline="hanging">评论系统三件套关系图</text>
+    <text class="body muted" x="4" y="102">Waline 是评论程序，Vercel 是运行程序的地方，Neon 是保存评论数据的数据库。你的博客负责展示入口。</text>
+    <text class="small muted mono" x="4" y="150">PersonalWebsite -> Waline Client -> Vercel Serverless -> Neon Database</text>
+    <rect class="chip" x="1210" y="8" rx="26" ry="26" width="360" height="58"/>
+    <text class="chipText mono" x="1243" y="38" dominant-baseline="middle">静态博客也能互动的原因</text>
+  </g>
+
+  <g transform="translate(90 270)">
+    <rect class="card" x="0" y="0" width="1620" height="610" rx="18"/>
+    <text class="h2 ink" x="42" y="42">一、它们分别是什么</text>
+    <text class="body muted" x="42" y="96">把评论系统拆开看，就不神秘了：前台展示、后端处理、数据库存储，各司其职。</text>
+
+    <g transform="translate(42 165)">
+      <rect class="mini" x="0" y="0" width="360" height="330" rx="18"/>
+      <circle class="softBlue" cx="58" cy="58" r="38"/>
+      <text class="h3 blue" x="28" y="130">你的博客</text>
+      <text class="small muted" x="28" y="176">GitHub Pages 托管的静态网站</text>
+      <line class="line" x1="28" y1="208" x2="332" y2="208"/>
+      <text class="tiny muted" x="28" y="246">负责：展示文章、加载 Waline 前端脚本、把文章 path 传给评论系统。</text>
+      <text class="code mono" x="28" y="292">/articles/hello-astro/</text>
+    </g>
+
+    <g transform="translate(442 165)">
+      <rect class="mini" x="0" y="0" width="360" height="330" rx="18"/>
+      <circle class="softPurple" cx="58" cy="58" r="38"/>
+      <text class="h3 purple" x="28" y="130">Waline</text>
+      <text class="small muted" x="28" y="176">评论系统程序</text>
+      <line class="line" x1="28" y1="208" x2="332" y2="208"/>
+      <text class="tiny muted" x="28" y="246">负责：评论框、表情、登录/匿名规则、管理后台、评论 API。</text>
+      <text class="code mono" x="28" y="292">WalineComments.astro</text>
+    </g>
+
+    <g transform="translate(842 165)">
+      <rect class="mini" x="0" y="0" width="360" height="330" rx="18"/>
+      <circle class="softOrange" cx="58" cy="58" r="38"/>
+      <text class="h3 orange" x="28" y="130">Vercel</text>
+      <text class="small muted" x="28" y="176">运行 Waline 服务端的平台</text>
+      <line class="line" x1="28" y1="208" x2="332" y2="208"/>
+      <text class="tiny muted" x="28" y="246">负责：接收浏览器请求、执行 Waline 后端代码、提供 /ui 管理后台。</text>
+      <text class="code mono" x="28" y="292">waline.vercel.app</text>
+    </g>
+
+    <g transform="translate(1242 165)">
+      <rect class="mini" x="0" y="0" width="330" height="330" rx="18"/>
+      <circle class="softGreen" cx="58" cy="58" r="38"/>
+      <text class="h3 green" x="28" y="130">Neon</text>
+      <text class="small muted" x="28" y="176">PostgreSQL 云数据库</text>
+      <line class="line" x1="28" y1="208" x2="302" y2="208"/>
+      <text class="tiny muted" x="28" y="246">负责：真正保存评论、邮箱、昵称、表情反应、审核状态。</text>
+      <text class="code mono" x="28" y="292">comments table</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 950)">
+    <rect class="card" x="0" y="0" width="1620" height="560" rx="18"/>
+    <text class="h2 ink" x="42" y="42">二、一条评论是怎么流动的</text>
+    <text class="body muted" x="42" y="96">你的网站没有服务器，但浏览器可以调用 Waline 服务；Waline 服务再去读写 Neon 数据库。</text>
+
+    <g transform="translate(70 190)">
+      <rect class="mini" x="0" y="0" width="240" height="190" rx="18"/>
+      <text class="h3 ink" x="28" y="54">访客</text>
+      <text class="small muted" x="28" y="98">写评论</text>
+      <text class="tiny muted" x="28" y="140">昵称、邮箱、表情、正文</text>
+    </g>
+
+    <path class="arrow" d="M 335 285 L 455 285"/>
+    <text class="tiny blue mono" x="350" y="250">打开文章页</text>
+
+    <g transform="translate(480 160)">
+      <rect class="mini" x="0" y="0" width="300" height="250" rx="18"/>
+      <text class="h3 blue" x="28" y="54">GitHub Pages</text>
+      <text class="small muted" x="28" y="98">加载静态 HTML/CSS/JS</text>
+      <text class="code mono" x="28" y="142">PUBLIC_WALINE_SERVER_URL</text>
+      <text class="tiny muted" x="28" y="190">告诉浏览器：评论服务地址在哪里。</text>
+    </g>
+
+    <path class="arrow" d="M 805 285 L 925 285"/>
+    <text class="tiny blue mono" x="824" y="250">POST /comment</text>
+
+    <g transform="translate(950 160)">
+      <rect class="mini" x="0" y="0" width="300" height="250" rx="18"/>
+      <text class="h3 orange" x="28" y="54">Vercel + Waline</text>
+      <text class="small muted" x="28" y="98">处理评论请求</text>
+      <text class="tiny muted" x="28" y="142">校验、反垃圾、保存、读取、返回评论列表。</text>
+      <text class="code mono" x="28" y="190">/ui 管理后台</text>
+    </g>
+
+    <path class="arrow" d="M 1275 285 L 1395 285"/>
+    <text class="tiny blue mono" x="1290" y="250">SQL read/write</text>
+
+    <g transform="translate(1420 190)">
+      <rect class="mini" x="0" y="0" width="150" height="190" rx="18"/>
+      <text class="h3 green" x="28" y="54">Neon</text>
+      <text class="small muted" x="28" y="98">存数据</text>
+      <text class="tiny muted" x="28" y="140">评论记录</text>
+    </g>
+
+    <path class="arrowMuted" d="M 1420 405 C 1120 525, 720 525, 310 405"/>
+    <text class="tiny muted mono" x="650" y="505">返回评论列表，浏览器把它渲染到文章底部</text>
+  </g>
+
+  <g transform="translate(90 1570)">
+    <rect class="card" x="0" y="0" width="780" height="170" rx="18"/>
+    <text class="h2 ink" x="42" y="42">三、你平时要维护什么</text>
+    <text class="small muted" x="42" y="94">改网站内容：用博客管理页。管理评论：进 Waline 后台 /ui。服务报错：看 Vercel Logs。数据库问题：看 Neon。</text>
+  </g>
+
+  <g transform="translate(930 1570)">
+    <rect class="card" x="0" y="0" width="780" height="170" rx="18"/>
+    <text class="h2 ink" x="42" y="42">四、核心记忆点</text>
+    <text class="small muted" x="42" y="94">GitHub Pages 是展厅，Waline 是评论员，Vercel 是评论员工作的办公室，Neon 是保存留言的档案柜。</text>
+  </g>
+</svg>

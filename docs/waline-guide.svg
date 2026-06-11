@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="2100" viewBox="0 0 1800 2100" role="img" aria-labelledby="title desc">
+  <title id="title">Waline 评论系统部署维护与运行原理图</title>
+  <desc id="desc">说明 PersonalWebsite 如何通过 GitHub Pages、Vercel Waline 服务和数据库实现静态博客评论功能。</desc>
+  <defs>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#e8ebf1" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 2 2 L 10 6 L 2 10 Z" fill="#2563eb"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#111827" flood-opacity="0.08"/>
+    </filter>
+    <style>
+      .bg { fill: #fbfbfa; }
+      .grid { fill: url(#grid); }
+      .ink { fill: #141414; }
+      .muted { fill: #6d7280; }
+      .blue { fill: #2563eb; }
+      .green { fill: #0f8a5f; }
+      .orange { fill: #d97706; }
+      .red { fill: #dc2626; }
+      .softBlue { fill: #eef4ff; }
+      .softGreen { fill: #edf8f3; }
+      .softOrange { fill: #fff7ed; }
+      .card { fill: rgba(255,255,255,0.9); stroke: #dfe3ea; stroke-width: 2; filter: url(#shadow); }
+      .mini { fill: #fff; stroke: #dfe3ea; stroke-width: 2; }
+      .chip { fill: #111; }
+      .chipText { fill: #fff; font-size: 25px; font-weight: 700; }
+      .line { stroke: #dfe3ea; stroke-width: 2; }
+      .arrow { stroke: #2563eb; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .flow { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrow); opacity: 0.9; }
+      text { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; }
+      .mono { font-family: "SFMono-Regular", "Menlo", "Consolas", monospace; }
+      .h1 { font-size: 70px; font-weight: 800; letter-spacing: 0; }
+      .h2 { font-size: 40px; font-weight: 800; }
+      .h3 { font-size: 30px; font-weight: 800; }
+      .body { font-size: 26px; font-weight: 500; }
+      .small { font-size: 22px; font-weight: 500; }
+      .tiny { font-size: 18px; font-weight: 500; }
+      .path { font-size: 22px; font-weight: 700; fill: #2563eb; }
+      .code { font-size: 21px; fill: #111; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1800" height="2100"/>
+  <rect class="grid" width="1800" height="2100" opacity="0.82"/>
+
+  <g transform="translate(90 78)">
+    <text class="h1 ink" x="0" y="0" dominant-baseline="hanging">Waline 评论系统地图</text>
+    <text class="body muted" x="4" y="102">这张图解释：静态 GitHub Pages 为什么也能有评论、Waline 服务怎么部署、日常维护时该看哪里。</text>
+    <text class="small muted mono" x="4" y="150">PersonalWebsite + GitHub Pages + Vercel Serverless + Database</text>
+    <rect class="chip" x="1248" y="8" rx="26" ry="26" width="292" height="58"/>
+    <text class="chipText mono" x="1280" y="38" dominant-baseline="middle">PUBLIC_WALINE_SERVER_URL</text>
+  </g>
+
+  <g transform="translate(90 280)">
+    <rect class="card" x="0" y="0" width="1620" height="430" rx="18"/>
+    <text class="h2 ink" x="42" y="42">一、部署时做了什么</text>
+    <text class="body muted" x="42" y="95">博客本身仍然是静态页面；评论能力来自你额外部署的一套 Waline 服务和数据库。</text>
+
+    <g transform="translate(42 150)">
+      <rect class="mini" x="0" y="0" width="300" height="210" rx="16"/>
+      <circle class="softBlue" cx="52" cy="52" r="32"/>
+      <text class="h3 ink" x="92" y="43">1. 部署服务</text>
+      <text class="small muted" x="26" y="98">从 Waline Deploy 进入</text>
+      <text class="path mono" x="26" y="136">Vercel Project</text>
+      <text class="tiny muted" x="26" y="172">得到 waline.vercel.app 地址。</text>
+    </g>
+
+    <path class="arrow" d="M 368 255 L 452 255"/>
+
+    <g transform="translate(478 150)">
+      <rect class="mini" x="0" y="0" width="300" height="210" rx="16"/>
+      <circle class="softGreen" cx="52" cy="52" r="32"/>
+      <text class="h3 ink" x="92" y="43">2. 绑定数据库</text>
+      <text class="small muted" x="26" y="98">Vercel Storage 创建 Neon</text>
+      <text class="path mono" x="26" y="136">SQL Editor</text>
+      <text class="tiny muted" x="26" y="172">运行 waline.pgsql 初始化表。</text>
+    </g>
+
+    <path class="arrow" d="M 804 255 L 888 255"/>
+
+    <g transform="translate(914 150)">
+      <rect class="mini" x="0" y="0" width="300" height="210" rx="16"/>
+      <circle class="softOrange" cx="52" cy="52" r="32"/>
+      <text class="h3 ink" x="92" y="43">3. 注册管理员</text>
+      <text class="small muted" x="26" y="98">打开 /ui/register</text>
+      <text class="path mono" x="26" y="136">第一个账号 = 管理员</text>
+      <text class="tiny muted" x="26" y="172">之后用 /ui 管理评论。</text>
+    </g>
+
+    <path class="arrow" d="M 1240 255 L 1324 255"/>
+
+    <g transform="translate(1350 150)">
+      <rect class="mini" x="0" y="0" width="228" height="210" rx="16"/>
+      <circle class="softBlue" cx="52" cy="52" r="32"/>
+      <text class="h3 ink" x="92" y="43">4. 接入博客</text>
+      <text class="small muted" x="26" y="98">GitHub Variables</text>
+      <text class="path mono" x="26" y="136">PUBLIC_WALINE_SERVER_URL</text>
+      <text class="tiny muted" x="26" y="172">Actions 构建时注入页面。</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 770)">
+    <rect class="card" x="0" y="0" width="1620" height="650" rx="18"/>
+    <text class="h2 ink" x="42" y="42">二、静态页面为什么能评论</text>
+    <text class="body muted" x="42" y="95">GitHub Pages 不保存评论，它只负责展示页面和加载 Waline 前端脚本。真正的读写发生在 Vercel 和数据库。</text>
+
+    <g transform="translate(54 180)">
+      <rect class="mini" x="0" y="0" width="300" height="250" rx="18"/>
+      <text class="h3 ink" x="28" y="48">访客浏览器</text>
+      <text class="small muted" x="28" y="94">打开文章详情页</text>
+      <text class="path mono" x="28" y="132">/articles/xxx/</text>
+      <text class="tiny muted" x="28" y="176">填写昵称、邮箱、表情和评论内容。</text>
+    </g>
+
+    <path class="flow" d="M 380 265 C 475 235, 530 235, 630 265"/>
+    <text class="tiny blue mono" x="442" y="216">1. load script</text>
+
+    <g transform="translate(656 145)">
+      <rect class="mini" x="0" y="0" width="310" height="320" rx="18"/>
+      <text class="h3 ink" x="28" y="48">GitHub Pages</text>
+      <text class="small muted" x="28" y="94">只托管静态文件</text>
+      <text class="path mono" x="28" y="132">WalineComments.astro</text>
+      <text class="tiny muted" x="28" y="176">页面里保存 serverURL、path、UI 配置。</text>
+      <line class="line" x1="28" y1="210" x2="282" y2="210"/>
+      <text class="tiny muted" x="28" y="248">不需要 Node 服务，也不直接连接数据库。</text>
+    </g>
+
+    <path class="flow" d="M 994 265 C 1095 235, 1140 235, 1236 265"/>
+    <text class="tiny blue mono" x="1052" y="216">2. API request</text>
+
+    <g transform="translate(1262 180)">
+      <rect class="mini" x="0" y="0" width="300" height="250" rx="18"/>
+      <text class="h3 ink" x="28" y="48">Waline 服务</text>
+      <text class="small muted" x="28" y="94">Vercel Serverless</text>
+      <text class="path mono" x="28" y="132">serverURL</text>
+      <text class="tiny muted" x="28" y="176">校验、保存、读取评论，提供管理后台。</text>
+    </g>
+
+    <path class="flow" d="M 1412 456 L 1412 540"/>
+    <text class="tiny blue mono" x="1430" y="508">3. read/write</text>
+
+    <g transform="translate(1152 540)">
+      <rect class="mini" x="0" y="0" width="520" height="72" rx="18"/>
+      <text class="h3 ink" x="28" y="46">数据库：保存评论、用户信息、审核状态和反应表情</text>
+    </g>
+
+    <path class="flow" d="M 1262 370 C 990 570, 580 570, 354 370"/>
+    <text class="tiny blue mono" x="690" y="545">4. return comments -> render in browser</text>
+  </g>
+
+  <g transform="translate(90 1480)">
+    <rect class="card" x="0" y="0" width="780" height="520" rx="18"/>
+    <text class="h2 ink" x="42" y="42">三、日常维护看哪里</text>
+    <text class="body muted" x="42" y="92">常用入口和变量，别混在一起。</text>
+
+    <g transform="translate(42 145)">
+      <text class="path mono" x="0" y="0">GitHub Variables</text>
+      <text class="body ink" x="0" y="38">博客构建时读取 Waline 地址</text>
+      <text class="code mono" x="0" y="76">PUBLIC_WALINE_SERVER_URL</text>
+
+      <text class="path mono" x="0" y="150">Vercel Project</text>
+      <text class="body ink" x="0" y="188">看 Waline 服务是否 Ready、查看 Logs、Redeploy</text>
+
+      <text class="path mono" x="0" y="262">Waline Admin</text>
+      <text class="body ink" x="0" y="300">管理评论、删除垃圾评论、调整后台设置</text>
+      <text class="code mono" x="0" y="338">https://你的服务地址/ui</text>
+    </g>
+  </g>
+
+  <g transform="translate(930 1480)">
+    <rect class="card" x="0" y="0" width="780" height="520" rx="18"/>
+    <text class="h2 ink" x="42" y="42">四、常见问题怎么判断</text>
+    <text class="body muted" x="42" y="92">评论区出问题时，按这个顺序排查。</text>
+
+    <g transform="translate(42 145)">
+      <text class="red h3" x="0" y="0">没有评论框</text>
+      <text class="small muted" x="0" y="38">检查 GitHub Variables 是否填了 PUBLIC_WALINE_SERVER_URL，Actions 是否重新构建。</text>
+
+      <text class="orange h3" x="0" y="122">评论提交失败</text>
+      <text class="small muted" x="0" y="160">检查 Vercel Logs、数据库是否连接、Waline 服务 Visit 是否正常。</text>
+
+      <text class="green h3" x="0" y="244">评论显示错文章</text>
+      <text class="small muted" x="0" y="282">检查组件里的 path。当前每篇文章使用 /articles/slug/ 作为评论线程。</text>
+
+      <text class="blue h3" x="0" y="366">想改评论样式</text>
+      <text class="small muted" x="0" y="404">修改 src/components/WalineComments.astro，深色模式跟随 html.dark。</text>
+    </g>
+  </g>
+</svg>

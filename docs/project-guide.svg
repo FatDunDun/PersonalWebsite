@@ -41,7 +41,7 @@
 
   <g transform="translate(90 80)">
     <text class="h1 ink" x="0" y="0" dominant-baseline="hanging">PersonalWebsite 项目地图</text>
-    <text class="body muted" x="4" y="106">以后想改文章、素材图片、素材视频、PersonalPhoto、PersonalVideo、项目、标题、样式、动效时，看这张图就能快速定位文件。</text>
+    <text class="body muted" x="4" y="106">以后想改文章、推荐、素材图片、素材视频、PersonalPhoto、PersonalVideo、项目、标题、样式、动效时，看这张图就能快速定位文件。</text>
     <text class="small muted mono" x="4" y="154">Tech Stack: Astro + TypeScript + Tailwind CSS + GitHub Pages</text>
     <rect class="tag" x="1250" y="8" rx="26" ry="26" width="315" height="58"/>
     <text class="tagText mono" x="1282" y="38" dominant-baseline="middle">/silent-orbit-7429/</text>
@@ -78,10 +78,11 @@
 
     <g transform="translate(1176 145)">
       <rect class="mini" x="0" y="0" width="360" height="210" rx="16"/>
-      <text class="h3 ink" x="26" y="34">改项目</text>
-      <text class="small muted" x="26" y="78">管理页：项目增删改</text>
+      <text class="h3 ink" x="26" y="34">项目 / 推荐</text>
+      <text class="small muted" x="26" y="78">管理页：项目模块 / 推荐模块</text>
       <text class="path mono" x="26" y="116">src/data/projects.ts</text>
-      <text class="tiny muted" x="26" y="154">控制项目页里的名称、年份、简介、标签和链接。</text>
+      <text class="path mono" x="26" y="148">src/data/recommendations.ts</text>
+      <text class="tiny muted" x="26" y="184">控制作品列表和喜好分享页。</text>
     </g>
   </g>
 
@@ -106,8 +107,11 @@
       <text class="path mono" x="0" y="420">src/pages/videos/index.astro</text>
       <text class="body ink" x="0" y="458">视频页：PersonalVideo 播放列表和说明</text>
 
-      <text class="path mono" x="0" y="525">src/pages/projects/index.astro</text>
-      <text class="body ink" x="0" y="563">项目页：项目列表展示样式</text>
+      <text class="path mono" x="0" y="525">src/pages/recommendations/index.astro</text>
+      <text class="body ink" x="0" y="563">推荐页：书籍、影视、歌曲、游戏喜好卡片</text>
+
+      <text class="path mono" x="0" y="630">src/pages/projects/index.astro</text>
+      <text class="body ink" x="0" y="668">项目页：项目列表展示样式</text>
     </g>
   </g>
 

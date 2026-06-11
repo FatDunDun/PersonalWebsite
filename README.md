@@ -1,6 +1,6 @@
 # Personal Website
 
-一个从 0 搭建的现代个人网站，技术栈为 Astro + TypeScript + Tailwind CSS，支持 Markdown/MDX 文章、图集瀑布流、项目页、关于页、深色模式、SEO 和 GitHub Pages 自动部署。
+一个从 0 搭建的现代个人网站，技术栈为 Astro + TypeScript + Tailwind CSS，支持 Markdown/MDX 文章、图集瀑布流、视频页、项目页、推荐页、关于页、深色模式、SEO 和 GitHub Pages 自动部署。
 
 ## 技术栈
 
@@ -34,7 +34,7 @@ npm run build
 src/
   components/        通用组件
   content/posts/     Markdown/MDX 文章
-  data/              图集和项目数据
+  data/              图集、视频、项目和推荐数据
   layouts/           页面布局
   pages/             路由页面
   styles/            全局样式
@@ -154,9 +154,33 @@ PersonalPhoto 用于生活照、风景照和前台图集页展示。推荐在隐
 }
 ```
 
+## 如何新增推荐
+
+推荐页用于整理喜欢的书籍、影视、歌曲、游戏和其他内容。推荐在隐藏管理页的 “推荐” 模块维护，也可以手动编辑 `src/data/recommendations.ts`。
+
+推荐封面建议放在 `public/images/` 素材图片库里。
+
+```ts
+{
+  title: "推荐名称",
+  category: "book",
+  creator: "作者 / 导演 / 歌手 / 厂商",
+  year: "2026",
+  description: "为什么推荐它。",
+  image: "/images/recommendation-cover.jpg",
+  link: "https://...",
+  rating: "9.5",
+  tags: ["文学", "私藏"],
+}
+```
+
+`category` 建议使用 `book`、`film`、`music`、`game` 或 `other`。
+
 ## 配置 Waline 评论
 
 文章详情页已经集成 Waline。Waline 支持昵称匿名留言、邮箱、个人链接、表情和文章反应，评论数据存放在你部署的 Waline 服务里。
+
+项目里有两张图解：[docs/waline-guide.svg](docs/waline-guide.svg) 整理了 Waline 的部署步骤、维护入口和静态页面能评论的运行原理；[docs/waline-vercel-neon-map.svg](docs/waline-vercel-neon-map.svg) 解释 Waline、Vercel、Neon 分别是什么，以及它们和博客之间的关系。
 
 先按照 [Waline 官方文档](https://waline.js.org/guide/get-started/) 部署服务。推荐使用 Vercel + 免费数据库方案。部署完成后，你会得到一个 Waline 服务地址，例如：
 
@@ -175,6 +199,8 @@ PUBLIC_WALINE_SERVER_URL="https://your-waline.vercel.app"
 本地可以创建 `.env` 文件保存这些值，`.env` 已加入 `.gitignore`，不会被提交。
 
 ## 部署到 GitHub Pages
+
+如果你想练习手动把本地改动推送到 GitHub，可以看这张图：[docs/git-push-guide.svg](docs/git-push-guide.svg)。
 
 1. 在 GitHub 新建仓库，并把本项目推送到 `main` 分支。
 2. 打开仓库的 `Settings -> Pages`。

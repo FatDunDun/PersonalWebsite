@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1900" viewBox="0 0 1800 1900" role="img" aria-labelledby="title desc">
+  <title id="title">PersonalWebsite Git 推送流程图</title>
+  <desc id="desc">说明修改代码后如何同步远端、检查、构建、提交并推送到 GitHub。</desc>
+  <defs>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#e8ebf1" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 2 2 L 10 6 L 2 10 Z" fill="#2563eb"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#111827" flood-opacity="0.08"/>
+    </filter>
+    <style>
+      .bg { fill: #fbfbfa; }
+      .grid { fill: url(#grid); }
+      .card { fill: rgba(255,255,255,0.91); stroke: #dfe3ea; stroke-width: 2; filter: url(#shadow); }
+      .mini { fill: #fff; stroke: #dfe3ea; stroke-width: 2; }
+      .ink { fill: #141414; }
+      .muted { fill: #6d7280; }
+      .blue { fill: #2563eb; }
+      .green { fill: #0f8a5f; }
+      .orange { fill: #d97706; }
+      .red { fill: #dc2626; }
+      .softBlue { fill: #eef4ff; }
+      .softGreen { fill: #edf8f3; }
+      .softOrange { fill: #fff7ed; }
+      .line { stroke: #dfe3ea; stroke-width: 2; }
+      .arrow { stroke: #2563eb; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .chip { fill: #111; }
+      .chipText { fill: #fff; font-size: 24px; font-weight: 700; }
+      text { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; }
+      .mono { font-family: "SFMono-Regular", "Menlo", "Consolas", monospace; }
+      .h1 { font-size: 70px; font-weight: 800; letter-spacing: 0; }
+      .h2 { font-size: 40px; font-weight: 800; }
+      .h3 { font-size: 30px; font-weight: 800; }
+      .body { font-size: 26px; font-weight: 500; }
+      .small { font-size: 22px; font-weight: 500; }
+      .tiny { font-size: 18px; font-weight: 500; }
+      .code { font-size: 22px; fill: #111; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1800" height="1900"/>
+  <rect class="grid" width="1800" height="1900" opacity="0.82"/>
+
+  <g transform="translate(90 78)">
+    <text class="h1 ink" x="0" y="0" dominant-baseline="hanging">GitHub 推送练习图</text>
+    <text class="body muted" x="4" y="102">每次本地改完代码，照这个顺序走：先同步远端，再检查构建，最后提交并推送。</text>
+    <text class="small muted mono" x="4" y="150">PersonalWebsite / main / GitHub Pages</text>
+    <rect class="chip" x="1250" y="8" rx="26" ry="26" width="305" height="58"/>
+    <text class="chipText mono" x="1283" y="38" dominant-baseline="middle">先 pull，再 push</text>
+  </g>
+
+  <g transform="translate(90 270)">
+    <rect class="card" x="0" y="0" width="1620" height="680" rx="18"/>
+    <text class="h2 ink" x="42" y="42">一、标准推送流程</text>
+    <text class="body muted" x="42" y="95">如果你只是在本地改了代码，还没有通过管理页在线改内容，通常按下面这组命令走。</text>
+
+    <g transform="translate(60 155)">
+      <rect class="mini" x="0" y="0" width="450" height="116" rx="16"/>
+      <text class="h3 blue" x="26" y="42">1. 查看当前改动</text>
+      <text class="code mono" x="26" y="84">git status -sb</text>
+    </g>
+
+    <path class="arrow" d="M 535 213 L 670 213"/>
+
+    <g transform="translate(700 155)">
+      <rect class="mini" x="0" y="0" width="450" height="116" rx="16"/>
+      <text class="h3 blue" x="26" y="42">2. 先拉远端最新</text>
+      <text class="code mono" x="26" y="84">git pull --rebase origin main</text>
+    </g>
+
+    <path class="arrow" d="M 1175 213 L 1310 213"/>
+
+    <g transform="translate(60 330)">
+      <rect class="mini" x="0" y="0" width="450" height="116" rx="16"/>
+      <text class="h3 green" x="26" y="42">3. 构建检查</text>
+      <text class="code mono" x="26" y="84">npm run build</text>
+    </g>
+
+    <path class="arrow" d="M 535 388 L 670 388"/>
+
+    <g transform="translate(700 330)">
+      <rect class="mini" x="0" y="0" width="450" height="116" rx="16"/>
+      <text class="h3 orange" x="26" y="42">4. 暂存改动</text>
+      <text class="code mono" x="26" y="84">git add .</text>
+    </g>
+
+    <path class="arrow" d="M 1175 388 L 1310 388"/>
+
+    <g transform="translate(60 505)">
+      <rect class="mini" x="0" y="0" width="450" height="116" rx="16"/>
+      <text class="h3 orange" x="26" y="42">5. 创建提交</text>
+      <text class="code mono" x="26" y="84">git commit -m "描述这次改动"</text>
+    </g>
+
+    <path class="arrow" d="M 535 563 L 670 563"/>
+
+    <g transform="translate(700 505)">
+      <rect class="mini" x="0" y="0" width="450" height="116" rx="16"/>
+      <text class="h3 green" x="26" y="42">6. 推送 GitHub</text>
+      <text class="code mono" x="26" y="84">git push origin main</text>
+    </g>
+
+    <g transform="translate(1240 330)">
+      <rect class="mini" x="0" y="0" width="300" height="180" rx="16"/>
+      <text class="h3 ink" x="26" y="42">推完之后</text>
+      <text class="small muted" x="26" y="86">GitHub Actions 会自动构建</text>
+      <text class="small muted" x="26" y="124">几分钟后刷新 Pages</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 1020)">
+    <rect class="card" x="0" y="0" width="780" height="560" rx="18"/>
+    <text class="h2 ink" x="42" y="42">二、如果 pull 时提示有本地改动</text>
+    <text class="small muted" x="42" y="92">Git 可能会说不能 rebase，因为你本地还没提交。此时先临时保存，再拉，再恢复。</text>
+
+    <g transform="translate(42 150)">
+      <text class="code mono" x="0" y="0">git stash push -u -m "work before sync"</text>
+      <text class="tiny muted" x="0" y="38">把当前改动临时收起来，-u 表示包含新文件。</text>
+
+      <text class="code mono" x="0" y="118">git pull --rebase origin main</text>
+      <text class="tiny muted" x="0" y="156">同步 GitHub 上最新 main。</text>
+
+      <text class="code mono" x="0" y="236">git stash pop</text>
+      <text class="tiny muted" x="0" y="274">把刚才临时保存的改动恢复回来。</text>
+
+      <text class="small red" x="0" y="360">如果出现 conflict，不要硬推，先解决冲突再 build。</text>
+    </g>
+  </g>
+
+  <g transform="translate(930 1020)">
+    <rect class="card" x="0" y="0" width="780" height="560" rx="18"/>
+    <text class="h2 ink" x="42" y="42">三、每条命令在干什么</text>
+
+    <g transform="translate(42 125)">
+      <text class="code mono" x="0" y="0">git status -sb</text>
+      <text class="small muted" x="0" y="38">看哪些文件改了，当前分支是否和远端同步。</text>
+
+      <text class="code mono" x="0" y="104">git pull --rebase origin main</text>
+      <text class="small muted" x="0" y="142">先拿 GitHub 最新内容，避免覆盖管理页在线改动。</text>
+
+      <text class="code mono" x="0" y="208">npm run build</text>
+      <text class="small muted" x="0" y="246">确认 Astro 能正常构建，页面没有明显编译错误。</text>
+
+      <text class="code mono" x="0" y="312">git add .</text>
+      <text class="small muted" x="0" y="350">把本次要提交的文件放进暂存区。</text>
+
+      <text class="code mono" x="0" y="416">git commit -m "..."</text>
+      <text class="small muted" x="0" y="454">给这次改动打一个可回溯的记录点。</text>
+    </g>
+  </g>
+
+  <g transform="translate(90 1640)">
+    <rect class="card" x="0" y="0" width="1620" height="160" rx="18"/>
+    <text class="h2 ink" x="42" y="42">四、这个项目的特别提醒</text>
+    <text class="small muted" x="42" y="96">你有隐藏管理页可以直接在线改文章、图片、推荐等内容，所以本地 push 前一定先 pull。这样本地重构不会把线上刚改的内容覆盖掉。</text>
+  </g>
+</svg>

@@ -21,6 +21,7 @@ function localContentApi() {
   const allowedRoots = [
     "src/content/posts",
     "src/data/projects.ts",
+    "src/data/recommendations.ts",
     "src/data/gallery.ts",
     "src/data/videos.ts",
     "public/images",

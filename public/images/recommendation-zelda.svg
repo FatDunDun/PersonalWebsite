@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <rect width="1200" height="900" fill="#dff7ef"/>
+  <path d="M0 620c180-120 320-90 490-180 190-100 360-170 710-70v530H0z" fill="#0f8a5f"/>
+  <path d="M0 705c260-110 460-70 720-150 170-52 300-46 480-10v355H0z" fill="#14532d"/>
+  <circle cx="930" cy="180" r="92" fill="#facc15"/>
+  <path d="M455 235l72 150 164 24-118 116 28 164-146-77-146 77 28-164-118-116 164-24z" fill="none" stroke="#171717" stroke-width="18" stroke-linejoin="round"/>
+  <text x="80" y="795" font-family="Arial,sans-serif" font-size="58" font-weight="800" fill="#f8fafc">BREATH OF THE WILD</text>
+</svg>

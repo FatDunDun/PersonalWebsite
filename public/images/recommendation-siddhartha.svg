@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <rect width="900" height="1200" fill="#f4efe3"/>
+  <path d="M155 210h590v780H155z" fill="#171717"/>
+  <path d="M218 284h464v632H218z" fill="#f4efe3"/>
+  <circle cx="450" cy="485" r="126" fill="none" stroke="#0f8a5f" stroke-width="24"/>
+  <path d="M250 720c92-48 156-48 248 0s156 48 248 0" fill="none" stroke="#2563eb" stroke-width="16" stroke-linecap="round"/>
+  <text x="450" y="170" text-anchor="middle" font-family="Georgia,serif" font-size="54" font-weight="700" fill="#171717">SIDDHARTHA</text>
+  <text x="450" y="1048" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" fill="#f4efe3">HERMANN HESSE</text>
+</svg>

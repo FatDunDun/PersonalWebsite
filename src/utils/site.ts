@@ -1,9 +1,9 @@
 export const siteConfig = {
-  name: "Micy 的数字花园",
-  title: "Micy 的数字花园 | 写作、影像与项目",
+  name: "FatDuoDuo",
+  title: "远离喧嚣的花园",
   description:
-    "一个使用 Astro、TypeScript 和 Tailwind CSS 构建的现代个人网站，记录文章、图集、视频、推荐、项目和个人介绍。",
-  author: "Micy",
+    "一个使用 Astro、TypeScript和Tailwind CSS构建的现代个人博客，记录文章、图集、视频、推荐、项目和个人介绍。",
+  author: "FatDuoDuo",
   ogImage: "/images/hero.png",
 };
 

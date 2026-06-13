@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "FatDuoDuo",
   title: "偷走时间留住你",
   description:
-    "使用 Astro、TypeScript和Tailwind CSS构建的现代个人博。",
+    "一个用 Astro、TypeScript 和 Tailwind CSS 写成的个人数字花园，保存文章、影像、推荐和代码实验。",
   author: "FatDuoDuo",
   ogImage: "/images/hero.png",
 };

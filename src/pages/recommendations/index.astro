@@ -23,19 +23,19 @@ const groupedRecommendations = categoryOrder
 
 <BaseLayout title="推荐" description="喜欢的书籍、影视、歌曲和游戏整理。">
   <section class="container py-12 md:py-18">
-    <div class="grid gap-8 border-b border-[var(--line)] pb-10 md:grid-cols-[0.8fr_1.2fr] md:items-end">
+    <div class="page-hero grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-end">
       <div>
-        <p class="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">Taste Index</p>
-        <h1 class="mt-4 text-5xl font-semibold leading-none md:text-7xl">推荐</h1>
+        <p class="page-kicker">Taste / private index</p>
+        <h1 class="page-title mt-4 text-6xl md:text-8xl">推荐</h1>
       </div>
-      <p class="max-w-2xl text-lg leading-8 text-[var(--muted)]">
+      <p class="note-rule max-w-2xl text-lg leading-8 text-[var(--muted)]">
         把长期喜欢、反复回看或想郑重推荐的书籍、影视、歌曲和游戏放在这里。它不是榜单，更像一份慢慢变化的个人品味索引。
       </p>
     </div>
 
     <div class="mt-8 flex flex-wrap gap-2">
       {groupedRecommendations.map((group) => (
-        <a href={`#${group.category}`} class="rounded-md border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-mono text-sm text-[var(--muted)] transition hover:border-[var(--foreground)] hover:text-[var(--foreground)]">
+        <a href={`#${group.category}`} class="tag-chip px-3 py-2 font-mono text-sm transition hover:border-[var(--foreground)] hover:text-[var(--foreground)]">
           {group.label} · {group.items.length}
         </a>
       ))}
@@ -46,15 +46,15 @@ const groupedRecommendations = categoryOrder
         <section id={group.category} class="scroll-mt-24">
           <div class="mb-5 flex items-end justify-between gap-4 border-b border-[var(--line)] pb-3">
             <div>
-              <p class="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">{group.category}</p>
-              <h2 class="mt-2 text-3xl font-semibold">{group.label}</h2>
+              <p class="page-kicker">{group.category}</p>
+              <h2 class="literary-title mt-2 text-3xl">{group.label}</h2>
             </div>
-            <span class="font-mono text-sm text-[var(--muted)]">{String(group.items.length).padStart(2, "0")}</span>
+            <span class="folio-number text-sm">{String(group.items.length).padStart(2, "0")}</span>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {group.items.map((item) => (
-              <a href={item.link || "#"} class="group flex min-h-full flex-col rounded-md border border-[var(--line)] bg-[var(--surface)] p-2 transition hover:-translate-y-1 hover:border-[var(--foreground)]">
+              <a href={item.link || "#"} class="artifact-card group flex min-h-full flex-col rounded-md p-2 transition hover:-translate-y-1 hover:border-[var(--foreground)]">
                 <div class="overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
                   {item.image ? (
                     <img class="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.03] group-hover:saturate-110" src={withBase(item.image)} alt={item.title} loading="lazy" />
@@ -67,13 +67,13 @@ const groupedRecommendations = categoryOrder
                 <div class="flex flex-1 flex-col px-2 py-4">
                   <div class="flex items-start justify-between gap-3">
                     <h3 class="text-xl font-semibold leading-tight group-hover:text-[var(--accent)]">{item.title}</h3>
-                    {item.rating && <span class="shrink-0 rounded border border-[var(--line)] px-2 py-1 font-mono text-xs text-[var(--muted)]">{item.rating}</span>}
+                    {item.rating && <span class="tag-chip shrink-0 px-2 py-1 font-mono text-xs">{item.rating}</span>}
                   </div>
                   <p class="mt-2 font-mono text-xs text-[var(--muted)]">{[item.creator, item.year].filter(Boolean).join(" · ")}</p>
                   <p class="mt-3 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
                   <div class="mt-auto flex flex-wrap gap-2 pt-5">
                     {(item.tags || []).map((tag) => (
-                      <span class="rounded border border-[var(--line)] px-2 py-1 font-mono text-[11px] text-[var(--muted)]">{tag}</span>
+                      <span class="tag-chip px-2 py-1 font-mono text-[11px]">{tag}</span>
                     ))}
                   </div>
                 </div>

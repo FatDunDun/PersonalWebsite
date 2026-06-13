@@ -11,20 +11,20 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
 
 <BaseLayout title="文章" description="所有 Markdown/MDX 文章列表，记录技术、设计、写作和个人观察。">
   <section class="container py-12 md:py-18">
-    <div class="grid gap-8 border-b border-[var(--line)] pb-10 md:grid-cols-[0.8fr_1.2fr] md:items-end">
+    <div class="page-hero grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-end">
       <div>
-        <p class="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">Journal</p>
-        <h1 class="mt-4 text-5xl font-semibold leading-none md:text-7xl">文章</h1>
+        <p class="page-kicker">Journal / field notes</p>
+        <h1 class="page-title mt-4 text-6xl md:text-8xl">文章</h1>
       </div>
-      <p class="max-w-2xl text-lg leading-8 text-[var(--muted)]">
+      <p class="note-rule max-w-2xl text-lg leading-8 text-[var(--muted)]">
         面向长期维护的 Markdown/MDX 文章索引。记录技术复盘、产品想法、读书笔记和一些个人观察。
       </p>
     </div>
 
-    <div class="divide-y divide-[var(--line)]">
+    <div class="mt-8 grid gap-4">
       {posts.map((post, index) => (
-        <a href={withBase(`/articles/${post.id}/`)} class="group grid gap-6 py-8 transition md:grid-cols-[92px_280px_1fr] md:items-center">
-          <span class="font-mono text-sm text-[var(--muted)]">{String(index + 1).padStart(2, "0")}</span>
+        <a href={withBase(`/articles/${post.id}/`)} class="artifact-card group grid gap-6 rounded-md p-4 transition hover:-translate-y-0.5 hover:border-[var(--foreground)] md:grid-cols-[92px_280px_1fr] md:items-center">
+          <span class="folio-number text-4xl">{String(index + 1).padStart(2, "0")}</span>
           {post.data.cover && (
             <img class="aspect-[16/10] w-full rounded-md border border-[var(--line)] object-cover transition duration-500 group-hover:saturate-110" src={withBase(post.data.cover)} alt="" />
           )}
@@ -33,7 +33,7 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
               <time datetime={post.data.publishDate.toISOString()}>{formatDate(post.data.publishDate)}</time>
               {post.data.tags.map((tag) => <span class="font-mono">{tag}</span>)}
             </div>
-            <h2 class="mt-4 text-3xl font-semibold leading-tight group-hover:text-[var(--accent)]">{post.data.title}</h2>
+            <h2 class="literary-title mt-4 text-3xl leading-tight group-hover:text-[var(--accent)]">{post.data.title}</h2>
             <p class="mt-3 max-w-2xl leading-7 text-[var(--muted)]">{post.data.description}</p>
           </div>
         </a>

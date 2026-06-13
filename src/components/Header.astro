@@ -9,7 +9,7 @@ const currentPath = Astro.url.pathname;
   <nav class="container flex min-h-14 items-center justify-between gap-5">
     <a href={withBase("/")} class="group flex items-center gap-3 font-semibold">
       <span class="inverse-control grid size-8 place-items-center rounded-md font-mono text-xs transition">
-        M
+        {siteConfig.logoText || "M"}
       </span>
       <span class="hidden font-mono text-sm tracking-wide sm:inline">{siteConfig.author}</span>
     </a>

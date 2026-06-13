@@ -3,6 +3,7 @@ import "@/styles/global.css";
 import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
 import { recommendations } from "@/data/recommendations";
+import { siteSettings } from "@/data/siteSettings";
 import { videoItems } from "@/data/videos";
 import { getCollection } from "astro:content";
 import { readdirSync } from "node:fs";
@@ -14,6 +15,7 @@ const videoDirectory = new URL("../../../public/videos/", import.meta.url);
 const videoNames = readdirSync(videoDirectory).filter((name) => /\.(mp4|webm|mov|m4v)$/i.test(name));
 
 const initialData = {
+  settings: siteSettings,
   posts: posts
     .map((post) => ({
       name: `${post.id}.mdx`,
@@ -149,7 +151,7 @@ const initialData = {
             <p class="font-mono text-xs uppercase tracking-[0.26em] text-[var(--accent)]">Silent Orbit</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-normal md:text-4xl">内容工作台</h1>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              文章、项目、推荐、PersonalPhoto、PersonalVideo、素材图片和素材视频统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
+              文章、项目、推荐、PersonalPhoto、PersonalVideo、素材库和页面配置统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
             </p>
           </div>
 
@@ -206,6 +208,10 @@ const initialData = {
             <button class="orbit-button flex items-center justify-between text-left" data-section="videos" type="button">
               <span>素材视频库</span>
               <span class="text-[var(--muted)]" data-count="videos">0</span>
+            </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="settings" type="button">
+              <span>页面配置</span>
+              <span class="text-[var(--muted)]" data-count="settings">编辑</span>
             </button>
           </nav>
 
@@ -623,6 +629,152 @@ const initialData = {
               </aside>
             </div>
           </section>
+
+          <section class="orbit-view" data-view="settings" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Site Settings</p>
+                <h2 class="mt-1 text-2xl font-semibold">页面配置</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">修改网站基础信息、首页文案、纪念日和导航。保存后会直接提交到 GitHub main 分支。</p>
+              </div>
+              <div class="orbit-actions">
+                <button class="orbit-button orbit-button-primary" data-save-settings type="button">保存页面配置</button>
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 xl:grid-cols-2">
+              <section class="rounded-lg border border-[var(--line)] bg-[var(--background)]/70 p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Basic</p>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">Logo 字母</span>
+                    <input class="orbit-input mt-2" data-settings-field="site.logoText" maxlength="4" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">网站名称</span>
+                    <input class="orbit-input mt-2" data-settings-field="site.name" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">作者</span>
+                    <input class="orbit-input mt-2" data-settings-field="site.author" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">SEO 标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="site.title" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">SEO 描述 / 页脚描述</span>
+                    <textarea class="orbit-input mt-2 min-h-24" data-settings-field="site.description"></textarea>
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">分享图路径</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="site.ogImage" placeholder="/images/hero.png" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">页脚备注</span>
+                    <input class="orbit-input mt-2" data-settings-field="site.footerNote" placeholder="Built with Astro." />
+                  </label>
+                </div>
+              </section>
+
+              <section class="rounded-lg border border-[var(--line)] bg-[var(--background)]/70 p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Home</p>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">首页标签</span>
+                    <input class="orbit-input mt-2" data-settings-field="home.badge" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">首页大标题</span>
+                    <textarea class="orbit-input mt-2 min-h-20 text-lg" data-settings-field="home.headline"></textarea>
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">首页简介</span>
+                    <textarea class="orbit-input mt-2 min-h-28" data-settings-field="home.intro"></textarea>
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">主按钮文字</span>
+                    <input class="orbit-input mt-2" data-settings-field="home.primaryButton.label" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">主按钮链接</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="home.primaryButton.href" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">次按钮文字</span>
+                    <input class="orbit-input mt-2" data-settings-field="home.secondaryButton.label" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">次按钮链接</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="home.secondaryButton.href" />
+                  </label>
+                </div>
+              </section>
+
+              <section class="rounded-lg border border-[var(--line)] bg-[var(--background)]/70 p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Home Notes</p>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">代码路径</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="home.codePath" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">代码文件名</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="home.codeFile" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">代码卡片内容</span>
+                    <textarea class="orbit-input mt-2 min-h-28 font-mono text-sm" data-settings-field="codeLinesText" placeholder="type|Memory = ..."></textarea>
+                    <p class="mt-2 text-xs leading-5 text-[var(--muted)]">每行一个：标签|内容。例如：loop|observe → write → ship → remember</p>
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">边注标签</span>
+                    <input class="orbit-input mt-2" data-settings-field="home.marginKicker" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">边注编号</span>
+                    <input class="orbit-input mt-2" data-settings-field="home.marginNumber" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">边注标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="home.marginTitle" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">边注描述</span>
+                    <textarea class="orbit-input mt-2 min-h-24" data-settings-field="home.marginDescription"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <section class="rounded-lg border border-[var(--line)] bg-[var(--background)]/70 p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Anniversary</p>
+                <div class="mt-4 grid gap-4">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">纪念日标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="anniversary.label" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">纪念日文案</span>
+                    <input class="orbit-input mt-2" data-settings-field="anniversary.title" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">开始时间 ISO</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="anniversary.startAt" placeholder="2024-01-20T20:00:00+08:00" />
+                  </label>
+                </div>
+              </section>
+
+              <section class="rounded-lg border border-[var(--line)] bg-[var(--background)]/70 p-4 xl:col-span-2">
+                <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Navigation</p>
+                    <p class="mt-2 text-sm leading-6 text-[var(--muted)]">每行一个导航：显示|文字|链接。例如：true|文章|/articles/</p>
+                  </div>
+                </div>
+                <textarea class="orbit-input mt-4 min-h-56 font-mono text-sm" data-settings-field="navText"></textarea>
+              </section>
+            </div>
+          </section>
         </section>
         </div>
       </div>
@@ -640,6 +792,7 @@ const initialData = {
       const RECOMMENDATIONS_PATH = "src/data/recommendations.ts";
       const GALLERY_PATH = "src/data/gallery.ts";
       const PERSONAL_VIDEOS_DATA_PATH = "src/data/videos.ts";
+      const SETTINGS_PATH = "src/data/siteSettings.ts";
       const IMAGES_PATH = "public/images";
       const PERSONAL_PHOTO_PATH = "public/personal-photo";
       const VIDEOS_PATH = "public/videos";
@@ -649,7 +802,6 @@ const initialData = {
 
       const state = {
         mode: "readonly",
-        localApi: false,
         token: sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "",
         section: "posts",
         posts: [],
@@ -659,11 +811,13 @@ const initialData = {
         personalVideos: [],
         images: [],
         videos: [],
+        settings: null,
         files: {
           projects: null,
           recommendations: null,
           gallery: null,
           personalVideos: null,
+          settings: null,
         },
         current: {
           post: null,
@@ -729,6 +883,8 @@ const initialData = {
         poster: $('[data-personal-video-field="poster"]'),
       };
 
+      const settingsFields = $$("[data-settings-field]");
+
       const labels = {
         posts: { kicker: "Posts", title: "文章列表", empty: "暂无文章。" },
         projects: { kicker: "Projects", title: "项目列表", empty: "暂无项目。" },
@@ -737,6 +893,7 @@ const initialData = {
         personalVideos: { kicker: "PersonalVideo", title: "视频记录", empty: "暂无视频记录。" },
         images: { kicker: "Assets", title: "素材图片", empty: "暂无素材图片。" },
         videos: { kicker: "Video Assets", title: "素材视频", empty: "暂无素材视频。" },
+        settings: { kicker: "Settings", title: "页面配置", empty: "在右侧编辑网站配置。" },
       };
 
       const setStatus = (message) => {
@@ -808,29 +965,12 @@ const initialData = {
 
       const clone = (value) => JSON.parse(JSON.stringify(value));
 
-      const localEndpoint = (path) => `${location.origin}/__silent_orbit_local${path}`;
-
-      const localApi = async (path, options = {}) => {
-        const response = await fetch(localEndpoint(path), options);
-        const data = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(data?.message || `Local API error ${response.status}`);
-        return data;
-      };
-
       const detectLocalApi = async () => {
-        try {
-          const data = await localApi("/status");
-          state.localApi = !!data.ok;
-          state.mode = "local";
-        } catch {
-          state.localApi = false;
-          state.mode = state.token ? "github" : "readonly";
-        }
+        state.mode = state.token ? "github" : "readonly";
       };
 
       const requireWriteAccess = () => {
-        if (state.mode === "local") return;
-        if (!state.token) throw new Error("线上保存、删除、上传需要先输入 GitHub Token。本地 npm run dev 时可直接写入项目文件。");
+        if (!state.token) throw new Error("保存、删除、上传需要先输入 GitHub Token。保存会直接提交到 GitHub main 分支。");
       };
 
       const github = async (path, options = {}) => {
@@ -852,24 +992,14 @@ const initialData = {
       };
 
       const getFile = async (path) => {
-        if (state.mode === "local") return localApi(`/contents?path=${encodeURIComponent(path)}`);
         return github(`/contents/${path}?ref=${BRANCH}`);
       };
 
       const getDir = async (path) => {
-        if (state.mode === "local") return localApi(`/contents?path=${encodeURIComponent(path)}`);
         return github(`/contents/${path}?ref=${BRANCH}`);
       };
 
       const putFile = async ({ path, content, message, sha }) => {
-        if (state.mode === "local") {
-          return localApi("/write", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ path, content }),
-          });
-        }
-
         return github(`/contents/${path}`, {
           method: "PUT",
           body: JSON.stringify({
@@ -882,14 +1012,6 @@ const initialData = {
       };
 
       const deleteFile = async ({ path, sha, message }) => {
-        if (state.mode === "local") {
-          return localApi("/delete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ path }),
-          });
-        }
-
         return github(`/contents/${path}`, {
           method: "DELETE",
           body: JSON.stringify({
@@ -930,7 +1052,57 @@ const initialData = {
         return Function(`"use strict"; return (${match[1].replace(/;\s*$/, "")});`)();
       };
 
+      const readExportedValue = (content, exportName) => {
+        const match = content.match(new RegExp(`export\\s+const\\s+${exportName}(?:\\s*:[^=]+)?\\s*=\\s*([\\s\\S]*);?\\s*$`));
+        if (!match) throw new Error(`无法解析 ${exportName}`);
+        return Function(`"use strict"; return (${match[1].replace(/;\s*$/, "")});`)();
+      };
+
       const stringifyArrayModule = (exportName, items) => `export const ${exportName} = ${JSON.stringify(items, null, 2)};\n`;
+
+      const stringifySettingsModule = (settings) => `export const siteSettings = ${JSON.stringify(settings, null, 2)};\n`;
+
+      const getByPath = (object, path) =>
+        path.split(".").reduce((target, key) => (target && Object.prototype.hasOwnProperty.call(target, key) ? target[key] : undefined), object);
+
+      const setByPath = (object, path, value) => {
+        const keys = path.split(".");
+        let target = object;
+        keys.slice(0, -1).forEach((key) => {
+          if (!target[key] || typeof target[key] !== "object") target[key] = {};
+          target = target[key];
+        });
+        target[keys.at(-1)] = value;
+      };
+
+      const stringifyNavText = (items = []) =>
+        items
+          .map((item) => `${item.visible !== false ? "true" : "false"}|${item.label || ""}|${item.href || ""}`)
+          .join("\n");
+
+      const stringifyCodeLines = (items = []) =>
+        items.map((item) => `${item.label || ""}|${item.value || ""}`).join("\n");
+
+      const parseCodeLines = (text) =>
+        text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const [label = "", ...rest] = line.split("|");
+            return { label: label.trim() || "note", value: rest.join("|").trim() };
+          })
+          .filter((item) => item.value);
+
+      const parseNavText = (text) =>
+        text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const [visible = "true", label = "", href = ""] = line.split("|").map((part) => part.trim());
+            return { href: href || "/", label: label || "未命名", visible: visible !== "false" };
+          });
 
       const stringifyPost = () => {
         const tags = postFields.tags.value
@@ -1006,6 +1178,7 @@ const initialData = {
         $('[data-count="personalVideos"]').textContent = state.personalVideos.length;
         $('[data-count="images"]').textContent = state.images.length;
         $('[data-count="videos"]').textContent = state.videos.length;
+        $('[data-count="settings"]').textContent = "编辑";
       };
 
       const selectSection = (section) => {
@@ -1018,6 +1191,7 @@ const initialData = {
         });
         listKicker.textContent = labels[section].kicker;
         listTitle.textContent = labels[section].title;
+        $("[data-new-current]").textContent = section === "settings" ? "save" : "new";
         renderList();
       };
 
@@ -1037,7 +1211,9 @@ const initialData = {
                     ? state.personalVideos
                     : section === "images"
                       ? state.images
-                      : state.videos;
+                      : section === "videos"
+                        ? state.videos
+                        : [];
 
         if (!items.length) {
           list.innerHTML = `<p class="text-sm text-[var(--muted)]">${labels[section].empty}</p>`;
@@ -1208,6 +1384,13 @@ const initialData = {
         state.personalVideos = readExportedArray(fromBase64(file.content), "videoItems");
       };
 
+      const loadSettings = async () => {
+        const file = await getFile(SETTINGS_PATH);
+        state.files.settings = file;
+        state.settings = readExportedValue(fromBase64(file.content), "siteSettings");
+        fillSettings();
+      };
+
       const loadImages = async () => {
         const files = await getDir(IMAGES_PATH);
         state.images = files
@@ -1232,10 +1415,13 @@ const initialData = {
         state.personalVideos = clone(INITIAL_DATA.personalVideos);
         state.images = clone(INITIAL_DATA.images);
         state.videos = clone(INITIAL_DATA.videos);
+        state.settings = clone(INITIAL_DATA.settings);
         state.files.projects = null;
         state.files.recommendations = null;
         state.files.gallery = null;
         state.files.personalVideos = null;
+        state.files.settings = null;
+        fillSettings();
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
@@ -1246,20 +1432,6 @@ const initialData = {
       };
 
       const loadAll = async () => {
-        if (state.mode === "local") {
-          setStatus("本地模式：读取项目文件中...");
-          await Promise.all([loadPosts(), loadProjects(), loadRecommendations(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
-          updateCounts();
-          renderList();
-          if (!state.current.post) newPost();
-          if (state.current.projectIndex < 0) newProject();
-          if (state.current.recommendationIndex < 0) newRecommendation();
-          if (state.current.galleryIndex < 0) newGallery();
-          if (state.current.personalVideoIndex < 0) newPersonalVideo();
-          setStatus("本地模式已启用。保存、删除、上传会直接写入当前项目文件夹。");
-          return;
-        }
-
         if (!state.token) {
           setStatus("读取当前网站内置内容中...");
           applyInitialData();
@@ -1269,7 +1441,7 @@ const initialData = {
 
         state.mode = "github";
         setStatus("GitHub 模式：同步仓库内容中...");
-        await Promise.all([loadPosts(), loadProjects(), loadRecommendations(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos()]);
+        await Promise.all([loadPosts(), loadProjects(), loadRecommendations(), loadGallery(), loadPersonalVideos(), loadImages(), loadVideos(), loadSettings()]);
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
@@ -1278,6 +1450,68 @@ const initialData = {
         if (state.current.galleryIndex < 0) newGallery();
         if (state.current.personalVideoIndex < 0) newPersonalVideo();
         setStatus("GitHub 模式已连接。保存会直接提交到 main 分支。");
+      };
+
+      const fillSettings = () => {
+        const settings = state.settings || clone(INITIAL_DATA.settings);
+        settingsFields.forEach((field) => {
+          const key = field.dataset.settingsField;
+          if (key === "navText") {
+            field.value = stringifyNavText(settings.nav || []);
+            return;
+          }
+          if (key === "codeLinesText") {
+            field.value = stringifyCodeLines(settings.home?.codeLines || []);
+            return;
+          }
+          field.value = getByPath(settings, key) ?? "";
+        });
+      };
+
+      const collectSettings = () => {
+        const settings = clone(state.settings || INITIAL_DATA.settings);
+        settingsFields.forEach((field) => {
+          const key = field.dataset.settingsField;
+          if (key === "navText") {
+            settings.nav = parseNavText(field.value);
+            return;
+          }
+          if (key === "codeLinesText") {
+            settings.home.codeLines = parseCodeLines(field.value);
+            return;
+          }
+          setByPath(settings, key, field.value.trim());
+        });
+
+        settings.home.codeLines = Array.isArray(settings.home.codeLines) && settings.home.codeLines.length
+          ? settings.home.codeLines
+          : [
+              { label: "type", value: "Memory = \"文字\" | \"影像\" | \"代码\" | \"偏爱\"" },
+              { label: "loop", value: "observe → write → ship → remember" },
+              { label: "made_with", value: "Astro · TypeScript · Tailwind" },
+            ];
+
+        return settings;
+      };
+
+      const saveSettings = async () => {
+        requireWriteAccess();
+        const settings = collectSettings();
+        if (!settings.site?.title) throw new Error("请填写 SEO 标题");
+        if (!settings.site?.author) throw new Error("请填写作者");
+        if (!settings.home?.headline) throw new Error("请填写首页大标题");
+        if (!settings.nav?.length) throw new Error("至少保留一条导航");
+        const sha = state.files.settings?.sha || (await getFile(SETTINGS_PATH)).sha;
+        const result = await putFile({
+          path: SETTINGS_PATH,
+          content: toBase64(stringifySettingsModule(settings)),
+          message: "Update site settings",
+          sha,
+        });
+        state.settings = settings;
+        state.files.settings = { ...state.files.settings, sha: result.content.sha };
+        fillSettings();
+        setStatus("页面配置已保存到 GitHub main 分支，GitHub Pages 将自动部署。");
       };
 
       const newPost = () => {
@@ -1297,7 +1531,7 @@ const initialData = {
 
       const loadPost = async (item) => {
         setStatus("读取文章中...");
-        const file = state.mode === "local" || state.token ? await getFile(item.path) : null;
+        const file = state.token ? await getFile(item.path) : null;
         const parsed = file ? parseFrontmatter(fromBase64(file.content)) : { data: item.data || {}, body: item.body || "" };
         state.current.post = {
           slug: item.name.replace(/\.(md|mdx)$/, ""),
@@ -1880,7 +2114,7 @@ const initialData = {
         const token = $("[data-token-input]").value.trim();
         if (!token) return;
         state.token = token;
-        if (!state.localApi) state.mode = "github";
+        state.mode = "github";
         sessionStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(TOKEN_KEY);
         const storage = $("[data-remember-token]").checked ? localStorage : sessionStorage;
@@ -1893,7 +2127,7 @@ const initialData = {
         sessionStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(TOKEN_KEY);
         $("[data-token-input]").value = "";
-        state.mode = state.localApi ? "local" : "readonly";
+        state.mode = "readonly";
         await loadAll();
       };
 
@@ -1923,6 +2157,7 @@ const initialData = {
         if (state.section === "personalVideos") newPersonalVideo();
         if (state.section === "images") $("[data-image-file]").click();
         if (state.section === "videos") $("[data-video-file]").click();
+        if (state.section === "settings") run(saveSettings);
       });
 
       $("[data-save-post]").addEventListener("click", () => run(savePost));
@@ -2054,6 +2289,7 @@ const initialData = {
         }),
       );
       $("[data-delete-video]").addEventListener("click", () => run(deleteVideo));
+      $("[data-save-settings]").addEventListener("click", () => run(saveSettings));
 
       Object.values(postFields).forEach((field) => field.addEventListener("input", renderMarkdownPreview));
       Object.values(recommendationFields).forEach((field) => field.addEventListener("input", renderRecommendationPreview));

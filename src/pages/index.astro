@@ -6,7 +6,7 @@ import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
 import { recommendations } from "@/data/recommendations";
 import { formatDate } from "@/utils/format";
-import { siteConfig, withBase } from "@/utils/site";
+import { homeConfig, siteConfig, withBase } from "@/utils/site";
 
 const posts = (await getCollection("posts", ({ data }) => !data.draft))
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
@@ -26,20 +26,20 @@ const featuredFrames = personalPhotoItems.slice(0, 3);
     <div>
       <div class="inline-flex items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 font-mono text-xs text-[var(--muted)] shadow-sm">
         <span class="size-2 rounded-full bg-[var(--accent-warm)]"></span>
-        notebook for human feelings and machine logic
+        {homeConfig.badge}
       </div>
       <h1 class="editorial-title mt-8 max-w-4xl text-6xl leading-[1.02] tracking-normal md:text-8xl">
-        在代码的边界，收藏日常的回声。
+        {homeConfig.headline}
       </h1>
       <p class="note-rule mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-        文章像注释，影像像断点，项目像一次次重构。这里不是展示橱窗，而是一间持续生长的工作室：把生活里的微光写下来，也把工程里的秩序留下来。
+        {homeConfig.intro}
       </p>
       <div class="mt-8 flex flex-wrap gap-3">
-        <a href={withBase("/articles/")} class="inverse-control rounded-md px-4 py-2.5 font-mono text-sm transition">
-          阅读手记
+        <a href={withBase(homeConfig.primaryButton.href)} class="inverse-control rounded-md px-4 py-2.5 font-mono text-sm transition">
+          {homeConfig.primaryButton.label}
         </a>
-        <a href={withBase("/recommendations/")} class="rounded-md border border-[var(--line)] bg-[var(--surface)] px-4 py-2.5 font-mono text-sm text-[var(--foreground)] transition hover:border-[var(--foreground)]">
-          查看推荐
+        <a href={withBase(homeConfig.secondaryButton.href)} class="rounded-md border border-[var(--line)] bg-[var(--surface)] px-4 py-2.5 font-mono text-sm text-[var(--foreground)] transition hover:border-[var(--foreground)]">
+          {homeConfig.secondaryButton.label}
         </a>
       </div>
     </div>
@@ -47,25 +47,25 @@ const featuredFrames = personalPhotoItems.slice(0, 3);
     <div class="grid gap-4">
       <div class="quiet-card ink-panel rounded-md p-5">
         <div class="flex items-center justify-between border-b border-[var(--line)] pb-3 font-mono text-xs text-[var(--muted)]">
-          <span>~/field/archive</span>
-          <span>daily.ts</span>
+          <span>{homeConfig.codePath}</span>
+          <span>{homeConfig.codeFile}</span>
         </div>
         <div class="space-y-3 pt-4 font-mono text-sm">
-          <p><span class="text-[var(--muted)]">type</span> Memory = <span class="text-[var(--accent)]">"文字" | "影像" | "代码" | "偏爱"</span></p>
-          <p><span class="text-[var(--muted)]">loop</span>: observe → write → ship → remember</p>
-          <p><span class="text-[var(--muted)]">made_with</span>: Astro · TypeScript · Tailwind</p>
+          {homeConfig.codeLines.map((line) => (
+            <p><span class="text-[var(--muted)]">{line.label}</span>: <span class="text-[var(--accent)]">{line.value}</span></p>
+          ))}
         </div>
       </div>
       <div class="quiet-card rounded-md p-6">
         <div class="flex items-start justify-between gap-4">
-          <p class="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">Margin note</p>
-          <span class="font-mono text-xs text-[var(--muted)]">No. 01</span>
+          <p class="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">{homeConfig.marginKicker}</p>
+          <span class="font-mono text-xs text-[var(--muted)]">{homeConfig.marginNumber}</span>
         </div>
         <p class="literary-title mt-4 text-3xl leading-snug">
-          写作是给经验命名，编程是给混乱建立接口。
+          {homeConfig.marginTitle}
         </p>
         <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-          所有页面都先服务于长期保存：能被找到，能被修改，能在几年后仍然读得懂。漂亮不是目的，能留下来才是。
+          {homeConfig.marginDescription}
         </p>
       </div>
       <div class="grid grid-cols-3 gap-4">

@@ -15,6 +15,6 @@ const year = new Date().getFullYear();
     </div>
   </div>
   <div class="container mt-8 text-sm text-[var(--muted)]">
-    © {year} {siteConfig.author}. Built with Astro.
+    © {year} {siteConfig.author}. {siteConfig.footerNote || "Built with Astro."}
   </div>
 </footer>

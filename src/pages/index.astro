@@ -14,6 +14,7 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft))
 
 const personalPhotoItems = galleryItems.filter((item) => item.image.startsWith("/personal-photo/"));
 const featuredFrames = personalPhotoItems.slice(0, 3);
+const isExternalLink = (href: string) => /^https?:\/\//.test(href);
 ---
 
 <BaseLayout title={siteConfig.title} description={siteConfig.description}>
@@ -151,15 +152,23 @@ const featuredFrames = personalPhotoItems.slice(0, 3);
         <h2 class="literary-title mt-3 text-3xl md:text-4xl">把想法做成工具</h2>
       </div>
       <div class="grid gap-0 border-t border-[var(--line)]">
-        {projects.slice(0, 2).map((project) => (
-          <a href={project.link} class="border-b border-[var(--line)] py-6 transition hover:text-[var(--accent)]">
-            <div class="flex items-start justify-between gap-4">
-              <h3 class="text-xl font-semibold">{project.name}</h3>
-              <span class="text-sm text-[var(--muted)]">{project.year}</span>
-            </div>
-            <p class="mt-3 text-sm leading-6 text-[var(--muted)]">{project.description}</p>
-          </a>
-        ))}
+        {projects.slice(0, 2).map((project) => {
+          const external = isExternalLink(project.link);
+          return (
+            <a
+              href={project.link}
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener noreferrer" : undefined}
+              class="border-b border-[var(--line)] py-6 transition hover:text-[var(--accent)]"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <h3 class="text-xl font-semibold">{project.name}</h3>
+                <span class="text-sm text-[var(--muted)]">{project.year}</span>
+              </div>
+              <p class="mt-3 text-sm leading-6 text-[var(--muted)]">{project.description}</p>
+            </a>
+          );
+        })}
       </div>
     </div>
   </section>

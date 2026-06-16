@@ -9,8 +9,6 @@ const enabled = Boolean(serverURL);
 const commentPath = `/articles/${pageId}/`;
 ---
 
-{enabled && <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />}
-
 <section class="mt-14 border-t border-[var(--line)] pt-10">
   <div class="mb-6 flex items-end justify-between gap-4">
     <div>
@@ -22,7 +20,18 @@ const commentPath = `/articles/${pageId}/`;
   {
     enabled ? (
       <div class="artifact-card rounded-md p-4">
-        <div id="waline-thread" data-server-url={serverURL} data-path={commentPath} />
+        <div
+          id="waline-thread"
+          data-server-url={serverURL}
+          data-path={commentPath}
+          data-waline-lazy
+          class="min-h-28"
+        >
+          <button class="rounded-md border border-[var(--line)] bg-[var(--surface)] px-4 py-2.5 font-mono text-sm transition hover:border-[var(--foreground)]" data-waline-load type="button">
+            加载留言
+          </button>
+          <p class="mt-3 text-sm leading-6 text-[var(--muted)]">滚动到这里时会自动加载评论，减少文章首屏的外部资源请求。</p>
+        </div>
       </div>
     ) : (
       <div class="artifact-card rounded-md border-dashed p-5 text-sm leading-6 text-[var(--muted)]">
@@ -35,11 +44,25 @@ const commentPath = `/articles/${pageId}/`;
 {
   enabled && (
     <script type="module" is:inline>
-      import { init } from "https://unpkg.com/@waline/client@v3/dist/waline.js";
-
       const container = document.querySelector("#waline-thread");
+      let hasLoaded = false;
 
-      if (container) {
+      const loadWalineStyles = () => {
+        if (document.querySelector("link[data-waline-style]")) return;
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/@waline/client@v3/dist/waline.css";
+        link.dataset.walineStyle = "true";
+        document.head.append(link);
+      };
+
+      const loadWaline = async () => {
+        if (!container || hasLoaded) return;
+        hasLoaded = true;
+        container.innerHTML = '<p class="font-mono text-sm text-[var(--muted)]">Loading comments...</p>';
+        loadWalineStyles();
+        const { init } = await import("https://unpkg.com/@waline/client@v3/dist/waline.js");
+        container.innerHTML = "";
         init({
           el: container,
           serverURL: container.dataset.serverUrl,
@@ -55,6 +78,22 @@ const commentPath = `/articles/${pageId}/`;
           imageUploader: false,
           search: false,
         });
+      };
+
+      container?.querySelector("[data-waline-load]")?.addEventListener("click", loadWaline);
+
+      if (container && "IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+            observer.disconnect();
+            loadWaline();
+          },
+          { rootMargin: "240px 0px" },
+        );
+        observer.observe(container);
+      } else {
+        loadWaline();
       }
     </script>
   )

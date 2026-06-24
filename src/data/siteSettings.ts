@@ -10,6 +10,7 @@ export const siteSettings = {
     footerNote: "Built with Astro.",
   },
   home: {
+    heroBackgroundImage: "/images/home-exhibition-bg.jpg",
     badge: "notebook for human feelings and machine logic",
     headline: "在代码的边界，收藏日常的回声。",
     intro:

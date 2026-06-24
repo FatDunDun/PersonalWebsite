@@ -1,5 +1,6 @@
 ---
 import "@/styles/global.css";
+import CursorField from "@/components/CursorField.astro";
 import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
 import { recommendations } from "@/data/recommendations";
@@ -144,6 +145,7 @@ const initialData = {
     </style>
   </head>
   <body class="orbit-shell min-h-screen text-[var(--foreground)]">
+    <CursorField />
     <main class="mx-auto flex min-h-screen w-[min(1680px,calc(100%-1.25rem))] flex-col gap-5 py-4 md:w-[min(1680px,calc(100%-2rem))] md:py-6">
       <header class="orbit-panel p-4 md:p-5">
         <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -691,6 +693,14 @@ const initialData = {
                   <label class="block md:col-span-2">
                     <span class="font-mono text-xs text-[var(--muted)]">首页简介</span>
                     <textarea class="orbit-input mt-2 min-h-28" data-settings-field="home.intro"></textarea>
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">首页背景图路径</span>
+                    <div class="mt-2 grid gap-2 md:grid-cols-[1fr_auto]">
+                      <input class="orbit-input font-mono text-sm" data-settings-field="home.heroBackgroundImage" placeholder="/images/home-exhibition-bg.jpg" />
+                      <button class="orbit-button" data-use-selected-hero-background type="button">用选中图</button>
+                    </div>
+                    <p class="mt-2 text-xs leading-5 text-[var(--muted)]">先到素材图片库上传或选择图片，再点“用选中图”；也可以手动填写 /images/xxx.jpg。</p>
                   </label>
                   <label class="block">
                     <span class="font-mono text-xs text-[var(--muted)]">主按钮文字</span>
@@ -2334,6 +2344,15 @@ const initialData = {
       );
       $("[data-delete-video]").addEventListener("click", () => run(deleteVideo));
       $("[data-save-settings]").addEventListener("click", () => run(saveSettings));
+      $("[data-use-selected-hero-background]").addEventListener("click", () => {
+        const field = $('[data-settings-field="home.heroBackgroundImage"]');
+        if (!state.current.image?.publicPath) {
+          setStatus("请先在素材图片库中选择一张背景图。");
+          return;
+        }
+        field.value = state.current.image.publicPath;
+        setStatus("已把选中图片填入首页背景图路径，保存页面配置后生效。");
+      });
 
       Object.values(postFields).forEach((field) => field.addEventListener("input", renderMarkdownPreview));
       Object.values(recommendationFields).forEach((field) => field.addEventListener("input", renderRecommendationPreview));

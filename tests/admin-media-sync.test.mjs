@@ -21,6 +21,19 @@ for (const snippet of requiredSnippets) {
   assert.ok(source.includes(snippet), "Expected admin page to include " + snippet);
 }
 
+const requiredUiSnippets = [
+  "orbit-workbench",
+  "exhibition-panel",
+  "literary-title",
+  "exhibition-kicker",
+  "quiet-card",
+  "orbit-stage",
+];
+
+for (const snippet of requiredUiSnippets) {
+  assert.ok(source.includes(snippet), "Expected admin page to share homepage UI language via " + snippet);
+}
+
 assert.ok(
   source.includes('message: `Sync media assets: ${summary}`'),
   "Expected pending media sync to use one summary commit message",

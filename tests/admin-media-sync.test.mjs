@@ -5,9 +5,15 @@ const source = readFileSync(new URL("../src/pages/silent-orbit-7429/index.astro"
 
 const requiredSnippets = [
   "pendingMedia",
+  "pendingChanges",
   "data-sync-media",
+  "data-sync-all",
   "queueMediaUploads",
   "queueMediaDeletes",
+  "queueContentChange",
+  "queueDeleteChange",
+  "syncPendingChanges",
+  "beforeunload",
   "syncPendingMedia",
   "createGitBlob",
   "createGitTree",
@@ -38,6 +44,35 @@ assert.ok(
   source.includes('message: `Sync media assets: ${summary}`'),
   "Expected pending media sync to use one summary commit message",
 );
+
+assert.ok(
+  source.includes('message: `Sync site updates: ${summary}`'),
+  "Expected full admin sync to use one summary commit message",
+);
+
+const directCommitMessages = [
+  "Update post:",
+  "Add post:",
+  "Delete post:",
+  "Update project:",
+  "Add project:",
+  "Delete project:",
+  "Update recommendation:",
+  "Add recommendation:",
+  "Delete recommendation:",
+  "Update personal photo:",
+  "Add personal photo:",
+  "Delete personal photo:",
+  "Update personal video:",
+  "Add personal video:",
+  "Delete personal video:",
+  "Update site settings",
+];
+
+for (const message of directCommitMessages) {
+  assert.ok(!source.includes(`message: \`${message}`), "Content action should queue instead of directly committing: " + message);
+  assert.ok(!source.includes(`message: "${message}"`), "Content action should queue instead of directly committing: " + message);
+}
 
 assert.ok(
   !source.includes('$(\"[data-delete-image]\").addEventListener(\"click\", () => run(deleteImage))'),

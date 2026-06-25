@@ -263,7 +263,7 @@ const initialData = {
             <p class="exhibition-kicker">Silent Orbit</p>
             <h1 class="literary-title mt-3 text-4xl leading-tight md:text-5xl">内容工作台</h1>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              文章、项目、推荐、PersonalPhoto、PersonalVideo、素材库和页面配置统一在这里维护。保存动作会直接提交到 GitHub main 分支并触发 Pages 部署。
+              文章、项目、推荐、PersonalPhoto、PersonalVideo、素材库和页面配置统一在这里维护。先把分项改动暂存到当前页面，确认后再一次同步到 GitHub main 分支。
             </p>
           </div>
 
@@ -334,9 +334,8 @@ const initialData = {
 
           <section class="orbit-status-card mt-3 border p-3">
             <p class="exhibition-meta text-xs uppercase tracking-[0.2em]">Publish</p>
-            <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-              每次保存都会成为一次 Git commit。GitHub Actions 会自动重新部署网站。
-            </p>
+            <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-pending-summary>暂无待同步改动。</p>
+            <button class="orbit-button orbit-button-primary mt-3 w-full" data-sync-all type="button">同步全部改动</button>
           </section>
         </aside>
 
@@ -617,7 +616,7 @@ const initialData = {
               <div class="orbit-actions">
                 <button class="orbit-button orbit-button-primary" data-upload-image type="button">上传图片</button>
                 <button class="orbit-button orbit-danger" data-delete-image type="button">加入删除队列</button>
-                <button class="orbit-button" data-sync-media type="button">同步待处理操作</button>
+                <button class="orbit-button" data-sync-media type="button">同步全部改动</button>
                 <input class="hidden" data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple />
               </div>
             </div>
@@ -640,7 +639,7 @@ const initialData = {
                 </div>
                 <input class="orbit-input mt-3 font-mono text-sm" data-selected-image-path readonly placeholder="/images/..." />
                 <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-                  素材图片库用于文章正文、封面或项目引用。勾选多张图片后可以批量加入删除队列，最后点击“同步待处理操作”一次提交到 GitHub。
+                  素材图片库用于文章正文、封面或项目引用。勾选多张图片后可以批量加入删除队列，最后点击“同步全部改动”一次提交到 GitHub。
                 </p>
               </aside>
             </div>
@@ -717,7 +716,7 @@ const initialData = {
                 <button class="orbit-button orbit-button-primary" data-upload-video type="button">上传视频</button>
                 <button class="orbit-button" data-insert-selected-video type="button">插入选中视频</button>
                 <button class="orbit-button orbit-danger" data-delete-video type="button">加入删除队列</button>
-                <button class="orbit-button" data-sync-media type="button">同步待处理操作</button>
+                <button class="orbit-button" data-sync-media type="button">同步全部改动</button>
                 <input class="hidden" data-video-file type="file" accept="video/mp4,video/webm,video/quicktime,.mov" multiple />
               </div>
             </div>
@@ -740,7 +739,7 @@ const initialData = {
                 </div>
                 <input class="orbit-input mt-3 font-mono text-sm" data-selected-video-path readonly placeholder="/videos/..." />
                 <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-                  素材视频库用于文章正文或项目引用。勾选多段视频后可以批量加入删除队列，最后点击“同步待处理操作”一次提交到 GitHub。
+                  素材视频库用于文章正文或项目引用。勾选多段视频后可以批量加入删除队列，最后点击“同步全部改动”一次提交到 GitHub。
                 </p>
               </aside>
             </div>
@@ -941,6 +940,10 @@ const initialData = {
           selectedImages: new Set(),
           selectedVideos: new Set(),
         },
+        pendingChanges: {
+          files: [],
+          deletes: [],
+        },
         settings: null,
         files: {
           projects: null,
@@ -966,6 +969,7 @@ const initialData = {
       const list = $("[data-list]");
       const listKicker = $("[data-list-kicker]");
       const listTitle = $("[data-list-title]");
+      const pendingSummary = $("[data-pending-summary]");
 
       const postFields = {
         slug: $('[data-post-field="slug"]'),
@@ -1100,7 +1104,7 @@ const initialData = {
       };
 
       const requireWriteAccess = () => {
-        if (!state.token) throw new Error("保存、删除、上传需要先输入 GitHub Token。保存会直接提交到 GitHub main 分支。");
+        if (!state.token) throw new Error("暂存、删除、上传和同步需要先输入 GitHub Token。改动会先留在当前页面，点“同步全部改动”后才提交到 GitHub main 分支。");
       };
 
       const github = async (path, options = {}) => {
@@ -1368,17 +1372,48 @@ const initialData = {
 
       const allPendingMedia = () => [...state.pendingMedia.uploads, ...state.pendingMedia.deletes];
 
+      const allPendingChanges = () => [
+        ...state.pendingChanges.files,
+        ...state.pendingChanges.deletes,
+        ...state.pendingMedia.uploads,
+        ...state.pendingMedia.deletes,
+      ];
+
+      const queueContentChange = ({ path, content, label }) => {
+        state.pendingChanges.deletes = state.pendingChanges.deletes.filter((item) => item.path !== path);
+        const existing = state.pendingChanges.files.findIndex((item) => item.path === path);
+        const entry = { path, content, label, pending: true };
+        if (existing >= 0) state.pendingChanges.files[existing] = entry;
+        else state.pendingChanges.files.push(entry);
+        updatePendingChangesUi();
+      };
+
+      const queueDeleteChange = ({ path, label }) => {
+        state.pendingChanges.files = state.pendingChanges.files.filter((item) => item.path !== path);
+        const pendingUploadIndex = state.pendingMedia.uploads.findIndex((item) => item.path === path);
+        if (pendingUploadIndex >= 0) {
+          const [removed] = state.pendingMedia.uploads.splice(pendingUploadIndex, 1);
+          if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+          updatePendingChangesUi();
+          return;
+        }
+        if (!state.pendingChanges.deletes.some((item) => item.path === path)) {
+          state.pendingChanges.deletes.push({ path, label, pending: true });
+        }
+        updatePendingChangesUi();
+      };
+
       const isPendingDelete = (kind, path) => state.pendingMedia.deletes.some((item) => item.kind === kind && item.path === path);
 
       const assetPreviewUrl = (asset) => asset?.previewUrl || (asset?.publicPath ? withBase(asset.publicPath) : "");
 
       const visibleImages = () => [
-        ...state.pendingMedia.uploads.filter((item) => item.kind === "image"),
+        ...state.pendingMedia.uploads.filter((item) => item.kind === "image" && item.publicPath?.startsWith("/images/")),
         ...state.images.filter((image) => !isPendingDelete("image", image.path)),
       ];
 
       const visibleVideos = () => [
-        ...state.pendingMedia.uploads.filter((item) => item.kind === "video"),
+        ...state.pendingMedia.uploads.filter((item) => item.kind === "video" && item.publicPath?.startsWith("/videos/")),
         ...state.videos.filter((video) => !isPendingDelete("video", video.path)),
       ];
 
@@ -1418,6 +1453,22 @@ const initialData = {
         $$('[data-sync-media]').forEach((button) => {
           button.disabled = allPendingMedia().length === 0;
         });
+        updatePendingChangesUi();
+      };
+
+      const updatePendingChangesUi = () => {
+        const contentFiles = state.pendingChanges.files.length;
+        const contentDeletes = state.pendingChanges.deletes.length;
+        const uploads = state.pendingMedia.uploads.length;
+        const mediaDeletes = state.pendingMedia.deletes.length;
+        const total = contentFiles + contentDeletes + uploads + mediaDeletes;
+        if (pendingSummary) {
+          pendingSummary.textContent = total
+            ? `待同步：写入 ${contentFiles} 个内容文件，删除 ${contentDeletes} 个内容文件，上传 ${uploads} 个媒体文件，删除 ${mediaDeletes} 个媒体文件。`
+            : "暂无待同步改动。";
+        }
+        const button = $("[data-sync-all]");
+        if (button) button.disabled = total === 0;
       };
 
       const selectSection = (section) => {
@@ -1719,7 +1770,7 @@ const initialData = {
         if (state.current.recommendationIndex < 0) newRecommendation();
         if (state.current.galleryIndex < 0) newGallery();
         if (state.current.personalVideoIndex < 0) newPersonalVideo();
-        setStatus("GitHub 模式已连接。保存会直接提交到 main 分支。");
+        setStatus("GitHub 模式已连接。分项操作会先暂存在当前页面，点“同步全部改动”后才提交到 main 分支。");
       };
 
       const fillSettings = () => {
@@ -1771,17 +1822,14 @@ const initialData = {
         if (!settings.site?.author) throw new Error("请填写作者");
         if (!settings.home?.headline) throw new Error("请填写首页大标题");
         if (!settings.nav?.length) throw new Error("至少保留一条导航");
-        const sha = state.files.settings?.sha || (await getFile(SETTINGS_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: SETTINGS_PATH,
-          content: toBase64(stringifySettingsModule(settings)),
-          message: "Update site settings",
-          sha,
+          content: stringifySettingsModule(settings),
+          label: "页面配置",
         });
         state.settings = settings;
-        state.files.settings = { ...state.files.settings, sha: result.content.sha };
         fillSettings();
-        setStatus("页面配置已保存到 GitHub main 分支，GitHub Pages 将自动部署。");
+        setStatus("页面配置已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const newPost = () => {
@@ -1833,31 +1881,36 @@ const initialData = {
 
         const path = `${POSTS_PATH}/${slug}.mdx`;
         const current = state.current.post;
-        let sha = current?.sha && current.path === path ? current.sha : "";
-        if (!sha && current?.path === path) {
-          const remoteFile = await getFile(path);
-          sha = remoteFile.sha;
-        }
         const content = stringifyPost();
-        const result = await putFile({
+        queueContentChange({
           path,
-          content: toBase64(content),
-          message: current?.path ? `Update post: ${slug}` : `Add post: ${slug}`,
-          sha: sha || undefined,
+          content,
+          label: current?.path ? `文章：${slug}` : `新文章：${slug}`,
         });
 
         if (current?.sha && current.path && current.path !== path) {
-          await deleteFile({ path: current.path, sha: current.sha, message: `Remove old post slug: ${current.slug}` });
+          queueDeleteChange({ path: current.path, label: `旧文章路径：${current.slug}` });
         } else if (current?.path && current.path !== path) {
-          const oldFile = await getFile(current.path);
-          await deleteFile({ path: current.path, sha: oldFile.sha, message: `Remove old post slug: ${current.slug}` });
+          queueDeleteChange({ path: current.path, label: `旧文章路径：${current.slug}` });
         }
 
-        state.current.post = { ...current, slug, path, sha: result.content.sha };
-        await loadPosts();
+        const item = {
+          name: `${slug}.mdx`,
+          path,
+          sha: current?.sha || "",
+          slug,
+          data: parseFrontmatter(content).data,
+          body: parseFrontmatter(content).body,
+        };
+        const existingIndex = state.posts.findIndex((post) => post.path === current?.path || post.path === path);
+        if (existingIndex >= 0) state.posts[existingIndex] = item;
+        else state.posts.unshift(item);
+        state.posts = state.posts.filter((post, index, items) => items.findIndex((entry) => entry.path === post.path) === index);
+        state.posts.sort((a, b) => new Date(b.data?.publishDate || 0).valueOf() - new Date(a.data?.publishDate || 0).valueOf());
+        state.current.post = { ...current, slug, path, sha: item.sha, data: item.data, body: item.body };
         updateCounts();
         renderList();
-        setStatus("文章已保存，GitHub Pages 将自动部署。");
+        setStatus("文章已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const deletePost = async () => {
@@ -1865,12 +1918,11 @@ const initialData = {
         const current = state.current.post;
         if (!current?.path) throw new Error("请选择一篇已有文章");
         if (!confirm(`确定删除文章「${current.slug}」吗？`)) return;
-        const sha = current.sha || (await getFile(current.path)).sha;
-        await deleteFile({ path: current.path, sha, message: `Delete post: ${current.slug}` });
-        await loadPosts();
+        queueDeleteChange({ path: current.path, label: `文章：${current.slug}` });
+        state.posts = state.posts.filter((post) => post.path !== current.path);
         updateCounts();
         newPost();
-        setStatus("文章已删除。");
+        setStatus("文章删除已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const newProject = () => {
@@ -1910,19 +1962,16 @@ const initialData = {
         const items = [...state.projects];
         if (state.current.projectIndex >= 0) items[state.current.projectIndex] = project;
         else items.unshift(project);
-        const sha = state.files.projects?.sha || (await getFile(PROJECTS_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: PROJECTS_PATH,
-          content: toBase64(stringifyArrayModule("projects", items)),
-          message: state.current.projectIndex >= 0 ? `Update project: ${project.name}` : `Add project: ${project.name}`,
-          sha,
+          content: stringifyArrayModule("projects", items),
+          label: "项目数据",
         });
         state.projects = items;
-        state.files.projects = { ...state.files.projects, sha: result.content.sha };
         state.current.projectIndex = items.findIndex((item) => item === project);
         updateCounts();
         renderList();
-        setStatus("项目已保存。");
+        setStatus("项目已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const deleteProject = async () => {
@@ -1931,18 +1980,15 @@ const initialData = {
         const project = state.projects[state.current.projectIndex];
         if (!confirm(`确定删除项目「${project.name}」吗？`)) return;
         const items = state.projects.filter((_, index) => index !== state.current.projectIndex);
-        const sha = state.files.projects?.sha || (await getFile(PROJECTS_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: PROJECTS_PATH,
-          content: toBase64(stringifyArrayModule("projects", items)),
-          message: `Delete project: ${project.name}`,
-          sha,
+          content: stringifyArrayModule("projects", items),
+          label: "项目数据",
         });
         state.projects = items;
-        state.files.projects = { ...state.files.projects, sha: result.content.sha };
         updateCounts();
         newProject();
-        setStatus("项目已删除。");
+        setStatus("项目删除已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const newRecommendation = () => {
@@ -2017,19 +2063,16 @@ const initialData = {
         const items = [...state.recommendations];
         if (state.current.recommendationIndex >= 0) items[state.current.recommendationIndex] = item;
         else items.unshift(item);
-        const sha = state.files.recommendations?.sha || (await getFile(RECOMMENDATIONS_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: RECOMMENDATIONS_PATH,
-          content: toBase64(stringifyArrayModule("recommendations", items)),
-          message: state.current.recommendationIndex >= 0 ? `Update recommendation: ${item.title}` : `Add recommendation: ${item.title}`,
-          sha,
+          content: stringifyArrayModule("recommendations", items),
+          label: "推荐数据",
         });
         state.recommendations = items;
-        state.files.recommendations = { ...state.files.recommendations, sha: result.content.sha };
         state.current.recommendationIndex = items.findIndex((entry) => entry === item);
         updateCounts();
         renderList();
-        setStatus("推荐已保存。");
+        setStatus("推荐已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const deleteRecommendation = async () => {
@@ -2038,18 +2081,15 @@ const initialData = {
         const item = state.recommendations[state.current.recommendationIndex];
         if (!confirm(`确定删除推荐「${item.title}」吗？`)) return;
         const items = state.recommendations.filter((_, index) => index !== state.current.recommendationIndex);
-        const sha = state.files.recommendations?.sha || (await getFile(RECOMMENDATIONS_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: RECOMMENDATIONS_PATH,
-          content: toBase64(stringifyArrayModule("recommendations", items)),
-          message: `Delete recommendation: ${item.title}`,
-          sha,
+          content: stringifyArrayModule("recommendations", items),
+          label: "推荐数据",
         });
         state.recommendations = items;
-        state.files.recommendations = { ...state.files.recommendations, sha: result.content.sha };
         updateCounts();
         newRecommendation();
-        setStatus("推荐已删除。");
+        setStatus("推荐删除已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const newGallery = () => {
@@ -2103,19 +2143,16 @@ const initialData = {
         const items = [...state.gallery];
         if (state.current.galleryIndex >= 0) items[state.current.galleryIndex] = item;
         else items.unshift(item);
-        const sha = state.files.gallery?.sha || (await getFile(GALLERY_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: GALLERY_PATH,
-          content: toBase64(stringifyArrayModule("galleryItems", items)),
-          message: state.current.galleryIndex >= 0 ? `Update personal photo: ${item.title}` : `Add personal photo: ${item.title}`,
-          sha,
+          content: stringifyArrayModule("galleryItems", items),
+          label: "PersonalPhoto 数据",
         });
         state.gallery = items;
-        state.files.gallery = { ...state.files.gallery, sha: result.content.sha };
         state.current.galleryIndex = items.findIndex((entry) => entry === item);
         updateCounts();
         renderList();
-        setStatus("PersonalPhoto 已保存。");
+        setStatus("PersonalPhoto 已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const deleteGallery = async () => {
@@ -2124,15 +2161,12 @@ const initialData = {
         const item = state.gallery[state.current.galleryIndex];
         if (!confirm(`确定删除 PersonalPhoto「${item.title}」吗？`)) return;
         const items = state.gallery.filter((_, index) => index !== state.current.galleryIndex);
-        const sha = state.files.gallery?.sha || (await getFile(GALLERY_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: GALLERY_PATH,
-          content: toBase64(stringifyArrayModule("galleryItems", items)),
-          message: `Delete personal photo: ${item.title}`,
-          sha,
+          content: stringifyArrayModule("galleryItems", items),
+          label: "PersonalPhoto 数据",
         });
         state.gallery = items;
-        state.files.gallery = { ...state.files.gallery, sha: result.content.sha };
         updateCounts();
         newGallery();
 
@@ -2140,16 +2174,11 @@ const initialData = {
         const canDeletePhotoFile = item.image?.startsWith("/personal-photo/") && !items.some((entry) => entry.image === item.image);
         if (canDeletePhotoFile && confirm("这张 PersonalPhoto 没有被其他照片卡片引用，是否同时删除图片文件？")) {
           const imagePath = publicPathToRepoPath(item.image);
-          try {
-            const imageFile = await getFile(imagePath);
-            await deleteFile({ path: imagePath, sha: imageFile.sha, message: `Delete personal photo file: ${item.title}` });
-            fileStatus = "图片文件也已删除。";
-          } catch (error) {
-            fileStatus = `但图片文件未删除：${error.message || "文件读取失败"}。`;
-          }
+          queueDeleteChange({ path: imagePath, label: `PersonalPhoto 文件：${item.title}` });
+          fileStatus = "图片文件删除也已暂存。";
         }
 
-        setStatus(`PersonalPhoto 已删除。${fileStatus}`);
+        setStatus(`PersonalPhoto 删除已暂存。${fileStatus}`);
       };
 
       const newPersonalVideo = () => {
@@ -2207,19 +2236,16 @@ const initialData = {
         const items = [...state.personalVideos];
         if (state.current.personalVideoIndex >= 0) items[state.current.personalVideoIndex] = item;
         else items.unshift(item);
-        const sha = state.files.personalVideos?.sha || (await getFile(PERSONAL_VIDEOS_DATA_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: PERSONAL_VIDEOS_DATA_PATH,
-          content: toBase64(stringifyArrayModule("videoItems", items)),
-          message: state.current.personalVideoIndex >= 0 ? `Update personal video: ${item.title}` : `Add personal video: ${item.title}`,
-          sha,
+          content: stringifyArrayModule("videoItems", items),
+          label: "PersonalVideo 数据",
         });
         state.personalVideos = items;
-        state.files.personalVideos = { ...state.files.personalVideos, sha: result.content.sha };
         state.current.personalVideoIndex = items.findIndex((entry) => entry === item);
         updateCounts();
         renderList();
-        setStatus("PersonalVideo 已保存。");
+        setStatus("PersonalVideo 已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
       const deletePersonalVideo = async () => {
@@ -2228,15 +2254,12 @@ const initialData = {
         const item = state.personalVideos[state.current.personalVideoIndex];
         if (!confirm(`确定删除 PersonalVideo「${item.title}」吗？`)) return;
         const items = state.personalVideos.filter((_, index) => index !== state.current.personalVideoIndex);
-        const sha = state.files.personalVideos?.sha || (await getFile(PERSONAL_VIDEOS_DATA_PATH)).sha;
-        const result = await putFile({
+        queueContentChange({
           path: PERSONAL_VIDEOS_DATA_PATH,
-          content: toBase64(stringifyArrayModule("videoItems", items)),
-          message: `Delete personal video: ${item.title}`,
-          sha,
+          content: stringifyArrayModule("videoItems", items),
+          label: "PersonalVideo 数据",
         });
         state.personalVideos = items;
-        state.files.personalVideos = { ...state.files.personalVideos, sha: result.content.sha };
         updateCounts();
         newPersonalVideo();
 
@@ -2244,16 +2267,11 @@ const initialData = {
         const canDeleteVideoFile = item.video?.startsWith("/personal-video/") && !items.some((entry) => entry.video === item.video);
         if (canDeleteVideoFile && confirm("这段 PersonalVideo 没有被其他视频记录引用，是否同时删除视频文件？")) {
           const videoPath = publicPathToRepoPath(item.video);
-          try {
-            const videoFile = await getFile(videoPath);
-            await deleteFile({ path: videoPath, sha: videoFile.sha, message: `Delete personal video file: ${item.title}` });
-            fileStatus = "视频文件也已删除。";
-          } catch (error) {
-            fileStatus = `但视频文件未删除：${error.message || "文件读取失败"}。`;
-          }
+          queueDeleteChange({ path: videoPath, label: `PersonalVideo 文件：${item.title}` });
+          fileStatus = "视频文件删除也已暂存。";
         }
 
-        setStatus(`PersonalVideo 已删除。${fileStatus}`);
+        setStatus(`PersonalVideo 删除已暂存。${fileStatus}`);
       };
 
       const makeUploadName = (file) => {
@@ -2321,12 +2339,116 @@ const initialData = {
       const uploadMediaFile = async (file, directory = IMAGES_PATH, publicRoot = "/images") => {
         const safeName = makeUploadName(file);
         const path = `${directory}/${safeName}`;
-        const result = await putFile({
+        const isVideo = publicRoot.startsWith("/videos") || publicRoot.startsWith("/personal-video");
+        const queued = {
+          kind: isVideo ? "video" : "image",
+          name: safeName,
           path,
+          publicPath: `${publicRoot}/${safeName}`,
           content: arrayBufferToBase64(await file.arrayBuffer()),
-          message: `Upload media: ${safeName}`,
+          previewUrl: URL.createObjectURL(file),
+          pending: true,
+        };
+        state.pendingMedia.uploads.push(queued);
+        updatePendingChangesUi();
+        return queued;
+      };
+
+      const addUploadedAssetIfVisible = (asset) => {
+        if (asset.publicPath?.startsWith("/images/") && !state.images.some((image) => image.path === asset.path)) {
+          state.images = [asset, ...state.images];
+        }
+        if (asset.publicPath?.startsWith("/videos/") && !state.videos.some((video) => video.path === asset.path)) {
+          state.videos = [asset, ...state.videos];
+        }
+      };
+
+      const removePendingMediaByPath = (path) => {
+        const existing = state.pendingMedia.uploads.findIndex((item) => item.path === path);
+        if (existing >= 0) {
+          const [removed] = state.pendingMedia.uploads.splice(existing, 1);
+          if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+        }
+        state.pendingMedia.deletes = state.pendingMedia.deletes.filter((item) => item.path !== path);
+        state.images = state.images.filter((image) => image.path !== path);
+        state.videos = state.videos.filter((video) => video.path !== path);
+        updatePendingChangesUi();
+      };
+
+      const syncPendingChanges = async () => {
+        requireWriteAccess();
+        const uploads = [...state.pendingMedia.uploads];
+        const mediaDeletes = [...state.pendingMedia.deletes];
+        const files = [...state.pendingChanges.files];
+        const deletes = [...state.pendingChanges.deletes];
+        if (!uploads.length && !mediaDeletes.length && !files.length && !deletes.length) throw new Error("暂无待同步操作");
+
+        const summaryParts = [];
+        if (files.length) summaryParts.push("write " + files.length + " content files");
+        if (deletes.length) summaryParts.push("delete " + deletes.length + " content files");
+        if (uploads.length) summaryParts.push("upload " + uploads.length + " media files");
+        if (mediaDeletes.length) summaryParts.push("delete " + mediaDeletes.length + " media files");
+        const summary = summaryParts.join(", ");
+        if (!confirm("确定同步全部待处理改动吗？\n" + summary + "\n\n这会在 GitHub main 分支生成 1 次 commit。")) return;
+
+        setStatus("创建 GitHub 批量提交中...");
+        const branchRef = await getBranchRef();
+        const parentSha = branchRef.object.sha;
+        const parentCommit = await getGitCommit(parentSha);
+        const treeEntries = [];
+
+        for (const file of files) {
+          const blob = await createGitBlob({ content: toBase64(file.content) });
+          treeEntries.push({
+            path: file.path,
+            mode: "100644",
+            type: "blob",
+            sha: blob.sha,
+          });
+        }
+        for (const upload of uploads) {
+          const blob = await createGitBlob({ content: upload.content });
+          treeEntries.push({
+            path: upload.path,
+            mode: "100644",
+            type: "blob",
+            sha: blob.sha,
+          });
+        }
+        for (const deleted of [...deletes, ...mediaDeletes]) {
+          treeEntries.push({
+            path: deleted.path,
+            mode: "100644",
+            type: "blob",
+            sha: null,
+          });
+        }
+
+        const tree = await createGitTree({
+          baseTreeSha: parentCommit.tree.sha,
+          tree: treeEntries,
         });
-        return { name: safeName, path, sha: result.content.sha, publicPath: `${publicRoot}/${safeName}` };
+        const commit = await createGitCommit({
+          message: `Sync site updates: ${summary}`,
+          treeSha: tree.sha,
+          parentSha,
+        });
+        await updateBranchRef(commit.sha);
+
+        uploads.forEach((upload) => {
+          if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl);
+        });
+        state.pendingMedia.uploads = [];
+        state.pendingMedia.deletes = [];
+        state.pendingMedia.selectedImages.clear();
+        state.pendingMedia.selectedVideos.clear();
+        state.pendingChanges.files = [];
+        state.pendingChanges.deletes = [];
+        await loadAll();
+        selectImage(null);
+        selectVideo(null);
+        updatePendingChangesUi();
+        setStatus("全部待处理改动已同步为 1 次 Git commit。");
       };
 
       const uploadImages = async (files, options = {}) => {
@@ -2339,13 +2461,14 @@ const initialData = {
         setStatus(`上传 ${files.length} 张图片中...`);
         const uploaded = [];
         for (const file of files) {
-          uploaded.push(await uploadMediaFile(file, directory, publicRoot));
+          const image = await uploadMediaFile(file, directory, publicRoot);
+          uploaded.push(image);
+          if (reloadAssets) addUploadedAssetIfVisible(image);
         }
-        if (reloadAssets) await loadImages();
         updateCounts();
         renderList();
         if (reloadAssets) selectImage(uploaded.at(-1));
-        setStatus("图片已上传。");
+        setStatus("图片已暂存。确认无误后点“同步全部改动”一次提交。");
         return uploaded;
       };
 
@@ -2357,13 +2480,13 @@ const initialData = {
         const reloadAssets = options.reloadAssets ?? directory === VIDEOS_PATH;
         setStatus("上传视频中...");
         const video = await uploadMediaFile(file, directory, publicRoot);
+        if (reloadAssets) addUploadedAssetIfVisible(video);
         if (reloadAssets) {
-          await loadVideos();
           selectVideo(video);
           updateCounts();
           renderList();
         }
-        setStatus("视频已上传。");
+        setStatus("视频已暂存。确认无误后点“同步全部改动”一次提交。");
         return video;
       };
 
@@ -2577,6 +2700,12 @@ const initialData = {
         }
       };
 
+      window.addEventListener("beforeunload", (event) => {
+        if (!allPendingChanges().length) return;
+        event.preventDefault();
+        event.returnValue = "";
+      });
+
       $$("[data-section]").forEach((button) => {
         button.addEventListener("click", () => selectSection(button.dataset.section));
       });
@@ -2733,7 +2862,8 @@ const initialData = {
         }),
       );
       $("[data-delete-video]").addEventListener("click", () => run(() => queueMediaDeletes("video")));
-      $$("[data-sync-media]").forEach((button) => button.addEventListener("click", () => run(syncPendingMedia)));
+      $$("[data-sync-media]").forEach((button) => button.addEventListener("click", () => run(syncPendingChanges)));
+      $("[data-sync-all]").addEventListener("click", () => run(syncPendingChanges));
       $("[data-save-settings]").addEventListener("click", () => run(saveSettings));
       $("[data-use-selected-hero-background]").addEventListener("click", () => {
         const field = $('[data-settings-field="home.heroBackgroundImage"]');
@@ -2757,6 +2887,7 @@ const initialData = {
       newRecommendation();
       newGallery();
       newPersonalVideo();
+      updatePendingChangesUi();
 
       const initialize = async () => {
         if (state.token) $("[data-token-input]").value = state.token;

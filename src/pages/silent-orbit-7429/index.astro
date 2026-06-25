@@ -506,10 +506,12 @@ const initialData = {
               </div>
               <div class="orbit-actions">
                 <button class="orbit-button orbit-button-primary" data-upload-image type="button">上传图片</button>
-                <button class="orbit-button orbit-danger" data-delete-image type="button">删除选中图片</button>
+                <button class="orbit-button orbit-danger" data-delete-image type="button">加入删除队列</button>
+                <button class="orbit-button" data-sync-media type="button">同步待处理操作</button>
                 <input class="hidden" data-image-file type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple />
               </div>
             </div>
+            <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-media-pending-summary="images">暂无待同步图片操作。</p>
 
             <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
               <div class="grid max-h-[calc(100vh-260px)] grid-cols-2 gap-3 overflow-auto pr-1 md:grid-cols-3 2xl:grid-cols-4" data-image-grid>
@@ -528,7 +530,7 @@ const initialData = {
                 </div>
                 <input class="orbit-input mt-3 font-mono text-sm" data-selected-image-path readonly placeholder="/images/..." />
                 <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-                  素材图片库用于文章正文、封面或项目引用。写文章时可以选中这里的图片，再回到文章编辑页点击“插入选中图片”。
+                  素材图片库用于文章正文、封面或项目引用。勾选多张图片后可以批量加入删除队列，最后点击“同步待处理操作”一次提交到 GitHub。
                 </p>
               </aside>
             </div>
@@ -604,10 +606,12 @@ const initialData = {
               <div class="orbit-actions">
                 <button class="orbit-button orbit-button-primary" data-upload-video type="button">上传视频</button>
                 <button class="orbit-button" data-insert-selected-video type="button">插入选中视频</button>
-                <button class="orbit-button orbit-danger" data-delete-video type="button">删除选中视频</button>
+                <button class="orbit-button orbit-danger" data-delete-video type="button">加入删除队列</button>
+                <button class="orbit-button" data-sync-media type="button">同步待处理操作</button>
                 <input class="hidden" data-video-file type="file" accept="video/mp4,video/webm,video/quicktime,.mov" multiple />
               </div>
             </div>
+            <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-media-pending-summary="videos">暂无待同步视频操作。</p>
 
             <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_360px]">
               <div class="grid max-h-[calc(100vh-260px)] grid-cols-1 gap-3 overflow-auto pr-1 2xl:grid-cols-2" data-video-grid>
@@ -626,7 +630,7 @@ const initialData = {
                 </div>
                 <input class="orbit-input mt-3 font-mono text-sm" data-selected-video-path readonly placeholder="/videos/..." />
                 <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-                  素材视频库用于文章正文或项目引用。写文章时可以选中这里的视频，再点击“插入选中视频”。
+                  素材视频库用于文章正文或项目引用。勾选多段视频后可以批量加入删除队列，最后点击“同步待处理操作”一次提交到 GitHub。
                 </p>
               </aside>
             </div>
@@ -821,6 +825,12 @@ const initialData = {
         personalVideos: [],
         images: [],
         videos: [],
+        pendingMedia: {
+          uploads: [],
+          deletes: [],
+          selectedImages: new Set(),
+          selectedVideos: new Set(),
+        },
         settings: null,
         files: {
           projects: null,
@@ -1032,6 +1042,55 @@ const initialData = {
         });
       };
 
+      const getBranchRef = async () => {
+        return github(`/git/ref/heads/${BRANCH}`);
+      };
+
+      const getGitCommit = async (sha) => {
+        return github(`/git/commits/${sha}`);
+      };
+
+      const createGitBlob = async ({ content }) => {
+        return github("/git/blobs", {
+          method: "POST",
+          body: JSON.stringify({
+            content,
+            encoding: "base64",
+          }),
+        });
+      };
+
+      const createGitTree = async ({ baseTreeSha, tree }) => {
+        return github("/git/trees", {
+          method: "POST",
+          body: JSON.stringify({
+            base_tree: baseTreeSha,
+            tree,
+          }),
+        });
+      };
+
+      const createGitCommit = async ({ message, treeSha, parentSha }) => {
+        return github("/git/commits", {
+          method: "POST",
+          body: JSON.stringify({
+            message,
+            tree: treeSha,
+            parents: [parentSha],
+          }),
+        });
+      };
+
+      const updateBranchRef = async (sha) => {
+        return github(`/git/refs/heads/${BRANCH}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            sha,
+            force: false,
+          }),
+        });
+      };
+
       const parseFrontmatter = (content) => {
         const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
         if (!match) return { data: {}, body: content };
@@ -1191,6 +1250,66 @@ const initialData = {
         $('[data-count="settings"]').textContent = "编辑";
       };
 
+      const pendingMediaCount = (kind) => {
+        const uploads = state.pendingMedia.uploads.filter((item) => item.kind === kind).length;
+        const deletes = state.pendingMedia.deletes.filter((item) => item.kind === kind).length;
+        return { uploads, deletes, total: uploads + deletes };
+      };
+
+      const allPendingMedia = () => [...state.pendingMedia.uploads, ...state.pendingMedia.deletes];
+
+      const isPendingDelete = (kind, path) => state.pendingMedia.deletes.some((item) => item.kind === kind && item.path === path);
+
+      const assetPreviewUrl = (asset) => asset?.previewUrl || (asset?.publicPath ? withBase(asset.publicPath) : "");
+
+      const visibleImages = () => [
+        ...state.pendingMedia.uploads.filter((item) => item.kind === "image"),
+        ...state.images.filter((image) => !isPendingDelete("image", image.path)),
+      ];
+
+      const visibleVideos = () => [
+        ...state.pendingMedia.uploads.filter((item) => item.kind === "video"),
+        ...state.videos.filter((video) => !isPendingDelete("video", video.path)),
+      ];
+
+      const setSelection = (kind, path, checked) => {
+        const target = kind === "image" ? state.pendingMedia.selectedImages : state.pendingMedia.selectedVideos;
+        if (checked) target.add(path);
+        else target.delete(path);
+        renderList();
+      };
+
+      const clearSelections = (kind) => {
+        if (kind === "image") state.pendingMedia.selectedImages.clear();
+        else state.pendingMedia.selectedVideos.clear();
+      };
+
+      const selectedAssets = (kind) => {
+        const selected = kind === "image" ? state.pendingMedia.selectedImages : state.pendingMedia.selectedVideos;
+        const assets = kind === "image" ? visibleImages() : visibleVideos();
+        return assets.filter((asset) => selected.has(asset.path));
+      };
+
+      const updatePendingMediaUi = () => {
+        const imageCount = pendingMediaCount("image");
+        const videoCount = pendingMediaCount("video");
+        const imageSummary = $('[data-media-pending-summary="images"]');
+        const videoSummary = $('[data-media-pending-summary="videos"]');
+        if (imageSummary) {
+          imageSummary.textContent = imageCount.total
+            ? "待同步图片操作：新增 " + imageCount.uploads + "，删除 " + imageCount.deletes + "。点“同步待处理操作”后会合成一次 commit。"
+            : "暂无待同步图片操作。";
+        }
+        if (videoSummary) {
+          videoSummary.textContent = videoCount.total
+            ? "待同步视频操作：新增 " + videoCount.uploads + "，删除 " + videoCount.deletes + "。点“同步待处理操作”后会合成一次 commit。"
+            : "暂无待同步视频操作。";
+        }
+        $$('[data-sync-media]').forEach((button) => {
+          button.disabled = allPendingMedia().length === 0;
+        });
+      };
+
       const selectSection = (section) => {
         state.section = section;
         $$("[data-section]").forEach((button) => {
@@ -1220,9 +1339,9 @@ const initialData = {
                   : section === "personalVideos"
                     ? state.personalVideos
                     : section === "images"
-                      ? state.images
+                      ? visibleImages()
                       : section === "videos"
-                        ? state.videos
+                        ? visibleVideos()
                         : [];
 
         if (!items.length) {
@@ -1282,74 +1401,105 @@ const initialData = {
           } else if (section === "images") {
             button.dataset.active = String(state.current.image?.path === item.path);
             button.innerHTML = `
+              <label class="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]" data-media-select-wrapper>
+                <input data-image-select type="checkbox" ${state.pendingMedia.selectedImages.has(item.path) ? "checked" : ""} />
+                <span>${item.pending ? "待新增" : "选择"}</span>
+              </label>
               <div class="mb-2 overflow-hidden rounded border border-[var(--line)] bg-black">
-                <img class="aspect-[16/10] w-full object-cover" src="${withBase(item.publicPath)}" alt="" loading="lazy" />
+                <img class="aspect-[16/10] w-full object-cover" src="${assetPreviewUrl(item)}" alt="" loading="lazy" />
               </div>
               <p class="break-all font-mono text-xs">${escapeHtml(item.publicPath)}</p>
             `;
+            button.querySelector("[data-image-select]").addEventListener("click", (event) => event.stopPropagation());
+            button.querySelector("[data-image-select]").addEventListener("change", (event) => setSelection("image", item.path, event.target.checked));
             button.addEventListener("click", () => selectImage(item));
           } else {
             button.dataset.active = String(state.current.video?.path === item.path);
             button.innerHTML = `
+              <label class="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]" data-media-select-wrapper>
+                <input data-video-select type="checkbox" ${state.pendingMedia.selectedVideos.has(item.path) ? "checked" : ""} />
+                <span>${item.pending ? "待新增" : "选择"}</span>
+              </label>
               <div class="mb-2 overflow-hidden rounded border border-[var(--line)] bg-black">
-                <video class="aspect-video w-full object-cover" src="${withBase(item.publicPath)}" preload="metadata" muted playsinline></video>
+                <video class="aspect-video w-full object-cover" src="${assetPreviewUrl(item)}" preload="metadata" muted playsinline></video>
               </div>
               <p class="break-all font-mono text-xs">${escapeHtml(item.publicPath)}</p>
             `;
+            button.querySelector("[data-video-select]").addEventListener("click", (event) => event.stopPropagation());
+            button.querySelector("[data-video-select]").addEventListener("change", (event) => setSelection("video", item.path, event.target.checked));
             button.addEventListener("click", () => selectVideo(item));
           }
           list.append(button);
         });
         renderImageGrid();
         renderVideoGrid();
+        updatePendingMediaUi();
       };
 
       const renderImageGrid = () => {
         const grid = $("[data-image-grid]");
         if (!grid) return;
         grid.innerHTML = "";
-        if (!state.images.length) {
+        const images = visibleImages();
+        if (!images.length) {
           grid.innerHTML = '<p class="text-sm text-[var(--muted)]">暂无图片。</p>';
+          updatePendingMediaUi();
           return;
         }
-        state.images.forEach((image) => {
+        images.forEach((image) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "orbit-card overflow-hidden p-2 text-left transition hover:border-[var(--foreground)]";
           button.dataset.active = String(state.current.image?.path === image.path);
           button.innerHTML = `
+            <label class="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]" data-media-select-wrapper>
+              <input data-image-select type="checkbox" ${state.pendingMedia.selectedImages.has(image.path) ? "checked" : ""} />
+              <span>${image.pending ? "待新增" : "选择"}</span>
+            </label>
             <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
-              <img class="aspect-[4/3] w-full object-cover" src="${withBase(image.publicPath)}" alt="" loading="lazy" />
+              <img class="aspect-[4/3] w-full object-cover" src="${assetPreviewUrl(image)}" alt="" loading="lazy" />
             </div>
             <p class="mt-2 break-all font-mono text-xs">${escapeHtml(image.publicPath)}</p>
           `;
+          button.querySelector("[data-image-select]").addEventListener("click", (event) => event.stopPropagation());
+          button.querySelector("[data-image-select]").addEventListener("change", (event) => setSelection("image", image.path, event.target.checked));
           button.addEventListener("click", () => selectImage(image));
           grid.append(button);
         });
+        updatePendingMediaUi();
       };
 
       const renderVideoGrid = () => {
         const grid = $("[data-video-grid]");
         if (!grid) return;
         grid.innerHTML = "";
-        if (!state.videos.length) {
+        const videos = visibleVideos();
+        if (!videos.length) {
           grid.innerHTML = '<p class="text-sm text-[var(--muted)]">暂无视频。</p>';
+          updatePendingMediaUi();
           return;
         }
-        state.videos.forEach((video) => {
+        videos.forEach((video) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "orbit-card overflow-hidden p-2 text-left transition hover:border-[var(--foreground)]";
           button.dataset.active = String(state.current.video?.path === video.path);
           button.innerHTML = `
+            <label class="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]" data-media-select-wrapper>
+              <input data-video-select type="checkbox" ${state.pendingMedia.selectedVideos.has(video.path) ? "checked" : ""} />
+              <span>${video.pending ? "待新增" : "选择"}</span>
+            </label>
             <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
-              <video class="aspect-video w-full object-cover" src="${withBase(video.publicPath)}" preload="metadata" muted playsinline></video>
+              <video class="aspect-video w-full object-cover" src="${assetPreviewUrl(video)}" preload="metadata" muted playsinline></video>
             </div>
             <p class="mt-2 break-all font-mono text-xs">${escapeHtml(video.publicPath)}</p>
           `;
+          button.querySelector("[data-video-select]").addEventListener("click", (event) => event.stopPropagation());
+          button.querySelector("[data-video-select]").addEventListener("change", (event) => setSelection("video", video.path, event.target.checked));
           button.addEventListener("click", () => selectVideo(video));
           grid.append(button);
         });
+        updatePendingMediaUi();
       };
 
       const loadPosts = async () => {
@@ -2114,7 +2264,7 @@ const initialData = {
         preview.hidden = !image?.publicPath;
         preview.classList.toggle("hidden", !image?.publicPath);
         empty.hidden = !!image?.publicPath;
-        if (image?.publicPath) preview.src = withBase(image.publicPath);
+        if (image?.publicPath) preview.src = assetPreviewUrl(image);
         else preview.removeAttribute("src");
         $("[data-selected-image-path]").value = image?.publicPath || "";
         renderList();
@@ -2127,10 +2277,135 @@ const initialData = {
         preview.hidden = !video?.publicPath;
         preview.classList.toggle("hidden", !video?.publicPath);
         empty.hidden = !!video?.publicPath;
-        if (video?.publicPath) preview.src = withBase(video.publicPath);
+        if (video?.publicPath) preview.src = assetPreviewUrl(video);
         else preview.removeAttribute("src");
         $("[data-selected-video-path]").value = video?.publicPath || "";
         renderList();
+      };
+
+      const queueMediaUploads = async (files, kind) => {
+        requireWriteAccess();
+        if (!files.length) return;
+        const isImage = kind === "image";
+        const directory = isImage ? IMAGES_PATH : VIDEOS_PATH;
+        const publicRoot = isImage ? "/images" : "/videos";
+        validateMediaFiles(files, kind);
+        setStatus("加入" + files.length + " 个" + (isImage ? "图片" : "视频") + "到待同步队列中...");
+        for (const file of files) {
+          const safeName = makeUploadName(file);
+          const path = directory + "/" + safeName;
+          state.pendingMedia.uploads.push({
+            kind,
+            name: safeName,
+            path,
+            publicPath: publicRoot + "/" + safeName,
+            content: arrayBufferToBase64(await file.arrayBuffer()),
+            previewUrl: URL.createObjectURL(file),
+            pending: true,
+          });
+        }
+        clearSelections(kind);
+        const latest = state.pendingMedia.uploads.filter((item) => item.kind === kind).at(-1);
+        if (isImage) selectImage(latest);
+        else selectVideo(latest);
+        updatePendingMediaUi();
+        setStatus("已加入待同步队列。继续操作，最后点“同步待处理操作”即可一次提交。");
+      };
+
+      const queueMediaDeletes = (kind) => {
+        requireWriteAccess();
+        const isImage = kind === "image";
+        const assets = selectedAssets(kind);
+        if (!assets.length) throw new Error("请先勾选要删除的" + (isImage ? "图片" : "视频"));
+        const names = assets.map((asset) => asset.name || asset.publicPath).join("、");
+        if (!confirm("确定把 " + assets.length + " 个" + (isImage ? "图片" : "视频") + "加入删除队列吗？\n" + names + "\n\n真正删除会在你点击“同步待处理操作”后发生。")) return;
+        for (const asset of assets) {
+          const pendingUploadIndex = state.pendingMedia.uploads.findIndex((item) => item.kind === kind && item.path === asset.path);
+          if (pendingUploadIndex >= 0) {
+            const [removed] = state.pendingMedia.uploads.splice(pendingUploadIndex, 1);
+            if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+            continue;
+          }
+          if (!isPendingDelete(kind, asset.path)) {
+            state.pendingMedia.deletes.push({
+              kind,
+              name: asset.name,
+              path: asset.path,
+              publicPath: asset.publicPath,
+            });
+          }
+        }
+        clearSelections(kind);
+        if (isImage && assets.some((asset) => asset.path === state.current.image?.path)) selectImage(null);
+        if (!isImage && assets.some((asset) => asset.path === state.current.video?.path)) selectVideo(null);
+        renderList();
+        updatePendingMediaUi();
+        setStatus("已加入删除队列。继续操作，最后点“同步待处理操作”即可一次提交。");
+      };
+
+      const syncPendingMedia = async () => {
+        requireWriteAccess();
+        const uploads = [...state.pendingMedia.uploads];
+        const deletes = [...state.pendingMedia.deletes];
+        if (!uploads.length && !deletes.length) throw new Error("暂无待同步操作");
+        const summaryParts = [];
+        const imageUploads = uploads.filter((item) => item.kind === "image").length;
+        const videoUploads = uploads.filter((item) => item.kind === "video").length;
+        const imageDeletes = deletes.filter((item) => item.kind === "image").length;
+        const videoDeletes = deletes.filter((item) => item.kind === "video").length;
+        if (imageUploads) summaryParts.push("add " + imageUploads + " images");
+        if (videoUploads) summaryParts.push("add " + videoUploads + " videos");
+        if (imageDeletes) summaryParts.push("delete " + imageDeletes + " images");
+        if (videoDeletes) summaryParts.push("delete " + videoDeletes + " videos");
+        const summary = summaryParts.join(", ");
+        if (!confirm("确定同步待处理操作吗？\n" + summary + "\n\n这会在 GitHub main 分支生成 1 次 commit。")) return;
+
+        setStatus("创建 GitHub 批量提交中...");
+        const branchRef = await getBranchRef();
+        const parentSha = branchRef.object.sha;
+        const parentCommit = await getGitCommit(parentSha);
+        const treeEntries = [];
+        for (const upload of uploads) {
+          const blob = await createGitBlob({ content: upload.content });
+          treeEntries.push({
+            path: upload.path,
+            mode: "100644",
+            type: "blob",
+            sha: blob.sha,
+          });
+        }
+        for (const deleted of deletes) {
+          treeEntries.push({
+            path: deleted.path,
+            mode: "100644",
+            type: "blob",
+            sha: null,
+          });
+        }
+        const tree = await createGitTree({
+          baseTreeSha: parentCommit.tree.sha,
+          tree: treeEntries,
+        });
+        const commit = await createGitCommit({
+          message: `Sync media assets: ${summary}`,
+          treeSha: tree.sha,
+          parentSha,
+        });
+        await updateBranchRef(commit.sha);
+
+        uploads.forEach((upload) => {
+          if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl);
+        });
+        state.pendingMedia.uploads = [];
+        state.pendingMedia.deletes = [];
+        state.pendingMedia.selectedImages.clear();
+        state.pendingMedia.selectedVideos.clear();
+        await Promise.all([loadImages(), loadVideos()]);
+        selectImage(null);
+        selectVideo(null);
+        updateCounts();
+        renderList();
+        setStatus("待处理媒体操作已同步为 1 次 Git commit。");
       };
 
       const deleteImage = async () => {
@@ -2324,15 +2599,20 @@ const initialData = {
       });
 
       $("[data-upload-image]").addEventListener("click", () => $("[data-image-file]").click());
-      $("[data-image-file]").addEventListener("change", (event) => run(() => uploadImages(Array.from(event.target.files || []))));
-      $("[data-delete-image]").addEventListener("click", () => run(deleteImage));
+      $("[data-image-file]").addEventListener("change", (event) =>
+        run(async () => {
+          await queueMediaUploads(Array.from(event.target.files || []), "image");
+          event.target.value = "";
+        }),
+      );
+      $("[data-delete-image]").addEventListener("click", () => run(() => queueMediaDeletes("image")));
 
       $("[data-upload-video]").addEventListener("click", () => $("[data-video-file]").click());
       $("[data-video-file]").addEventListener("change", (event) => {
         const files = Array.from(event.target.files || []);
         run(async () => {
-          validateMediaFiles(files, "video");
-          for (const file of files) await uploadVideo(file);
+          await queueMediaUploads(files, "video");
+          event.target.value = "";
         });
       });
       $("[data-insert-selected-video]").addEventListener("click", () =>
@@ -2342,7 +2622,8 @@ const initialData = {
           selectSection("posts");
         }),
       );
-      $("[data-delete-video]").addEventListener("click", () => run(deleteVideo));
+      $("[data-delete-video]").addEventListener("click", () => run(() => queueMediaDeletes("video")));
+      $$("[data-sync-media]").forEach((button) => button.addEventListener("click", () => run(syncPendingMedia)));
       $("[data-save-settings]").addEventListener("click", () => run(saveSettings));
       $("[data-use-selected-hero-background]").addEventListener("click", () => {
         const field = $('[data-settings-field="home.heroBackgroundImage"]');

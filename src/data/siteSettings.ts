@@ -6,7 +6,7 @@ export const siteSettings = {
     description:
       "一个用 Astro、TypeScript 和 Tailwind CSS 写成的个人数字花园，保存文章、影像、推荐和代码实验。",
     author: "FatDuoDuo",
-    ogImage: "/images/hero.png",
+    ogImage: "/personal-photo/hero.png",
     footerNote: "Built with Astro.",
   },
   home: {

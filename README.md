@@ -54,7 +54,7 @@ public/personal-video/ PersonalVideo：日常 vlog、生活视频记录
 title: "我的新文章"
 description: "这是一段用于 SEO 和列表页展示的摘要。"
 publishDate: 2026-06-08
-cover: "/images/hero.png"
+cover: "/personal-photo/hero.png"
 tags: ["Astro", "写作"]
 ---
 

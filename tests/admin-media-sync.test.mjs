@@ -84,4 +84,12 @@ assert.ok(
   "Video asset delete button should queue deletion instead of committing immediately",
 );
 
+const imageLimitBlock = source.match(/image:\s*\{[\s\S]*?\n\s*\},\n\s*video:/)?.[0] || "";
+assert.ok(imageLimitBlock, "Expected admin page to define image media rules");
+assert.ok(!imageLimitBlock.includes("maxSize"), "Image uploads should not be blocked by file size");
+assert.ok(
+  source.includes("if (rule.maxSize && file.size > rule.maxSize)"),
+  "Media size validation should only run for rules that define maxSize",
+);
+
 console.log("admin media sync regression checks passed");

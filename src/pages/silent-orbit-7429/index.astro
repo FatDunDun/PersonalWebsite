@@ -2294,7 +2294,6 @@ const initialData = {
 
       const MEDIA_LIMITS = {
         image: {
-          maxSize: 8 * 1024 * 1024,
           types: ["image/jpeg", "image/png", "image/webp", "image/avif"],
           extensions: ["jpg", "jpeg", "png", "webp", "avif"],
           label: "图片",
@@ -2327,7 +2326,7 @@ const initialData = {
           throw new Error(`${file.name} 格式不支持。${rule.label}请上传 ${rule.formats}。`);
         }
 
-        if (file.size > rule.maxSize) {
+        if (rule.maxSize && file.size > rule.maxSize) {
           throw new Error(`${file.name} 太大了：${formatFileSize(file.size)}。${rule.label}请控制在 ${formatFileSize(rule.maxSize)} 以内。`);
         }
       };

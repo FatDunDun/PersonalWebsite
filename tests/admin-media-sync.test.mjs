@@ -25,6 +25,12 @@ const requiredSnippets = [
   "mediaApiUpload",
   "mediaApiDelete",
   "mediaStorageMode",
+  "personalPhotoAssets",
+  "personalVideoAssets",
+  "data-section=\"personalPhotoAssets\"",
+  "data-section=\"personalVideoAssets\"",
+  "data-media-grid=\"personalPhotoAssets\"",
+  "data-media-grid=\"personalVideoAssets\"",
 ];
 
 for (const snippet of requiredSnippets) {
@@ -68,6 +74,19 @@ assert.ok(
   source.includes("await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: remoteDeletes })"),
   "Expected sync to upload/delete remote media through the Worker before Git content commit",
 );
+
+const requiredMediaRoots = [
+  'publicRoot: "/images"',
+  'publicRoot: "/videos"',
+  'publicRoot: "/personal-photo"',
+  'publicRoot: "/personal-video"',
+  'await mediaApiList("/personal-photo")',
+  'await mediaApiList("/personal-video")',
+];
+
+for (const snippet of requiredMediaRoots) {
+  assert.ok(source.includes(snippet), "Expected categorized media library support for " + snippet);
+}
 
 const directCommitMessages = [
   "Update post:",

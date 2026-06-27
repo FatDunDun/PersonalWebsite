@@ -36,6 +36,8 @@ jobs:
       - name: Build
         env:
           PUBLIC_WALINE_SERVER_URL: ${{ vars.PUBLIC_WALINE_SERVER_URL }}
+          PUBLIC_ASSET_BASE_URL: ${{ vars.PUBLIC_ASSET_BASE_URL }}
+          PUBLIC_MEDIA_API_URL: ${{ vars.PUBLIC_MEDIA_API_URL }}
         run: npm run build
 
       - name: Upload artifact

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { withBase } from "@/utils/site";
+import { assetUrl } from "@/utils/site";
 ---
 
 <BaseLayout title="关于我" description="关于这个网站、个人兴趣、技术栈和联系方式。">
@@ -8,7 +8,7 @@ import { withBase } from "@/utils/site";
     <aside>
       <div class="sticky top-28">
         <div class="artifact-card rounded-md p-2">
-          <img class="aspect-[4/5] w-full rounded border border-[var(--line)] object-cover photo-shadow" src={withBase("/personal-photo/gallery-workspace.png")} alt="桌面上的笔记和咖啡" />
+          <img class="aspect-[4/5] w-full rounded border border-[var(--line)] object-cover photo-shadow" src={assetUrl("/personal-photo/gallery-workspace.png")} alt="桌面上的笔记和咖啡" />
         </div>
         <div class="mt-5 page-hero pb-6">
           <p class="page-kicker">Profile / archive owner</p>

@@ -1,0 +1,11 @@
+name = "personalwebsite-media-api"
+main = "src/index.ts"
+compatibility_date = "2026-06-26"
+
+[vars]
+ASSET_BASE_URL = "https://assets.example.com"
+ALLOWED_ORIGIN = "https://example.github.io"
+
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "your-r2-bucket-name"

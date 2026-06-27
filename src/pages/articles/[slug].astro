@@ -3,7 +3,7 @@ import { getCollection, render } from "astro:content";
 import WalineComments from "@/components/WalineComments.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { formatDate } from "@/utils/format";
-import { withBase } from "@/utils/site";
+import { assetUrl } from "@/utils/site";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -35,7 +35,7 @@ const { Content } = await render(post);
 
     {post.data.cover && (
       <div class="artifact-card mt-10 rounded-md p-2">
-        <img class="aspect-[16/9] w-full rounded border border-[var(--line)] object-cover photo-shadow" src={withBase(post.data.cover)} alt="" />
+        <img class="aspect-[16/9] w-full rounded border border-[var(--line)] object-cover photo-shadow" src={assetUrl(post.data.cover)} alt="" />
       </div>
     )}
 

@@ -3,7 +3,7 @@ import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import CursorField from "@/components/CursorField.astro";
 import "@/styles/global.css";
-import { absoluteUrl, homeConfig, siteConfig, withBase } from "@/utils/site";
+import { absoluteUrl, assetUrl, homeConfig, siteConfig } from "@/utils/site";
 
 interface Props {
   title?: string;
@@ -21,7 +21,8 @@ const {
 
 const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.author}`;
 const canonical = Astro.url.href;
-const ogImage = image.startsWith("http") ? image : absoluteUrl(image);
+const resolvedOgImage = assetUrl(image);
+const ogImage = resolvedOgImage.startsWith("http") ? resolvedOgImage : absoluteUrl(image);
 const heroBackgroundImage = homeConfig.heroBackgroundImage || "/images/home-exhibition-bg.jpg";
 ---
 
@@ -52,7 +53,7 @@ const heroBackgroundImage = homeConfig.heroBackgroundImage || "/images/home-exhi
       }
     </script>
   </head>
-  <body style={`--exhibition-bg: url("${withBase(heroBackgroundImage)}")`}>
+  <body style={`--exhibition-bg: url("${assetUrl(heroBackgroundImage)}")`}>
     <CursorField />
     <Header />
     <main>

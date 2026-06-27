@@ -2,7 +2,7 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { formatDate } from "@/utils/format";
-import { withBase } from "@/utils/site";
+import { assetUrl, withBase } from "@/utils/site";
 
 const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf(),
@@ -26,7 +26,7 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
         <a href={withBase(`/articles/${post.id}/`)} class="artifact-card group grid gap-6 rounded-md p-4 transition hover:-translate-y-0.5 hover:border-[var(--foreground)] md:grid-cols-[92px_280px_1fr] md:items-center">
           <span class="folio-number text-4xl">{String(index + 1).padStart(2, "0")}</span>
           {post.data.cover && (
-            <img class="aspect-[16/10] w-full rounded-md border border-[var(--line)] object-cover transition duration-500 group-hover:saturate-110" src={withBase(post.data.cover)} alt="" />
+            <img class="aspect-[16/10] w-full rounded-md border border-[var(--line)] object-cover transition duration-500 group-hover:saturate-110" src={assetUrl(post.data.cover)} alt="" />
           )}
           <div>
             <div class="flex flex-wrap items-center gap-3 text-sm text-[var(--muted)]">

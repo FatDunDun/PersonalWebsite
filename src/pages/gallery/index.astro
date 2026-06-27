@@ -1,7 +1,7 @@
 ---
 import { galleryItems } from "@/data/gallery";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { withBase } from "@/utils/site";
+import { assetUrl } from "@/utils/site";
 
 const personalPhotoItems = galleryItems.filter((item) => item.image.startsWith("/personal-photo/"));
 ---
@@ -29,7 +29,7 @@ const personalPhotoItems = galleryItems.filter((item) => item.image.startsWith("
                 item.height === "wide" && "aspect-[16/10]",
                 item.height === "medium" && "aspect-[5/4]",
               ]}
-              src={withBase(item.image)}
+              src={assetUrl(item.image)}
               alt={item.title}
               loading="lazy"
             />

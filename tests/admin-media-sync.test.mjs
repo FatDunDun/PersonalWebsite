@@ -21,6 +21,10 @@ const requiredSnippets = [
   "updateBranchRef",
   "data-image-select",
   "data-video-select",
+  "MEDIA_API_URL",
+  "mediaApiUpload",
+  "mediaApiDelete",
+  "mediaStorageMode",
 ];
 
 for (const snippet of requiredSnippets) {
@@ -48,6 +52,21 @@ assert.ok(
 assert.ok(
   source.includes('message: `Sync site updates: ${summary}`'),
   "Expected full admin sync to use one summary commit message",
+);
+
+assert.ok(
+  source.includes("const gitUploads = uploads.filter((item) => !usesRemoteMedia(item))"),
+  "Expected Git sync to exclude R2-backed media uploads",
+);
+
+assert.ok(
+  source.includes("const gitMediaDeletes = mediaDeletes.filter((item) => !usesRemoteMedia(item))"),
+  "Expected Git sync to exclude R2-backed media deletes",
+);
+
+assert.ok(
+  source.includes("await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: remoteDeletes })"),
+  "Expected sync to upload/delete remote media through the Worker before Git content commit",
 );
 
 const directCommitMessages = [

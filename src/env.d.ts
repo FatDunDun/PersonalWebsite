@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly PUBLIC_SITE_URL?: string;
   readonly PUBLIC_BASE_PATH?: string;
   readonly PUBLIC_WALINE_SERVER_URL?: string;
+  readonly PUBLIC_ASSET_BASE_URL?: string;
+  readonly PUBLIC_MEDIA_API_URL?: string;
 }
 
 interface ImportMeta {

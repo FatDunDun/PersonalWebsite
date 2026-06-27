@@ -267,7 +267,7 @@ const initialData = {
             </p>
           </div>
 
-          <form class="grid gap-3 lg:min-w-[500px] lg:grid-cols-[1fr_auto] lg:items-end" data-auth-form>
+          <form class="grid gap-3 lg:min-w-[500px] lg:grid-cols-[1fr_1fr_auto] lg:items-end" data-auth-form>
             <label class="block">
               <span class="font-mono text-xs text-[var(--muted)]">GitHub Token</span>
               <input
@@ -276,6 +276,16 @@ const initialData = {
                 type="password"
                 autocomplete="off"
                 placeholder="github_pat_..."
+              />
+            </label>
+            <label class="block">
+              <span class="font-mono text-xs text-[var(--muted)]">Media Token</span>
+              <input
+                class="orbit-input mt-2 font-mono text-sm"
+                data-media-token-input
+                type="password"
+                autocomplete="off"
+                placeholder="Worker ADMIN_TOKEN"
               />
             </label>
             <div class="flex flex-wrap items-center gap-2">
@@ -921,11 +931,15 @@ const initialData = {
       const VIDEOS_PATH = "public/videos";
       const PERSONAL_VIDEO_PATH = "public/personal-video";
       const TOKEN_KEY = "silent-orbit-token";
+      const MEDIA_TOKEN_KEY = "silent-orbit-media-token";
       const BASE_URL = import.meta.env.BASE_URL;
+      const MEDIA_API_URL = import.meta.env.PUBLIC_MEDIA_API_URL || "";
+      const ASSET_BASE_URL = import.meta.env.PUBLIC_ASSET_BASE_URL || "";
 
       const state = {
         mode: "readonly",
         token: sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "",
+        mediaToken: sessionStorage.getItem(MEDIA_TOKEN_KEY) || localStorage.getItem(MEDIA_TOKEN_KEY) || "",
         section: "posts",
         posts: [],
         projects: [],
@@ -1091,13 +1105,28 @@ const initialData = {
 
       const withBase = (path) => {
         if (!path) return "";
+        if (/^https?:\/\//.test(path)) return path;
         const base = BASE_URL.endsWith("/") ? BASE_URL : `${BASE_URL}/`;
         return new URL(`${base}${path.replace(/^\/+/, "")}`, location.origin).toString();
+      };
+
+      const assetUrl = (path) => {
+        if (!path) return "";
+        if (/^https?:\/\//.test(path)) return path;
+        const cleanPath = path.replace(/^\/+/, "");
+        if (ASSET_BASE_URL && /^(images|personal-photo|videos|personal-video)\//.test(cleanPath)) {
+          return `${ASSET_BASE_URL.replace(/\/$/, "")}/${cleanPath}`;
+        }
+        return withBase(path);
       };
 
       const publicPathToRepoPath = (path) => (path?.startsWith("/") ? `public${path}` : "");
 
       const clone = (value) => JSON.parse(JSON.stringify(value));
+
+      const mediaStorageMode = () => (MEDIA_API_URL ? "r2" : "github");
+
+      const usesRemoteMedia = (item) => item?.remote === true || mediaStorageMode() === "r2";
 
       const detectLocalApi = async () => {
         state.mode = state.token ? "github" : "readonly";
@@ -1105,6 +1134,69 @@ const initialData = {
 
       const requireWriteAccess = () => {
         if (!state.token) throw new Error("暂存、删除、上传和同步需要先输入 GitHub Token。改动会先留在当前页面，点“同步全部改动”后才提交到 GitHub main 分支。");
+      };
+
+      const requireMediaAccess = () => {
+        if (mediaStorageMode() !== "r2") return;
+        if (!state.mediaToken) throw new Error("R2 上传、删除和读取素材库需要先输入 Media Token。这个值对应 Cloudflare Worker 的 ADMIN_TOKEN。");
+      };
+
+      const mediaApi = async (path, options = {}) => {
+        requireMediaAccess();
+        const response = await fetch(`${MEDIA_API_URL.replace(/\/$/, "")}${path}`, {
+          ...options,
+          headers: {
+            Authorization: `Bearer ${state.mediaToken}`,
+            ...(options.headers || {}),
+          },
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.message || `Media API error ${response.status}`);
+        return data;
+      };
+
+      const mediaKeyFromPublicPath = (path = "") => path.replace(/^\/+/, "");
+
+      const mediaRootFromPublicRoot = (publicRoot = "/images") => publicRoot.replace(/^\/+|\/+$/g, "");
+
+      const mediaApiList = async (publicRoot) => {
+        const prefix = mediaRootFromPublicRoot(publicRoot);
+        const data = await mediaApi(`/media?prefix=${encodeURIComponent(prefix)}`);
+        return (data.objects || []).map((item) => ({
+          name: item.name,
+          key: item.key,
+          path: item.key,
+          publicPath: item.path,
+          url: item.url,
+          size: item.size,
+          uploaded: item.uploaded,
+          remote: true,
+          type: "file",
+        }));
+      };
+
+      const mediaApiUpload = async (upload) => {
+        const form = new FormData();
+        form.append("key", upload.key || mediaKeyFromPublicPath(upload.publicPath));
+        form.append("file", upload.file, upload.name);
+        return mediaApi("/media/upload", {
+          method: "POST",
+          body: form,
+        });
+      };
+
+      const mediaApiDelete = async (asset) => {
+        const key = asset.key || mediaKeyFromPublicPath(asset.publicPath);
+        return mediaApi(`/media?key=${encodeURIComponent(key)}`, {
+          method: "DELETE",
+        });
+      };
+
+      const syncRemoteMediaOperations = async ({ uploads, deletes }) => {
+        if (!uploads.length && !deletes.length) return;
+        requireMediaAccess();
+        for (const upload of uploads) await mediaApiUpload(upload);
+        for (const deleted of deletes) await mediaApiDelete(deleted);
       };
 
       const github = async (path, options = {}) => {
@@ -1309,11 +1401,11 @@ const initialData = {
         const body = postFields.body.value || "";
         const html = escapeHtml(body)
           .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, src) => {
-            const url = src.startsWith("/") ? withBase(src) : src;
+            const url = src.startsWith("/") ? assetUrl(src) : src;
             return `<img src="${url}" alt="${alt}" loading="lazy" />`;
           })
           .replace(/&lt;video class=&quot;post-video&quot; controls playsinline preload=&quot;metadata&quot; src=&quot;([^&]+)&quot;&gt;&lt;\/video&gt;/g, (_match, src) => {
-            const url = src.startsWith("/") ? withBase(src) : src;
+            const url = src.startsWith("/") ? assetUrl(src) : src;
             return `<video class="post-video" controls playsinline preload="metadata" src="${url}"></video>`;
           })
           .replace(/^### (.*)$/gm, "<h3>$1</h3>")
@@ -1405,7 +1497,7 @@ const initialData = {
 
       const isPendingDelete = (kind, path) => state.pendingMedia.deletes.some((item) => item.kind === kind && item.path === path);
 
-      const assetPreviewUrl = (asset) => asset?.previewUrl || (asset?.publicPath ? withBase(asset.publicPath) : "");
+      const assetPreviewUrl = (asset) => asset?.previewUrl || asset?.url || (asset?.publicPath ? assetUrl(asset.publicPath) : "");
 
       const visibleImages = () => [
         ...state.pendingMedia.uploads.filter((item) => item.kind === "image" && item.publicPath?.startsWith("/images/")),
@@ -1442,12 +1534,12 @@ const initialData = {
         const videoSummary = $('[data-media-pending-summary="videos"]');
         if (imageSummary) {
           imageSummary.textContent = imageCount.total
-            ? "待同步图片操作：新增 " + imageCount.uploads + "，删除 " + imageCount.deletes + "。点“同步待处理操作”后会合成一次 commit。"
+            ? "待同步图片操作：新增 " + imageCount.uploads + "，删除 " + imageCount.deletes + (mediaStorageMode() === "r2" ? "。点同步后会写入 R2。" : "。点同步后会合成一次 commit。")
             : "暂无待同步图片操作。";
         }
         if (videoSummary) {
           videoSummary.textContent = videoCount.total
-            ? "待同步视频操作：新增 " + videoCount.uploads + "，删除 " + videoCount.deletes + "。点“同步待处理操作”后会合成一次 commit。"
+            ? "待同步视频操作：新增 " + videoCount.uploads + "，删除 " + videoCount.deletes + (mediaStorageMode() === "r2" ? "。点同步后会写入 R2。" : "。点同步后会合成一次 commit。")
             : "暂无待同步视频操作。";
         }
         $$('[data-sync-media]').forEach((button) => {
@@ -1713,6 +1805,10 @@ const initialData = {
       };
 
       const loadImages = async () => {
+        if (mediaStorageMode() === "r2") {
+          state.images = await mediaApiList("/images");
+          return;
+        }
         const files = await getDir(IMAGES_PATH);
         state.images = files
           .filter((file) => file.type === "file" && /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(file.name))
@@ -1721,6 +1817,10 @@ const initialData = {
       };
 
       const loadVideos = async () => {
+        if (mediaStorageMode() === "r2") {
+          state.videos = await mediaApiList("/videos");
+          return;
+        }
         const files = await getDir(VIDEOS_PATH);
         state.videos = files
           .filter((file) => file.type === "file" && /\.(mp4|webm|mov|m4v)$/i.test(file.name))
@@ -1756,7 +1856,14 @@ const initialData = {
         if (!state.token) {
           setStatus("读取当前网站内置内容中...");
           applyInitialData();
-          setStatus("只读模式：内容已加载。线上保存、删除、上传需要 GitHub Token。");
+          if (mediaStorageMode() === "r2" && state.mediaToken) {
+            await Promise.all([loadImages(), loadVideos()]);
+            updateCounts();
+            renderList();
+            setStatus("媒体模式已连接：可管理 R2 素材库。发布文章和页面数据仍需要 GitHub Token。");
+            return;
+          }
+          setStatus("只读模式：内容已加载。线上保存、删除、上传需要 GitHub Token；R2 素材库需要 Media Token。");
           return;
         }
 
@@ -2031,7 +2138,7 @@ const initialData = {
         preview.hidden = !image;
         preview.classList.toggle("hidden", !image);
         empty.hidden = !!image;
-        if (image) preview.src = withBase(image);
+        if (image) preview.src = assetUrl(image);
         else preview.removeAttribute("src");
         preview.alt = recommendationFields.title.value.trim();
         $("[data-recommendation-preview-title]").textContent = recommendationFields.title.value.trim() || "预览";
@@ -2122,7 +2229,7 @@ const initialData = {
         preview.hidden = !image;
         preview.classList.toggle("hidden", !image);
         empty.hidden = !!image;
-        if (image) preview.src = withBase(image);
+        if (image) preview.src = assetUrl(image);
         else preview.removeAttribute("src");
         preview.alt = galleryFields.title.value.trim();
         $("[data-gallery-preview-title]").textContent = galleryFields.title.value.trim() || "预览";
@@ -2173,8 +2280,20 @@ const initialData = {
         let fileStatus = "";
         const canDeletePhotoFile = item.image?.startsWith("/personal-photo/") && !items.some((entry) => entry.image === item.image);
         if (canDeletePhotoFile && confirm("这张 PersonalPhoto 没有被其他照片卡片引用，是否同时删除图片文件？")) {
-          const imagePath = publicPathToRepoPath(item.image);
-          queueDeleteChange({ path: imagePath, label: `PersonalPhoto 文件：${item.title}` });
+          if (mediaStorageMode() === "r2") {
+            state.pendingMedia.deletes.push({
+              kind: "image",
+              name: item.title,
+              path: mediaKeyFromPublicPath(item.image),
+              key: mediaKeyFromPublicPath(item.image),
+              publicPath: item.image,
+              remote: true,
+            });
+            updatePendingChangesUi();
+          } else {
+            const imagePath = publicPathToRepoPath(item.image);
+            queueDeleteChange({ path: imagePath, label: `PersonalPhoto 文件：${item.title}` });
+          }
           fileStatus = "图片文件删除也已暂存。";
         }
 
@@ -2214,9 +2333,9 @@ const initialData = {
         preview.hidden = !video;
         preview.classList.toggle("hidden", !video);
         empty.hidden = !!video;
-        if (video) preview.src = withBase(video);
+        if (video) preview.src = assetUrl(video);
         else preview.removeAttribute("src");
-        preview.poster = poster ? withBase(poster) : "";
+        preview.poster = poster ? assetUrl(poster) : "";
         $("[data-personal-video-preview-title]").textContent = personalVideoFields.title.value.trim() || "预览";
         $("[data-personal-video-preview-description]").textContent =
           personalVideoFields.description.value.trim() || "上传或选择视频后显示。";
@@ -2266,8 +2385,20 @@ const initialData = {
         let fileStatus = "";
         const canDeleteVideoFile = item.video?.startsWith("/personal-video/") && !items.some((entry) => entry.video === item.video);
         if (canDeleteVideoFile && confirm("这段 PersonalVideo 没有被其他视频记录引用，是否同时删除视频文件？")) {
-          const videoPath = publicPathToRepoPath(item.video);
-          queueDeleteChange({ path: videoPath, label: `PersonalVideo 文件：${item.title}` });
+          if (mediaStorageMode() === "r2") {
+            state.pendingMedia.deletes.push({
+              kind: "video",
+              name: item.title,
+              path: mediaKeyFromPublicPath(item.video),
+              key: mediaKeyFromPublicPath(item.video),
+              publicPath: item.video,
+              remote: true,
+            });
+            updatePendingChangesUi();
+          } else {
+            const videoPath = publicPathToRepoPath(item.video);
+            queueDeleteChange({ path: videoPath, label: `PersonalVideo 文件：${item.title}` });
+          }
           fileStatus = "视频文件删除也已暂存。";
         }
 
@@ -2338,13 +2469,16 @@ const initialData = {
       const uploadMediaFile = async (file, directory = IMAGES_PATH, publicRoot = "/images") => {
         const safeName = makeUploadName(file);
         const path = `${directory}/${safeName}`;
+        const publicPath = `${publicRoot}/${safeName}`;
+        const remote = mediaStorageMode() === "r2";
         const isVideo = publicRoot.startsWith("/videos") || publicRoot.startsWith("/personal-video");
         const queued = {
           kind: isVideo ? "video" : "image",
           name: safeName,
-          path,
-          publicPath: `${publicRoot}/${safeName}`,
-          content: arrayBufferToBase64(await file.arrayBuffer()),
+          path: remote ? mediaKeyFromPublicPath(publicPath) : path,
+          key: mediaKeyFromPublicPath(publicPath),
+          publicPath,
+          ...(remote ? { file, remote: true } : { content: arrayBufferToBase64(await file.arrayBuffer()) }),
           previewUrl: URL.createObjectURL(file),
           pending: true,
         };
@@ -2375,12 +2509,17 @@ const initialData = {
       };
 
       const syncPendingChanges = async () => {
-        requireWriteAccess();
         const uploads = [...state.pendingMedia.uploads];
         const mediaDeletes = [...state.pendingMedia.deletes];
+        const remoteUploads = uploads.filter((item) => usesRemoteMedia(item));
+        const remoteDeletes = mediaDeletes.filter((item) => usesRemoteMedia(item));
+        const gitUploads = uploads.filter((item) => !usesRemoteMedia(item));
+        const gitMediaDeletes = mediaDeletes.filter((item) => !usesRemoteMedia(item));
         const files = [...state.pendingChanges.files];
         const deletes = [...state.pendingChanges.deletes];
         if (!uploads.length && !mediaDeletes.length && !files.length && !deletes.length) throw new Error("暂无待同步操作");
+        if (files.length || deletes.length || gitUploads.length || gitMediaDeletes.length) requireWriteAccess();
+        if (remoteUploads.length || remoteDeletes.length) requireMediaAccess();
 
         const summaryParts = [];
         if (files.length) summaryParts.push("write " + files.length + " content files");
@@ -2388,7 +2527,33 @@ const initialData = {
         if (uploads.length) summaryParts.push("upload " + uploads.length + " media files");
         if (mediaDeletes.length) summaryParts.push("delete " + mediaDeletes.length + " media files");
         const summary = summaryParts.join(", ");
-        if (!confirm("确定同步全部待处理改动吗？\n" + summary + "\n\n这会在 GitHub main 分支生成 1 次 commit。")) return;
+        const commitNotice = files.length || deletes.length || gitUploads.length || gitMediaDeletes.length
+          ? "这会在 GitHub main 分支生成 1 次 commit。"
+          : "这次只有 R2 媒体操作，不会生成 Git commit。";
+        if (!confirm("确定同步全部待处理改动吗？\n" + summary + "\n\n" + commitNotice)) return;
+
+        if (remoteUploads.length || remoteDeletes.length) {
+          setStatus("同步 R2 媒体文件中...");
+          await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: remoteDeletes });
+        }
+
+        if (!files.length && !deletes.length && !gitUploads.length && !gitMediaDeletes.length) {
+          uploads.forEach((upload) => {
+            if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl);
+          });
+          state.pendingMedia.uploads = [];
+          state.pendingMedia.deletes = [];
+          state.pendingMedia.selectedImages.clear();
+          state.pendingMedia.selectedVideos.clear();
+          await Promise.all([loadImages(), loadVideos()]);
+          selectImage(null);
+          selectVideo(null);
+          updateCounts();
+          renderList();
+          updatePendingChangesUi();
+          setStatus("R2 媒体操作已同步。");
+          return;
+        }
 
         setStatus("创建 GitHub 批量提交中...");
         const branchRef = await getBranchRef();
@@ -2405,7 +2570,7 @@ const initialData = {
             sha: blob.sha,
           });
         }
-        for (const upload of uploads) {
+        for (const upload of gitUploads) {
           const blob = await createGitBlob({ content: upload.content });
           treeEntries.push({
             path: upload.path,
@@ -2414,7 +2579,7 @@ const initialData = {
             sha: blob.sha,
           });
         }
-        for (const deleted of [...deletes, ...mediaDeletes]) {
+        for (const deleted of [...deletes, ...gitMediaDeletes]) {
           treeEntries.push({
             path: deleted.path,
             mode: "100644",
@@ -2451,7 +2616,8 @@ const initialData = {
       };
 
       const uploadImages = async (files, options = {}) => {
-        requireWriteAccess();
+        if (mediaStorageMode() === "r2") requireMediaAccess();
+        else requireWriteAccess();
         if (!files.length) return [];
         const directory = options.directory || IMAGES_PATH;
         const publicRoot = options.publicRoot || "/images";
@@ -2472,7 +2638,8 @@ const initialData = {
       };
 
       const uploadVideo = async (file, options = {}) => {
-        requireWriteAccess();
+        if (mediaStorageMode() === "r2") requireMediaAccess();
+        else requireWriteAccess();
         validateMediaFile(file, "video");
         const directory = options.directory || VIDEOS_PATH;
         const publicRoot = options.publicRoot || "/videos";
@@ -2516,22 +2683,26 @@ const initialData = {
       };
 
       const queueMediaUploads = async (files, kind) => {
-        requireWriteAccess();
+        if (mediaStorageMode() === "r2") requireMediaAccess();
+        else requireWriteAccess();
         if (!files.length) return;
         const isImage = kind === "image";
         const directory = isImage ? IMAGES_PATH : VIDEOS_PATH;
         const publicRoot = isImage ? "/images" : "/videos";
+        const remote = mediaStorageMode() === "r2";
         validateMediaFiles(files, kind);
         setStatus("加入" + files.length + " 个" + (isImage ? "图片" : "视频") + "到待同步队列中...");
         for (const file of files) {
           const safeName = makeUploadName(file);
-          const path = directory + "/" + safeName;
+          const publicPath = publicRoot + "/" + safeName;
+          const path = remote ? mediaKeyFromPublicPath(publicPath) : directory + "/" + safeName;
           state.pendingMedia.uploads.push({
             kind,
             name: safeName,
             path,
-            publicPath: publicRoot + "/" + safeName,
-            content: arrayBufferToBase64(await file.arrayBuffer()),
+            key: mediaKeyFromPublicPath(publicPath),
+            publicPath,
+            ...(remote ? { file, remote: true } : { content: arrayBufferToBase64(await file.arrayBuffer()) }),
             previewUrl: URL.createObjectURL(file),
             pending: true,
           });
@@ -2545,7 +2716,8 @@ const initialData = {
       };
 
       const queueMediaDeletes = (kind) => {
-        requireWriteAccess();
+        if (mediaStorageMode() === "r2") requireMediaAccess();
+        else requireWriteAccess();
         const isImage = kind === "image";
         const assets = selectedAssets(kind);
         if (!assets.length) throw new Error("请先勾选要删除的" + (isImage ? "图片" : "视频"));
@@ -2563,7 +2735,9 @@ const initialData = {
               kind,
               name: asset.name,
               path: asset.path,
+              key: asset.key || mediaKeyFromPublicPath(asset.publicPath),
               publicPath: asset.publicPath,
+              remote: usesRemoteMedia(asset),
             });
           }
         }
@@ -2672,21 +2846,30 @@ const initialData = {
 
       const connect = async () => {
         const token = $("[data-token-input]").value.trim();
-        if (!token) return;
+        const mediaToken = $("[data-media-token-input]").value.trim();
+        if (!token && !mediaToken) return;
         state.token = token;
+        state.mediaToken = mediaToken;
         state.mode = "github";
         sessionStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(MEDIA_TOKEN_KEY);
+        localStorage.removeItem(MEDIA_TOKEN_KEY);
         const storage = $("[data-remember-token]").checked ? localStorage : sessionStorage;
-        storage.setItem(TOKEN_KEY, token);
+        if (token) storage.setItem(TOKEN_KEY, token);
+        if (mediaToken) storage.setItem(MEDIA_TOKEN_KEY, mediaToken);
         await loadAll();
       };
 
       const clearToken = async () => {
         state.token = "";
+        state.mediaToken = "";
         sessionStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(MEDIA_TOKEN_KEY);
+        localStorage.removeItem(MEDIA_TOKEN_KEY);
         $("[data-token-input]").value = "";
+        $("[data-media-token-input]").value = "";
         state.mode = "readonly";
         await loadAll();
       };
@@ -2710,6 +2893,8 @@ const initialData = {
       });
 
       $("[data-save-token]").addEventListener("click", () => run(connect));
+      $("[data-token-input]").value = state.token;
+      $("[data-media-token-input]").value = state.mediaToken;
       $("[data-auth-form]").addEventListener("submit", (event) => {
         event.preventDefault();
         run(connect);

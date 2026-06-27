@@ -1,7 +1,7 @@
 ---
 import { recommendations } from "@/data/recommendations";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { withBase } from "@/utils/site";
+import { assetUrl, withBase } from "@/utils/site";
 
 const categoryLabels = {
   book: "书籍",
@@ -72,7 +72,7 @@ const resolveRecommendationLink = (href?: string) => {
                 >
                   <div class="overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
                     {item.image ? (
-                      <img class="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.03] group-hover:saturate-110" src={withBase(item.image)} alt={item.title} loading="lazy" />
+                      <img class="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.03] group-hover:saturate-110" src={assetUrl(item.image)} alt={item.title} loading="lazy" />
                     ) : (
                       <div class="grid aspect-[4/5] place-items-center px-5 text-center">
                         <p class="font-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">No Cover</p>

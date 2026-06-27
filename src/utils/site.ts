@@ -16,6 +16,19 @@ export function withBase(path = "/") {
   return `${base}${path.replace(/^\/+/, "")}`;
 }
 
+export function assetUrl(path = "") {
+  if (!path) return "";
+  if (/^https?:\/\//.test(path)) return path;
+
+  const cleanPath = path.replace(/^\/+/, "");
+  const assetBase = import.meta.env.PUBLIC_ASSET_BASE_URL;
+  if (assetBase && /^(images|personal-photo|videos|personal-video)\//.test(cleanPath)) {
+    return `${assetBase.replace(/\/$/, "")}/${cleanPath}`;
+  }
+
+  return withBase(path);
+}
+
 export function absoluteUrl(path: string) {
   const basePath = import.meta.env.BASE_URL.endsWith("/")
     ? import.meta.env.BASE_URL

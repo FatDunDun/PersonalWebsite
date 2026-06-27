@@ -1,7 +1,7 @@
 ---
 import { videoItems } from "@/data/videos";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { withBase } from "@/utils/site";
+import { assetUrl } from "@/utils/site";
 ---
 
 <BaseLayout title="视频" description="PersonalVideo 日常视频记录，保存 vlog、生活片段和动态记忆。">
@@ -22,7 +22,7 @@ import { withBase } from "@/utils/site";
           {videoItems.map((item, index) => (
             <article class="artifact-card rounded-md p-2">
               <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
-                <video class="aspect-video w-full object-cover" controls playsinline preload="metadata" poster={item.poster ? withBase(item.poster) : undefined} src={withBase(item.video)}></video>
+                <video class="aspect-video w-full object-cover" controls playsinline preload="metadata" poster={item.poster ? assetUrl(item.poster) : undefined} src={assetUrl(item.video)}></video>
               </div>
               <div class="flex items-start justify-between gap-4 px-2 py-4">
                 <div>

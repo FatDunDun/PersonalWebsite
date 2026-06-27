@@ -1186,6 +1186,28 @@ const initialData = {
       const postSlug = (post) => post.slug || post.name?.replace(/\.(md|mdx)$/, "") || "";
       const postDisplayTitle = (post) => post.data?.title || post.title || postSlug(post) || "未命名文章";
       const isPersonalPhotoPath = (path = "") => path.startsWith("/personal-photo/");
+      const isPersonalPhotoValue = (path = "") => {
+        if (isPersonalPhotoPath(path)) return true;
+        if (/^https?:\/\//.test(path)) {
+          try {
+            return new URL(path).pathname.startsWith("/personal-photo/");
+          } catch {
+            return false;
+          }
+        }
+        return false;
+      };
+      const isPersonalVideoValue = (path = "") => {
+        if (path.startsWith("/personal-video/")) return true;
+        if (/^https?:\/\//.test(path)) {
+          try {
+            return new URL(path).pathname.startsWith("/personal-video/");
+          } catch {
+            return false;
+          }
+        }
+        return false;
+      };
 
       const slugify = (value) =>
         value
@@ -1234,10 +1256,6 @@ const initialData = {
       const assetUrl = (path) => {
         if (!path) return "";
         if (/^https?:\/\//.test(path)) return path;
-        const cleanPath = path.replace(/^\/+/, "");
-        if (ASSET_BASE_URL && /^(images|personal-photo|videos|personal-video)\//.test(cleanPath)) {
-          return `${ASSET_BASE_URL.replace(/\/$/, "")}/${cleanPath}`;
-        }
         return withBase(path);
       };
 
@@ -1276,7 +1294,28 @@ const initialData = {
         return data;
       };
 
-      const mediaKeyFromPublicPath = (path = "") => path.replace(/^\/+/, "");
+      const mediaKeyFromPublicPath = (path = "") => {
+        if (/^https?:\/\//.test(path)) {
+          try {
+            return new URL(path).pathname.replace(/^\/+/, "");
+          } catch {
+            return path.replace(/^\/+/, "");
+          }
+        }
+        return path.replace(/^\/+/, "");
+      };
+
+      const mediaUrlFromPublicPath = (path = "") => {
+        if (!path || /^https?:\/\//.test(path)) return path;
+        if (!ASSET_BASE_URL) return path;
+        return `${ASSET_BASE_URL.replace(/\/$/, "")}/${mediaKeyFromPublicPath(path)}`;
+      };
+
+      const mediaContentValue = (asset) => {
+        if (!asset) return "";
+        if (asset.remote) return asset.url || mediaUrlFromPublicPath(asset.publicPath);
+        return asset.publicPath || "";
+      };
 
       const mediaRootFromPublicRoot = (publicRoot = "/images") => publicRoot.replace(/^\/+|\/+$/g, "");
 
@@ -1556,14 +1595,16 @@ const initialData = {
       };
 
       const insertImageMarkdown = (image, altText = "") => {
-        if (!image?.publicPath) throw new Error("请先上传或选中一张素材图片");
+        const imageValue = mediaContentValue(image);
+        if (!imageValue) throw new Error("请先上传或选中一张素材图片");
         const fallbackAlt = image.name?.replace(/\.[^.]+$/, "").replace(/^\d+-/, "").replace(/-[a-z0-9]{8}$/, "").replace(/-/g, " ") || "图片";
-        insertMarkdownAtCursor(`![${altText || fallbackAlt}](${image.publicPath})`);
+        insertMarkdownAtCursor(`![${altText || fallbackAlt}](${imageValue})`);
       };
 
       const insertVideoHtml = (video) => {
-        if (!video?.publicPath) throw new Error("请先上传一个视频");
-        insertMarkdownAtCursor(`<video class="post-video" controls playsinline preload="metadata" src="${video.publicPath}"></video>`);
+        const videoValue = mediaContentValue(video);
+        if (!videoValue) throw new Error("请先上传一个视频");
+        insertMarkdownAtCursor(`<video class="post-video" controls playsinline preload="metadata" src="${videoValue}"></video>`);
       };
 
       const updateCounts = () => {
@@ -1914,7 +1955,7 @@ const initialData = {
       const loadGallery = async () => {
         const file = await getFile(GALLERY_PATH);
         state.files.gallery = file;
-        state.gallery = readExportedArray(fromBase64(file.content), "galleryItems").filter((item) => isPersonalPhotoPath(item.image));
+        state.gallery = readExportedArray(fromBase64(file.content), "galleryItems").filter((item) => isPersonalPhotoValue(item.image));
       };
 
       const loadPersonalVideos = async () => {
@@ -1982,16 +2023,45 @@ const initialData = {
         await Promise.all([loadImages(), loadPersonalPhotoAssets(), loadVideos(), loadPersonalVideoAssets()]);
       };
 
-      const applyInitialData = () => {
-        state.posts = clone(INITIAL_DATA.posts);
-        state.projects = clone(INITIAL_DATA.projects);
-        state.recommendations = clone(INITIAL_DATA.recommendations);
-        state.gallery = clone(INITIAL_DATA.gallery).filter((item) => isPersonalPhotoPath(item.image));
-        state.personalVideos = clone(INITIAL_DATA.personalVideos);
+      const applyInitialMediaLibraries = () => {
         state.images = clone(INITIAL_DATA.images);
         state.personalPhotoAssets = clone(INITIAL_DATA.personalPhotoAssets);
         state.videos = clone(INITIAL_DATA.videos);
         state.personalVideoAssets = clone(INITIAL_DATA.personalVideoAssets);
+      };
+
+      const loadContentFiles = async () => {
+        await Promise.all([
+          loadPosts(),
+          loadProjects(),
+          loadRecommendations(),
+          loadGallery(),
+          loadPersonalVideos(),
+          loadSettings(),
+        ]);
+      };
+
+      const loadMediaLibrariesSafely = async () => {
+        if (mediaStorageMode() === "r2" && !state.mediaToken) {
+          applyInitialMediaLibraries();
+          return "R2 素材库需要 Media Token，当前只显示仓库内置兜底素材。";
+        }
+        try {
+          await loadAllMediaLibraries();
+          return mediaStorageMode() === "r2" ? "R2 素材库已连接。" : "仓库素材库已加载。";
+        } catch (error) {
+          applyInitialMediaLibraries();
+          return `素材库暂时没有加载成功：${error instanceof Error ? error.message : "未知错误"}。文章、主页照片条目和页面配置仍可编辑。`;
+        }
+      };
+
+      const applyInitialData = () => {
+        state.posts = clone(INITIAL_DATA.posts);
+        state.projects = clone(INITIAL_DATA.projects);
+        state.recommendations = clone(INITIAL_DATA.recommendations);
+        state.gallery = clone(INITIAL_DATA.gallery).filter((item) => isPersonalPhotoValue(item.image));
+        state.personalVideos = clone(INITIAL_DATA.personalVideos);
+        applyInitialMediaLibraries();
         state.settings = clone(INITIAL_DATA.settings);
         state.files.projects = null;
         state.files.recommendations = null;
@@ -2013,10 +2083,10 @@ const initialData = {
           setStatus("读取当前网站内置内容中...");
           applyInitialData();
           if (mediaStorageMode() === "r2" && state.mediaToken) {
-            await loadAllMediaLibraries();
+            const mediaStatus = await loadMediaLibrariesSafely();
             updateCounts();
             renderList();
-            setStatus("媒体模式已连接：可管理 R2 素材库。发布文章和页面数据仍需要 GitHub Token。");
+            setStatus(`${mediaStatus} 发布文章和页面数据仍需要 GitHub Token。`);
             return;
           }
           setStatus("只读模式：内容已加载。线上保存、删除、上传需要 GitHub Token；R2 素材库需要 Media Token。");
@@ -2025,18 +2095,8 @@ const initialData = {
 
         state.mode = "github";
         setStatus("GitHub 模式：同步仓库内容中...");
-        await Promise.all([
-          loadPosts(),
-          loadProjects(),
-          loadRecommendations(),
-          loadGallery(),
-          loadPersonalVideos(),
-          loadImages(),
-          loadPersonalPhotoAssets(),
-          loadVideos(),
-          loadPersonalVideoAssets(),
-          loadSettings(),
-        ]);
+        await loadContentFiles();
+        const mediaStatus = await loadMediaLibrariesSafely();
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
@@ -2044,7 +2104,7 @@ const initialData = {
         if (state.current.recommendationIndex < 0) newRecommendation();
         if (state.current.galleryIndex < 0) newGallery();
         if (state.current.personalVideoIndex < 0) newPersonalVideo();
-        setStatus("GitHub 模式已连接。分项操作会先暂存在当前页面，点“同步全部改动”后才提交到 main 分支。");
+        setStatus(`GitHub 模式已连接。${mediaStatus} 分项操作会先暂存在当前页面，点“同步全部改动”后才提交到 main 分支。`);
       };
 
       const fillSettings = () => {
@@ -2413,7 +2473,7 @@ const initialData = {
         };
         if (!item.title) throw new Error("请填写照片标题");
         if (!item.image) throw new Error("请选择或上传照片");
-        if (!isPersonalPhotoPath(item.image)) throw new Error("PersonalPhoto 只能使用 /personal-photo/ 路径。素材图片库的 /images/ 不会进入前台图集。");
+        if (!isPersonalPhotoValue(item.image)) throw new Error("主页照片只能使用 /personal-photo/ 路径或对应的 R2 主页照片 URL。文章素材库的 /images/ 不会进入前台图集。");
         const items = [...state.gallery];
         if (state.current.galleryIndex >= 0) items[state.current.galleryIndex] = item;
         else items.unshift(item);
@@ -2445,7 +2505,10 @@ const initialData = {
         newGallery();
 
         let fileStatus = "";
-        const canDeletePhotoFile = item.image?.startsWith("/personal-photo/") && !items.some((entry) => entry.image === item.image);
+        const canDeletePhotoFile =
+          isPersonalPhotoValue(item.image) &&
+          (mediaStorageMode() === "r2" || item.image?.startsWith("/personal-photo/")) &&
+          !items.some((entry) => entry.image === item.image);
         if (canDeletePhotoFile && confirm("这张 PersonalPhoto 没有被其他照片卡片引用，是否同时删除图片文件？")) {
           if (mediaStorageMode() === "r2") {
             state.pendingMedia.deletes.push({
@@ -2550,7 +2613,10 @@ const initialData = {
         newPersonalVideo();
 
         let fileStatus = "";
-        const canDeleteVideoFile = item.video?.startsWith("/personal-video/") && !items.some((entry) => entry.video === item.video);
+        const canDeleteVideoFile =
+          isPersonalVideoValue(item.video) &&
+          (mediaStorageMode() === "r2" || item.video?.startsWith("/personal-video/")) &&
+          !items.some((entry) => entry.video === item.video);
         if (canDeleteVideoFile && confirm("这段 PersonalVideo 没有被其他视频记录引用，是否同时删除视频文件？")) {
           if (mediaStorageMode() === "r2") {
             state.pendingMedia.deletes.push({
@@ -2645,6 +2711,7 @@ const initialData = {
           path: remote ? mediaKeyFromPublicPath(publicPath) : path,
           key: mediaKeyFromPublicPath(publicPath),
           publicPath,
+          ...(remote ? { url: mediaUrlFromPublicPath(publicPath) } : {}),
           ...(remote ? { file, remote: true } : { content: arrayBufferToBase64(await file.arrayBuffer()) }),
           previewUrl: URL.createObjectURL(file),
           pending: true,
@@ -2832,7 +2899,7 @@ const initialData = {
         empty.hidden = !!image?.publicPath;
         if (image?.publicPath) preview.src = assetPreviewUrl(image);
         else preview.removeAttribute("src");
-        $("[data-selected-image-path]").value = image?.publicPath || "";
+        $("[data-selected-image-path]").value = mediaContentValue(image);
         renderList();
       };
 
@@ -2845,7 +2912,7 @@ const initialData = {
         empty.hidden = !!video?.publicPath;
         if (video?.publicPath) preview.src = assetPreviewUrl(video);
         else preview.removeAttribute("src");
-        $("[data-selected-video-path]").value = video?.publicPath || "";
+        $("[data-selected-video-path]").value = mediaContentValue(video);
         renderList();
       };
 
@@ -2871,6 +2938,7 @@ const initialData = {
             path,
             key: mediaKeyFromPublicPath(publicPath),
             publicPath,
+            ...(remote ? { url: mediaUrlFromPublicPath(publicPath) } : {}),
             ...(remote ? { file, remote: true } : { content: arrayBufferToBase64(await file.arrayBuffer()) }),
             previewUrl: URL.createObjectURL(file),
             pending: true,
@@ -3093,7 +3161,7 @@ const initialData = {
         if (!file) return;
         run(async () => {
           const [image] = await uploadImages([file]);
-          postFields.cover.value = image.publicPath;
+          postFields.cover.value = mediaContentValue(image);
         });
       });
       $("[data-post-upload-body-image]").addEventListener("click", () => $("[data-post-body-image-file]").click());
@@ -3134,15 +3202,16 @@ const initialData = {
         if (!file) return;
         run(async () => {
           const [image] = await uploadImages([file]);
-          recommendationFields.image.value = image.publicPath;
+          recommendationFields.image.value = mediaContentValue(image);
           renderRecommendationPreview();
           setStatus("推荐封面已上传到素材图片库。");
         });
       });
       $("[data-recommendation-use-selected-image]").addEventListener("click", () =>
         run(async () => {
-          if (!state.current.image?.publicPath) throw new Error("请先在素材图片库选择一张图片");
-          recommendationFields.image.value = state.current.image.publicPath;
+          const imageValue = mediaContentValue(state.current.image);
+          if (!imageValue) throw new Error("请先在素材图片库选择一张图片");
+          recommendationFields.image.value = imageValue;
           renderRecommendationPreview();
           setStatus("已把选中的素材图片设为推荐封面。");
         }),
@@ -3160,7 +3229,7 @@ const initialData = {
             publicRoot: "/personal-photo",
             reloadAssets: false,
           });
-          galleryFields.image.value = image.publicPath;
+          galleryFields.image.value = mediaContentValue(image);
           renderGalleryPreview();
           setStatus("PersonalPhoto 已上传，请补充标题和描述后保存照片。");
         });
@@ -3178,7 +3247,7 @@ const initialData = {
             publicRoot: "/personal-video",
             reloadAssets: false,
           });
-          personalVideoFields.video.value = video.publicPath;
+          personalVideoFields.video.value = mediaContentValue(video);
           renderPersonalVideoPreview();
           setStatus("PersonalVideo 已上传，请补充标题和描述后保存视频。");
         });
@@ -3189,7 +3258,7 @@ const initialData = {
         if (!file) return;
         run(async () => {
           const [image] = await uploadImages([file]);
-          personalVideoFields.poster.value = image.publicPath;
+          personalVideoFields.poster.value = mediaContentValue(image);
           renderPersonalVideoPreview();
           setStatus("视频封面图已上传到素材图片库。");
         });
@@ -3245,11 +3314,12 @@ const initialData = {
       $("[data-save-settings]").addEventListener("click", () => run(saveSettings));
       $("[data-use-selected-hero-background]").addEventListener("click", () => {
         const field = $('[data-settings-field="home.heroBackgroundImage"]');
-        if (!state.current.image?.publicPath) {
+        const imageValue = mediaContentValue(state.current.image);
+        if (!imageValue) {
           setStatus("请先在素材图片库中选择一张背景图。");
           return;
         }
-        field.value = state.current.image.publicPath;
+        field.value = imageValue;
         setStatus("已把选中图片填入首页背景图路径，保存页面配置后生效。");
       });
 

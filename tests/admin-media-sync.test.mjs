@@ -25,6 +25,11 @@ const requiredSnippets = [
   "mediaApiUpload",
   "mediaApiDelete",
   "mediaStorageMode",
+  "loadMediaLibrariesSafely",
+  "loadContentFiles",
+  "mediaContentValue",
+  "mediaUrlFromPublicPath",
+  "isPersonalPhotoValue",
   "articleAssets",
   "personalPhotoAssets",
   "personalVideoAssets",
@@ -83,6 +88,24 @@ assert.ok(
 assert.ok(
   source.includes("await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: remoteDeletes })"),
   "Expected sync to upload/delete remote media through the Worker before Git content commit",
+);
+
+assert.ok(
+  source.includes("await loadContentFiles();") && source.includes("const mediaStatus = await loadMediaLibrariesSafely();"),
+  "Expected GitHub content loading to be separated from optional R2 media library loading",
+);
+
+assert.ok(
+  source.includes('if (mediaStorageMode() === "r2" && !state.mediaToken)') &&
+    source.includes("R2 素材库需要 Media Token，当前只显示仓库内置兜底素材。"),
+  "Expected missing Media Token to avoid blanking the admin content workspace",
+);
+
+assert.ok(
+  source.includes("postFields.cover.value = mediaContentValue(image)") &&
+    source.includes("galleryFields.image.value = mediaContentValue(image)") &&
+    source.includes("personalVideoFields.video.value = mediaContentValue(video)"),
+  "Expected R2 uploads to write absolute media URLs into content fields",
 );
 
 const requiredMediaRoots = [

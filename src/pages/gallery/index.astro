@@ -3,7 +3,19 @@ import { galleryItems } from "@/data/gallery";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { assetUrl } from "@/utils/site";
 
-const personalPhotoItems = galleryItems.filter((item) => item.image.startsWith("/personal-photo/"));
+const isPersonalPhotoImage = (image = "") => {
+  if (image.startsWith("/personal-photo/")) return true;
+  if (/^https?:\/\//.test(image)) {
+    try {
+      return new URL(image).pathname.startsWith("/personal-photo/");
+    } catch {
+      return false;
+    }
+  }
+  return false;
+};
+
+const personalPhotoItems = galleryItems.filter((item) => isPersonalPhotoImage(item.image));
 ---
 
 <BaseLayout title="图集" description="瀑布流图片卡片展示，保存影像、场景和视觉笔记。">

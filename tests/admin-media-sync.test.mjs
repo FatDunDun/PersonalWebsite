@@ -29,6 +29,8 @@ const requiredSnippets = [
   "loadContentFiles",
   "mediaContentValue",
   "mediaUrlFromPublicPath",
+  "mergeMediaAssets",
+  "prepareEmptyEditors",
   "isPersonalPhotoValue",
   "articleAssets",
   "personalPhotoAssets",
@@ -106,6 +108,24 @@ assert.ok(
     source.includes("galleryFields.image.value = mediaContentValue(image)") &&
     source.includes("personalVideoFields.video.value = mediaContentValue(video)"),
   "Expected R2 uploads to write absolute media URLs into content fields",
+);
+
+assert.ok(
+  source.includes('state.personalPhotoAssets = mergeMediaAssets(INITIAL_DATA.personalPhotoAssets, await mediaApiList("/personal-photo"))') &&
+    source.includes('state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/images"))'),
+  "Expected R2 media library reads to keep built-in repository fallback assets visible",
+);
+
+assert.ok(
+  source.includes("console.warn(\"Initial empty editor setup failed; content loading will continue.\"") &&
+    source.includes("prepareEmptyEditors();") &&
+    source.includes("run(initialize);"),
+  "Expected empty editor setup failures not to block initial content loading",
+);
+
+assert.ok(
+  source.includes("applyInitialData();\n        try {\n          await loadContentFiles();"),
+  "Expected GitHub mode to show built-in content before remote content synchronization",
 );
 
 const requiredMediaRoots = [

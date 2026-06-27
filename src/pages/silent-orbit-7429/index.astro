@@ -1319,6 +1319,16 @@ const initialData = {
 
       const mediaRootFromPublicRoot = (publicRoot = "/images") => publicRoot.replace(/^\/+|\/+$/g, "");
 
+      const mergeMediaAssets = (localAssets = [], remoteAssets = []) => {
+        const seen = new Set();
+        return [...remoteAssets, ...localAssets].filter((asset) => {
+          const identity = asset.key || asset.publicPath || asset.path || asset.name;
+          if (!identity || seen.has(identity)) return false;
+          seen.add(identity);
+          return true;
+        });
+      };
+
       const mediaApiList = async (publicRoot) => {
         const prefix = mediaRootFromPublicRoot(publicRoot);
         const data = await mediaApi(`/media?prefix=${encodeURIComponent(prefix)}`);
@@ -1973,7 +1983,7 @@ const initialData = {
 
       const loadImages = async () => {
         if (mediaStorageMode() === "r2") {
-          state.images = await mediaApiList("/images");
+          state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/images"));
           return;
         }
         const files = await getDir(IMAGES_PATH);
@@ -1985,7 +1995,7 @@ const initialData = {
 
       const loadPersonalPhotoAssets = async () => {
         if (mediaStorageMode() === "r2") {
-          state.personalPhotoAssets = await mediaApiList("/personal-photo");
+          state.personalPhotoAssets = mergeMediaAssets(INITIAL_DATA.personalPhotoAssets, await mediaApiList("/personal-photo"));
           return;
         }
         const files = await getDir(PERSONAL_PHOTO_PATH);
@@ -1997,7 +2007,7 @@ const initialData = {
 
       const loadVideos = async () => {
         if (mediaStorageMode() === "r2") {
-          state.videos = await mediaApiList("/videos");
+          state.videos = mergeMediaAssets(INITIAL_DATA.videos, await mediaApiList("/videos"));
           return;
         }
         const files = await getDir(VIDEOS_PATH);
@@ -2009,7 +2019,7 @@ const initialData = {
 
       const loadPersonalVideoAssets = async () => {
         if (mediaStorageMode() === "r2") {
-          state.personalVideoAssets = await mediaApiList("/personal-video");
+          state.personalVideoAssets = mergeMediaAssets(INITIAL_DATA.personalVideoAssets, await mediaApiList("/personal-video"));
           return;
         }
         const files = await getDir(PERSONAL_VIDEO_PATH);
@@ -2095,7 +2105,16 @@ const initialData = {
 
         state.mode = "github";
         setStatus("GitHub 模式：同步仓库内容中...");
-        await loadContentFiles();
+        applyInitialData();
+        try {
+          await loadContentFiles();
+        } catch (error) {
+          const mediaStatus = await loadMediaLibrariesSafely();
+          updateCounts();
+          renderList();
+          setStatus(`已先显示构建时内置内容。GitHub 内容同步失败：${error instanceof Error ? error.message : "未知错误"}。${mediaStatus}`);
+          return;
+        }
         const mediaStatus = await loadMediaLibrariesSafely();
         updateCounts();
         renderList();
@@ -3328,14 +3347,20 @@ const initialData = {
       Object.values(galleryFields).forEach((field) => field.addEventListener("input", renderGalleryPreview));
       Object.values(personalVideoFields).forEach((field) => field.addEventListener("input", renderPersonalVideoPreview));
 
-      updateCounts();
-      selectSection("posts");
-      newPost();
-      newProject();
-      newRecommendation();
-      newGallery();
-      newPersonalVideo();
-      updatePendingChangesUi();
+      const prepareEmptyEditors = () => {
+        try {
+          updateCounts();
+          selectSection("posts");
+          newPost();
+          newProject();
+          newRecommendation();
+          newGallery();
+          newPersonalVideo();
+          updatePendingChangesUi();
+        } catch (error) {
+          console.warn("Initial empty editor setup failed; content loading will continue.", error);
+        }
+      };
 
       const initialize = async () => {
         if (state.token) $("[data-token-input]").value = state.token;
@@ -3343,6 +3368,7 @@ const initialData = {
         await loadAll();
       };
 
+      prepareEmptyEditors();
       run(initialize);
     </script>
   </body>

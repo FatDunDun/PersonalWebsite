@@ -25,12 +25,22 @@ const requiredSnippets = [
   "mediaApiUpload",
   "mediaApiDelete",
   "mediaStorageMode",
+  "articleAssets",
   "personalPhotoAssets",
   "personalVideoAssets",
-  "data-section=\"personalPhotoAssets\"",
-  "data-section=\"personalVideoAssets\"",
+  "data-section=\"images\"",
+  "data-section-group=\"articleAssets\"",
+  "data-section-group=\"gallery\"",
+  "data-section-group=\"personalVideos\"",
   "data-media-grid=\"personalPhotoAssets\"",
   "data-media-grid=\"personalVideoAssets\"",
+  "主页照片",
+  "主页视频",
+  "文章素材",
+  "展示条目",
+  "照片文件",
+  "图片素材",
+  "视频素材",
 ];
 
 for (const snippet of requiredSnippets) {
@@ -86,6 +96,19 @@ const requiredMediaRoots = [
 
 for (const snippet of requiredMediaRoots) {
   assert.ok(source.includes(snippet), "Expected categorized media library support for " + snippet);
+}
+
+const duplicateNavLabels = [
+  "<span>PersonalPhoto</span>",
+  "<span>PersonalVideo</span>",
+  "<span>素材图片库</span>",
+  "<span>素材视频库</span>",
+  "<span>PersonalPhoto库</span>",
+  "<span>PersonalVideo库</span>",
+];
+
+for (const snippet of duplicateNavLabels) {
+  assert.ok(!source.includes(snippet), "Expected sidebar to avoid duplicated media/content label: " + snippet);
 }
 
 const directCommitMessages = [

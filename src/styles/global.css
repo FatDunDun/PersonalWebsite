@@ -140,18 +140,24 @@ footer {
   --footer-muted: color-mix(in srgb, var(--foreground) 76%, var(--muted));
   margin-top: 2rem;
   background:
-    linear-gradient(180deg, rgb(237 243 239 / 0.92), rgb(237 243 239 / 0.78)),
-    color-mix(in srgb, var(--background) 88%, transparent);
+    linear-gradient(180deg, rgb(237 243 239 / 0.18), rgb(237 243 239 / 0.10)),
+    linear-gradient(180deg, transparent, rgb(237 243 239 / 0.08));
   color: var(--footer-text);
-  backdrop-filter: blur(18px) saturate(1.08);
+  text-shadow:
+    0 1px 10px rgb(237 243 239 / 0.88),
+    0 0 22px rgb(237 243 239 / 0.58);
+  backdrop-filter: blur(5px) saturate(1.02);
 }
 
 .dark .site-footer {
   --footer-text: color-mix(in srgb, var(--foreground) 96%, white);
   --footer-muted: color-mix(in srgb, var(--muted) 84%, var(--foreground));
   background:
-    linear-gradient(180deg, rgb(8 16 24 / 0.78), rgb(8 16 24 / 0.88)),
-    color-mix(in srgb, var(--background) 86%, transparent);
+    linear-gradient(180deg, rgb(8 16 24 / 0.28), rgb(8 16 24 / 0.34)),
+    linear-gradient(180deg, transparent, rgb(8 16 24 / 0.22));
+  text-shadow:
+    0 1px 10px rgb(0 0 0 / 0.62),
+    0 0 22px rgb(0 0 0 / 0.42);
 }
 
 .site-footer-muted {

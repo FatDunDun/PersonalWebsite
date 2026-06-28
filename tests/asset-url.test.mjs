@@ -31,6 +31,8 @@ for (const file of astroFiles.slice(1, 3)) {
 
 assert.ok(globalCss.includes(".site-footer"), "Expected shared footer readability styles");
 assert.ok(globalCss.includes("--footer-text"), "Expected footer text color to avoid low-contrast muted text on light background images");
-assert.ok(globalCss.includes("linear-gradient(180deg, rgb(237 243 239 / 0.92)"), "Expected light-mode footer to sit on a readable translucent panel");
+assert.ok(!globalCss.includes("rgb(237 243 239 / 0.92)"), "Expected light-mode footer to avoid an opaque solid block over the background image");
+assert.ok(globalCss.includes("rgb(237 243 239 / 0.18)"), "Expected light-mode footer to keep a light transparent wash");
+assert.ok(globalCss.includes("text-shadow"), "Expected footer text to use a subtle halo for readability without opaque background");
 
 console.log("asset URL regression checks passed");

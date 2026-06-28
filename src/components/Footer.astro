@@ -8,13 +8,13 @@ const year = new Date().getFullYear();
   <div class="container flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
     <div>
       <p class="font-semibold">{siteConfig.name}</p>
-      <p class="mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">{siteConfig.description}</p>
+      <p class="mt-2 max-w-xl text-sm leading-6 text-[var(--foreground)]">{siteConfig.description}</p>
     </div>
-    <div class="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
+    <div class="flex flex-wrap gap-3 text-sm text-[var(--foreground)]">
       {navItems.map((item) => <a class="hover:text-[var(--foreground)]" href={withBase(item.href)}>{item.label}</a>)}
     </div>
   </div>
-  <div class="container mt-8 text-sm text-[var(--muted)]">
+  <div class="container mt-8 text-sm text-[var(--foreground)]">
     © {year} {siteConfig.author}. {siteConfig.footerNote || "Built with Astro."}
   </div>
 </footer>

@@ -61,6 +61,8 @@ const requiredUiSnippets = [
   "exhibition-kicker",
   "quiet-card",
   "orbit-stage",
+  ".orbit-button:disabled",
+  '.orbit-button[data-active="true"] span',
 ];
 
 for (const snippet of requiredUiSnippets) {
@@ -152,6 +154,16 @@ const duplicateNavLabels = [
 
 for (const snippet of duplicateNavLabels) {
   assert.ok(!source.includes(snippet), "Expected sidebar to avoid duplicated media/content label: " + snippet);
+}
+
+const removedSettingsFields = [
+  "分享图路径",
+  'data-settings-field="site.ogImage"',
+  "社交分享预览图",
+];
+
+for (const snippet of removedSettingsFields) {
+  assert.ok(!source.includes(snippet), "Expected admin settings to hide nonessential sharing image field: " + snippet);
 }
 
 const directCommitMessages = [

@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { strict as assert } from "node:assert";
 
 const source = readFileSync(new URL("../src/utils/site.ts", import.meta.url), "utf8");
-const globalCss = readFileSync(new URL("../src/styles/global.css", import.meta.url), "utf8");
 const astroFiles = [
   "../src/layouts/BaseLayout.astro",
   "../src/pages/index.astro",
@@ -28,9 +27,5 @@ for (const file of astroFiles) {
 for (const file of astroFiles.slice(1, 3)) {
   assert.ok(file.includes("isPersonalPhotoImage"), "Expected homepage/gallery to accept relative or R2 personal-photo URLs");
 }
-
-assert.ok(globalCss.includes(".site-footer"), "Expected shared footer readability styles");
-assert.ok(globalCss.includes("--footer-text"), "Expected footer text color to avoid low-contrast muted text on light background images");
-assert.ok(globalCss.includes("linear-gradient(180deg, rgb(237 243 239 / 0.92)"), "Expected light-mode footer to sit on a readable translucent panel");
 
 console.log("asset URL regression checks passed");

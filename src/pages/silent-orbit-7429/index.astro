@@ -187,28 +187,8 @@ const initialData = {
       .orbit-button[data-active="true"] {
         border-color: color-mix(in srgb, var(--accent-strong) 58%, var(--foreground));
         background: color-mix(in srgb, var(--glass-strong) 72%, transparent);
-        color: var(--foreground);
         box-shadow: 0 14px 34px color-mix(in srgb, var(--accent-strong) 12%, transparent);
         transform: translateY(-1px);
-      }
-
-      .orbit-button:hover span,
-      .orbit-button[data-active="true"] span {
-        color: var(--foreground);
-      }
-
-      .orbit-button:disabled {
-        border-color: color-mix(in srgb, var(--paper-edge) 78%, transparent);
-        background: color-mix(in srgb, var(--surface) 54%, transparent);
-        color: color-mix(in srgb, var(--foreground) 68%, var(--muted));
-        cursor: not-allowed;
-        opacity: 1;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .orbit-button:disabled span {
-        color: color-mix(in srgb, var(--foreground) 64%, var(--muted));
       }
 
       .orbit-button-primary {
@@ -890,6 +870,10 @@ const initialData = {
                   <label class="block md:col-span-2">
                     <span class="font-mono text-xs text-[var(--muted)]">SEO 描述 / 页脚描述</span>
                     <textarea class="orbit-input mt-2 min-h-24" data-settings-field="site.description"></textarea>
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">分享图路径</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="site.ogImage" placeholder="/personal-photo/hero.png" />
                   </label>
                   <label class="block md:col-span-2">
                     <span class="font-mono text-xs text-[var(--muted)]">页脚备注</span>

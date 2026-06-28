@@ -4,17 +4,17 @@ import { navItems, siteConfig, withBase } from "@/utils/site";
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer border-t border-[var(--line)] py-10">
+<footer class="border-t border-[var(--line)] py-10">
   <div class="container flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
     <div>
       <p class="font-semibold">{siteConfig.name}</p>
-      <p class="site-footer-muted mt-2 max-w-xl text-sm leading-6">{siteConfig.description}</p>
+      <p class="mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">{siteConfig.description}</p>
     </div>
-    <div class="site-footer-muted flex flex-wrap gap-3 text-sm">
-      {navItems.map((item) => <a class="site-footer-link" href={withBase(item.href)}>{item.label}</a>)}
+    <div class="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
+      {navItems.map((item) => <a class="hover:text-[var(--foreground)]" href={withBase(item.href)}>{item.label}</a>)}
     </div>
   </div>
-  <div class="site-footer-muted container mt-8 text-sm">
+  <div class="container mt-8 text-sm text-[var(--muted)]">
     © {year} {siteConfig.author}. {siteConfig.footerNote || "Built with Astro."}
   </div>
 </footer>

@@ -135,38 +135,6 @@ footer {
   z-index: 2;
 }
 
-.site-footer {
-  --footer-text: color-mix(in srgb, var(--foreground) 94%, #000);
-  --footer-muted: color-mix(in srgb, var(--foreground) 76%, var(--muted));
-  margin-top: 2rem;
-  background:
-    linear-gradient(180deg, rgb(237 243 239 / 0.92), rgb(237 243 239 / 0.78)),
-    color-mix(in srgb, var(--background) 88%, transparent);
-  color: var(--footer-text);
-  backdrop-filter: blur(18px) saturate(1.08);
-}
-
-.dark .site-footer {
-  --footer-text: color-mix(in srgb, var(--foreground) 96%, white);
-  --footer-muted: color-mix(in srgb, var(--muted) 84%, var(--foreground));
-  background:
-    linear-gradient(180deg, rgb(8 16 24 / 0.78), rgb(8 16 24 / 0.88)),
-    color-mix(in srgb, var(--background) 86%, transparent);
-}
-
-.site-footer-muted {
-  color: var(--footer-muted);
-}
-
-.site-footer-link {
-  color: var(--footer-muted);
-  transition: color 160ms ease;
-}
-
-.site-footer-link:hover {
-  color: var(--footer-text);
-}
-
 .container {
   width: min(1220px, calc(100% - 2rem));
   margin-inline: auto;

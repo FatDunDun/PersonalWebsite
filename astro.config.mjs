@@ -24,9 +24,11 @@ function localContentApi() {
     "src/data/recommendations.ts",
     "src/data/gallery.ts",
     "src/data/videos.ts",
-    "public/images",
+    "public/article-assets",
+    "public/article-videos",
+    "public/recommendation-assets",
+    "public/site-assets",
     "public/personal-photo",
-    "public/videos",
     "public/personal-video",
   ];
 

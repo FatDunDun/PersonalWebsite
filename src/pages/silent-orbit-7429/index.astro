@@ -10,12 +10,12 @@ import { getCollection } from "astro:content";
 import { readdirSync } from "node:fs";
 
 const posts = await getCollection("posts");
-const imageDirectory = new URL("../../../public/images/", import.meta.url);
-const imageNames = readdirSync(imageDirectory).filter((name) => /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(name));
+const articleImageAssetsDirectory = new URL("../../../public/article-assets/", import.meta.url);
+const imageNames = readdirSync(articleImageAssetsDirectory).filter((name) => /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(name));
 const personalPhotoDirectory = new URL("../../../public/personal-photo/", import.meta.url);
 const personalPhotoNames = readdirSync(personalPhotoDirectory).filter((name) => /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(name));
-const videoDirectory = new URL("../../../public/videos/", import.meta.url);
-const videoNames = readdirSync(videoDirectory).filter((name) => /\.(mp4|webm|mov|m4v)$/i.test(name));
+const articleVideoAssetsDirectory = new URL("../../../public/article-videos/", import.meta.url);
+const videoNames = readdirSync(articleVideoAssetsDirectory).filter((name) => /\.(mp4|webm|mov|m4v)$/i.test(name));
 const personalVideoDirectory = new URL("../../../public/personal-video/", import.meta.url);
 const personalVideoNames = readdirSync(personalVideoDirectory).filter((name) => /\.(mp4|webm|mov|m4v)$/i.test(name));
 
@@ -35,8 +35,8 @@ const initialData = {
   personalVideos: videoItems,
   images: imageNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
     name,
-    path: `public/images/${name}`,
-    publicPath: `/images/${name}`,
+    path: `public/article-assets/${name}`,
+    publicPath: `/article-assets/${name}`,
   })),
   personalPhotoAssets: personalPhotoNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
     name,
@@ -45,8 +45,8 @@ const initialData = {
   })),
   videos: videoNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
     name,
-    path: `public/videos/${name}`,
-    publicPath: `/videos/${name}`,
+    path: `public/article-videos/${name}`,
+    publicPath: `/article-videos/${name}`,
   })),
   personalVideoAssets: personalVideoNames.sort((a, b) => a.localeCompare(b)).map((name) => ({
     name,
@@ -175,7 +175,8 @@ const initialData = {
         border-radius: 999px;
         background: color-mix(in srgb, var(--glass-strong) 44%, transparent);
         padding: 0.62rem 0.9rem;
-        color: var(--foreground);
+        color: #14202a;
+        -webkit-text-fill-color: #14202a;
         font-family: var(--font-mono);
         font-size: 0.75rem;
         letter-spacing: 0.04em;
@@ -187,6 +188,8 @@ const initialData = {
       .orbit-button[data-active="true"] {
         border-color: color-mix(in srgb, var(--accent-strong) 58%, var(--foreground));
         background: color-mix(in srgb, var(--glass-strong) 72%, transparent);
+        color: #14202a;
+        -webkit-text-fill-color: #14202a;
         box-shadow: 0 14px 34px color-mix(in srgb, var(--accent-strong) 12%, transparent);
         transform: translateY(-1px);
       }
@@ -194,12 +197,42 @@ const initialData = {
       .orbit-button-primary {
         border-color: color-mix(in srgb, var(--foreground) 86%, var(--accent));
         background: var(--foreground);
-        color: var(--background);
+        color: #ffffff;
+        -webkit-text-fill-color: #ffffff;
+      }
+
+      .orbit-button:disabled {
+        cursor: not-allowed;
+        color: #405564;
+        -webkit-text-fill-color: #405564;
+        opacity: 1;
+      }
+
+      .dark .orbit-button {
+        color: #f7f4ea;
+        -webkit-text-fill-color: #f7f4ea;
+      }
+
+      .dark .orbit-button:hover,
+      .dark .orbit-button[data-active="true"] {
+        color: #f7f4ea;
+        -webkit-text-fill-color: #f7f4ea;
+      }
+
+      .dark .orbit-button-primary {
+        color: #081018;
+        -webkit-text-fill-color: #081018;
+      }
+
+      .dark .orbit-button:disabled {
+        color: #9faeb2;
+        -webkit-text-fill-color: #9faeb2;
       }
 
       .orbit-danger {
         border-color: color-mix(in srgb, #dc2626 36%, var(--line));
         color: #dc2626;
+        -webkit-text-fill-color: #dc2626;
       }
 
       .orbit-danger:hover {
@@ -330,15 +363,15 @@ const initialData = {
               <span class="text-[var(--muted)]" data-count="recommendations">0</span>
             </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="gallery" data-section-group="gallery" type="button">
-              <span>主页照片</span>
+              <span>PERSONAL_PHOTO</span>
               <span class="text-[var(--muted)]" data-count="gallery">0</span>
             </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="personalVideos" data-section-group="personalVideos" type="button">
-              <span>主页视频</span>
+              <span>PERSONAL_VIDEO</span>
               <span class="text-[var(--muted)]" data-count="personalVideos">0</span>
             </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="images" data-section-group="articleAssets" type="button">
-              <span>文章素材</span>
+              <span>ARTICLE_ASSETS</span>
               <span class="text-[var(--muted)]" data-count="articleAssets">0</span>
             </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="settings" type="button">
@@ -416,7 +449,7 @@ const initialData = {
                 <div class="grid gap-4 md:grid-cols-2">
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Cover</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="cover" placeholder="/images/cover.png" />
+                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="cover" placeholder="/article-assets/cover.png" />
                   </label>
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Tags</span>
@@ -429,7 +462,7 @@ const initialData = {
                 </label>
                 <label>
                   <span class="font-mono text-xs text-[var(--muted)]">Body</span>
-                  <span class="ml-2 text-xs text-[var(--muted)]">图片会进入素材图片库；视频会进入 videos，并插入到光标位置。</span>
+                  <span class="ml-2 text-xs text-[var(--muted)]">图片会进入 ARTICLE_IMAGE_ASSETS；视频会进入 ARTICLE_VIDEO_ASSETS，并插入到光标位置。</span>
                   <textarea class="orbit-input mt-2 min-h-[420px] font-mono text-sm leading-7" data-post-field="body" placeholder="开始写 Markdown / MDX..."></textarea>
                 </label>
               </form>
@@ -538,7 +571,7 @@ const initialData = {
                 <div class="grid gap-4 md:grid-cols-2">
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Image</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="image" placeholder="/images/cover.png" />
+                    <input class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="image" placeholder="/recommendation-assets/cover.png" />
                   </label>
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Link</span>
@@ -573,11 +606,11 @@ const initialData = {
           <section class="orbit-view" data-view="gallery" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Homepage Photos</p>
-                <h2 class="mt-1 text-2xl font-semibold" data-gallery-title>新建主页照片</h2>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">PERSONAL_PHOTO</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-gallery-title>新建 PERSONAL_PHOTO</h2>
                 <div class="mt-3 flex flex-wrap gap-2">
-                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="gallery">展示条目</button>
-                  <button class="orbit-button" type="button" data-switch-section="personalPhotoAssets">照片文件</button>
+                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="gallery">PERSONAL_PHOTO_ENTRIES</button>
+                  <button class="orbit-button" type="button" data-switch-section="personalPhotoAssets">PERSONAL_PHOTO_ASSETS</button>
                 </div>
               </div>
               <div class="orbit-actions">
@@ -635,12 +668,12 @@ const initialData = {
           <section class="orbit-view" data-view="images" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Article Assets</p>
-                <h2 class="mt-1 text-2xl font-semibold">文章素材</h2>
-                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">这里放写文章时会引用的图片和视频。主页照片、主页视频请去对应的主页展示栏目。</p>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">ARTICLE_IMAGE_ASSETS</p>
+                <h2 class="mt-1 text-2xl font-semibold">ARTICLE_IMAGE_ASSETS</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">存储目录：public/article-assets；公开路径：/article-assets/。</p>
                 <div class="mt-3 flex flex-wrap gap-2">
-                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="images">图片素材</button>
-                  <button class="orbit-button" type="button" data-switch-section="videos">视频素材</button>
+                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="images">ARTICLE_IMAGE_ASSETS</button>
+                  <button class="orbit-button" type="button" data-switch-section="videos">ARTICLE_VIDEO_ASSETS</button>
                 </div>
               </div>
               <div class="orbit-actions">
@@ -667,9 +700,9 @@ const initialData = {
                   </div>
                   <img class="hidden aspect-[4/3] w-full object-cover" data-selected-image-preview alt="" />
                 </div>
-                <input class="orbit-input mt-3 font-mono text-sm" data-selected-image-path readonly placeholder="/images/..." />
+                <input class="orbit-input mt-3 font-mono text-sm" data-selected-image-path readonly placeholder="/article-assets/..." />
                 <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-                  素材图片库用于文章正文、封面或项目引用。勾选多张图片后可以批量加入删除队列，最后点击“同步全部改动”一次提交到 GitHub。
+                  ARTICLE_IMAGE_ASSETS 用于文章正文、封面或项目引用。勾选多张图片后可以批量加入删除队列，最后点击“同步全部改动”一次提交到 GitHub。
                 </p>
               </aside>
             </div>
@@ -678,12 +711,12 @@ const initialData = {
           <section class="orbit-view" data-view="personalPhotoAssets" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Homepage Photo Files</p>
-                <h2 class="mt-1 text-2xl font-semibold">主页照片文件</h2>
-                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">这里像云盘一样存放精彩照片。需要在主页/图集展示时，再到“展示条目”里填写标题和描述。</p>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">PERSONAL_PHOTO_ASSETS</p>
+                <h2 class="mt-1 text-2xl font-semibold">PERSONAL_PHOTO_ASSETS</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">存储目录：public/personal-photo；公开路径：/personal-photo/。</p>
                 <div class="mt-3 flex flex-wrap gap-2">
-                  <button class="orbit-button" type="button" data-switch-section="gallery">展示条目</button>
-                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="personalPhotoAssets">照片文件</button>
+                  <button class="orbit-button" type="button" data-switch-section="gallery">PERSONAL_PHOTO_ENTRIES</button>
+                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="personalPhotoAssets">PERSONAL_PHOTO_ASSETS</button>
                 </div>
               </div>
               <div class="orbit-actions">
@@ -703,11 +736,11 @@ const initialData = {
           <section class="orbit-view" data-view="personalVideos" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Homepage Videos</p>
-                <h2 class="mt-1 text-2xl font-semibold" data-personal-video-title>新建主页视频</h2>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">PERSONAL_VIDEO</p>
+                <h2 class="mt-1 text-2xl font-semibold" data-personal-video-title>新建 PERSONAL_VIDEO</h2>
                 <div class="mt-3 flex flex-wrap gap-2">
-                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="personalVideos">展示条目</button>
-                  <button class="orbit-button" type="button" data-switch-section="personalVideoAssets">视频文件</button>
+                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="personalVideos">PERSONAL_VIDEO_ENTRIES</button>
+                  <button class="orbit-button" type="button" data-switch-section="personalVideoAssets">PERSONAL_VIDEO_ASSETS</button>
                 </div>
               </div>
               <div class="orbit-actions">
@@ -744,7 +777,7 @@ const initialData = {
                   </label>
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Poster</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-personal-video-field="poster" placeholder="/images/poster.png" />
+                    <input class="orbit-input mt-2 font-mono text-sm" data-personal-video-field="poster" placeholder="/article-assets/poster.png" />
                   </label>
                 </div>
               </form>
@@ -769,12 +802,12 @@ const initialData = {
           <section class="orbit-view" data-view="videos" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Article Assets</p>
-                <h2 class="mt-1 text-2xl font-semibold">文章素材</h2>
-                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">这里放写文章时会引用的图片和视频。主页照片、主页视频请去对应的主页展示栏目。</p>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">ARTICLE_VIDEO_ASSETS</p>
+                <h2 class="mt-1 text-2xl font-semibold">ARTICLE_VIDEO_ASSETS</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">存储目录：public/article-videos；公开路径：/article-videos/。</p>
                 <div class="mt-3 flex flex-wrap gap-2">
-                  <button class="orbit-button" type="button" data-switch-section="images">图片素材</button>
-                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="videos">视频素材</button>
+                  <button class="orbit-button" type="button" data-switch-section="images">ARTICLE_IMAGE_ASSETS</button>
+                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="videos">ARTICLE_VIDEO_ASSETS</button>
                 </div>
               </div>
               <div class="orbit-actions">
@@ -802,9 +835,9 @@ const initialData = {
                   </div>
                   <video class="hidden aspect-video w-full object-cover bg-black" data-selected-video-preview controls playsinline preload="metadata"></video>
                 </div>
-                <input class="orbit-input mt-3 font-mono text-sm" data-selected-video-path readonly placeholder="/videos/..." />
+                <input class="orbit-input mt-3 font-mono text-sm" data-selected-video-path readonly placeholder="/article-videos/..." />
                 <p class="mt-3 text-sm leading-6 text-[var(--muted)]">
-                  素材视频库用于文章正文或项目引用。勾选多段视频后可以批量加入删除队列，最后点击“同步全部改动”一次提交到 GitHub。
+                  ARTICLE_VIDEO_ASSETS 用于文章正文或项目引用。勾选多段视频后可以批量加入删除队列，最后点击“同步全部改动”一次提交到 GitHub。
                 </p>
               </aside>
             </div>
@@ -813,12 +846,12 @@ const initialData = {
           <section class="orbit-view" data-view="personalVideoAssets" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Homepage Video Files</p>
-                <h2 class="mt-1 text-2xl font-semibold">主页视频文件</h2>
-                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">这里像云盘一样存放精彩视频。需要在主页视频页展示时，再到“展示条目”里填写标题和描述。</p>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">PERSONAL_VIDEO_ASSETS</p>
+                <h2 class="mt-1 text-2xl font-semibold">PERSONAL_VIDEO_ASSETS</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">存储目录：public/personal-video；公开路径：/personal-video/。</p>
                 <div class="mt-3 flex flex-wrap gap-2">
-                  <button class="orbit-button" type="button" data-switch-section="personalVideos">展示条目</button>
-                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="personalVideoAssets">视频文件</button>
+                  <button class="orbit-button" type="button" data-switch-section="personalVideos">PERSONAL_VIDEO_ENTRIES</button>
+                  <button class="orbit-button orbit-button-primary" type="button" data-switch-section="personalVideoAssets">PERSONAL_VIDEO_ASSETS</button>
                 </div>
               </div>
               <div class="orbit-actions">
@@ -896,10 +929,10 @@ const initialData = {
                   <label class="block md:col-span-2">
                     <span class="font-mono text-xs text-[var(--muted)]">首页背景图路径</span>
                     <div class="mt-2 grid gap-2 md:grid-cols-[1fr_auto]">
-                      <input class="orbit-input font-mono text-sm" data-settings-field="home.heroBackgroundImage" placeholder="/images/home-exhibition-bg.jpg" />
+                      <input class="orbit-input font-mono text-sm" data-settings-field="home.heroBackgroundImage" placeholder="/site-assets/home-exhibition-bg.jpg" />
                       <button class="orbit-button" data-use-selected-hero-background type="button">用选中图</button>
                     </div>
-                    <p class="mt-2 text-xs leading-5 text-[var(--muted)]">先到素材图片库上传或选择图片，再点“用选中图”；也可以手动填写 /images/xxx.jpg。</p>
+                    <p class="mt-2 text-xs leading-5 text-[var(--muted)]">SITE_ASSETS 存储目录：public/site-assets；公开路径：/site-assets/。</p>
                   </label>
                   <label class="block">
                     <span class="font-mono text-xs text-[var(--muted)]">主按钮文字</span>
@@ -1002,9 +1035,11 @@ const initialData = {
       const GALLERY_PATH = "src/data/gallery.ts";
       const PERSONAL_VIDEOS_DATA_PATH = "src/data/videos.ts";
       const SETTINGS_PATH = "src/data/siteSettings.ts";
-      const IMAGES_PATH = "public/images";
+      const ARTICLE_IMAGE_ASSETS_PATH = "public/article-assets";
+      const RECOMMENDATION_ASSETS_PATH = "public/recommendation-assets";
+      const SITE_ASSETS_PATH = "public/site-assets";
       const PERSONAL_PHOTO_PATH = "public/personal-photo";
-      const VIDEOS_PATH = "public/videos";
+      const ARTICLE_VIDEO_ASSETS_PATH = "public/article-videos";
       const PERSONAL_VIDEO_PATH = "public/personal-video";
       const TOKEN_KEY = "silent-orbit-token";
       const MEDIA_TOKEN_KEY = "silent-orbit-media-token";
@@ -1117,9 +1152,9 @@ const initialData = {
         recommendations: { kicker: "Taste", title: "推荐列表", empty: "暂无推荐。" },
         gallery: { kicker: "PersonalPhoto", title: "生活照片", empty: "暂无照片。" },
         personalVideos: { kicker: "PersonalVideo", title: "视频记录", empty: "暂无视频记录。" },
-        images: { kicker: "Assets", title: "素材图片", empty: "暂无素材图片。" },
+        images: { kicker: "ARTICLE_IMAGE_ASSETS", title: "ARTICLE_IMAGE_ASSETS", empty: "暂无 ARTICLE_IMAGE_ASSETS。" },
         personalPhotoAssets: { kicker: "PersonalPhoto Assets", title: "PersonalPhoto文件", empty: "暂无 PersonalPhoto 文件。" },
-        videos: { kicker: "Video Assets", title: "素材视频", empty: "暂无素材视频。" },
+        videos: { kicker: "ARTICLE_VIDEO_ASSETS", title: "ARTICLE_VIDEO_ASSETS", empty: "暂无 ARTICLE_VIDEO_ASSETS。" },
         personalVideoAssets: { kicker: "PersonalVideo Assets", title: "PersonalVideo文件", empty: "暂无 PersonalVideo 文件。" },
         settings: { kicker: "Settings", title: "页面配置", empty: "在右侧编辑网站配置。" },
       };
@@ -1128,10 +1163,10 @@ const initialData = {
         images: {
           kind: "image",
           stateKey: "images",
-          directory: IMAGES_PATH,
-          publicRoot: "/images",
+          directory: ARTICLE_IMAGE_ASSETS_PATH,
+          publicRoot: "/article-assets",
           summaryKey: "images",
-          empty: "暂无素材图片。",
+          empty: "暂无 ARTICLE_IMAGE_ASSETS。",
         },
         personalPhotoAssets: {
           kind: "image",
@@ -1144,10 +1179,10 @@ const initialData = {
         videos: {
           kind: "video",
           stateKey: "videos",
-          directory: VIDEOS_PATH,
-          publicRoot: "/videos",
+          directory: ARTICLE_VIDEO_ASSETS_PATH,
+          publicRoot: "/article-videos",
           summaryKey: "videos",
-          empty: "暂无素材视频。",
+          empty: "暂无 ARTICLE_VIDEO_ASSETS。",
         },
         personalVideoAssets: {
           kind: "video",
@@ -1313,7 +1348,7 @@ const initialData = {
         return asset.publicPath || "";
       };
 
-      const mediaRootFromPublicRoot = (publicRoot = "/images") => publicRoot.replace(/^\/+|\/+$/g, "");
+      const mediaRootFromPublicRoot = (publicRoot = "/article-assets") => publicRoot.replace(/^\/+|\/+$/g, "");
 
       const mergeMediaAssets = (localAssets = [], remoteAssets = []) => {
         const seen = new Set();
@@ -1602,7 +1637,7 @@ const initialData = {
 
       const insertImageMarkdown = (image, altText = "") => {
         const imageValue = mediaContentValue(image);
-        if (!imageValue) throw new Error("请先上传或选中一张素材图片");
+        if (!imageValue) throw new Error("请先上传或选中一张 ARTICLE_IMAGE_ASSETS 图片");
         const fallbackAlt = image.name?.replace(/\.[^.]+$/, "").replace(/^\d+-/, "").replace(/-[a-z0-9]{8}$/, "").replace(/-/g, " ") || "图片";
         insertMarkdownAtCursor(`![${altText || fallbackAlt}](${imageValue})`);
       };
@@ -1614,17 +1649,21 @@ const initialData = {
       };
 
       const updateCounts = () => {
-        $('[data-count="posts"]').textContent = state.posts.length;
-        $('[data-count="projects"]').textContent = state.projects.length;
-        $('[data-count="recommendations"]').textContent = state.recommendations.length;
-        $('[data-count="gallery"]').textContent = state.gallery.length;
-        $('[data-count="personalVideos"]').textContent = state.personalVideos.length;
-        $('[data-count="articleAssets"]').textContent = state.images.length + state.videos.length;
-        $('[data-count="images"]').textContent = state.images.length;
-        $('[data-count="personalPhotoAssets"]').textContent = state.personalPhotoAssets.length;
-        $('[data-count="videos"]').textContent = state.videos.length;
-        $('[data-count="personalVideoAssets"]').textContent = state.personalVideoAssets.length;
-        $('[data-count="settings"]').textContent = "编辑";
+        const setCount = (key, value) => {
+          const node = $(`[data-count="${key}"]`);
+          if (node) node.textContent = value;
+        };
+        setCount("posts", state.posts.length);
+        setCount("projects", state.projects.length);
+        setCount("recommendations", state.recommendations.length);
+        setCount("gallery", state.gallery.length);
+        setCount("personalVideos", state.personalVideos.length);
+        setCount("articleAssets", state.images.length + state.videos.length);
+        setCount("images", state.images.length);
+        setCount("personalPhotoAssets", state.personalPhotoAssets.length);
+        setCount("videos", state.videos.length);
+        setCount("personalVideoAssets", state.personalVideoAssets.length);
+        setCount("settings", "编辑");
       };
 
       const pendingMediaCount = (kind, publicRoot = "") => {
@@ -1979,14 +2018,14 @@ const initialData = {
 
       const loadImages = async () => {
         if (mediaStorageMode() === "r2") {
-          state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/images"));
+          state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/article-assets"));
           return;
         }
-        const files = await getDir(IMAGES_PATH);
+        const files = await getDir(ARTICLE_IMAGE_ASSETS_PATH);
         state.images = files
           .filter((file) => file.type === "file" && /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(file.name))
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => ({ ...file, publicPath: `/images/${file.name}` }));
+          .map((file) => ({ ...file, publicPath: `/article-assets/${file.name}` }));
       };
 
       const loadPersonalPhotoAssets = async () => {
@@ -2003,14 +2042,14 @@ const initialData = {
 
       const loadVideos = async () => {
         if (mediaStorageMode() === "r2") {
-          state.videos = mergeMediaAssets(INITIAL_DATA.videos, await mediaApiList("/videos"));
+          state.videos = mergeMediaAssets(INITIAL_DATA.videos, await mediaApiList("/article-videos"));
           return;
         }
-        const files = await getDir(VIDEOS_PATH);
+        const files = await getDir(ARTICLE_VIDEO_ASSETS_PATH);
         state.videos = files
           .filter((file) => file.type === "file" && /\.(mp4|webm|mov|m4v)$/i.test(file.name))
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => ({ ...file, publicPath: `/videos/${file.name}` }));
+          .map((file) => ({ ...file, publicPath: `/article-videos/${file.name}` }));
       };
 
       const loadPersonalVideoAssets = async () => {
@@ -2488,7 +2527,7 @@ const initialData = {
         };
         if (!item.title) throw new Error("请填写照片标题");
         if (!item.image) throw new Error("请选择或上传照片");
-        if (!isPersonalPhotoValue(item.image)) throw new Error("主页照片只能使用 /personal-photo/ 路径或对应的 R2 主页照片 URL。文章素材库的 /images/ 不会进入前台图集。");
+        if (!isPersonalPhotoValue(item.image)) throw new Error("主页照片只能使用 /personal-photo/ 路径或对应的 R2 主页照片 URL。ARTICLE_IMAGE_ASSETS 的 /article-assets/ 不会进入前台图集。");
         const items = [...state.gallery];
         if (state.current.galleryIndex >= 0) items[state.current.galleryIndex] = item;
         else items.unshift(item);
@@ -2714,12 +2753,12 @@ const initialData = {
         files.forEach((file) => validateMediaFile(file, kind));
       };
 
-      const uploadMediaFile = async (file, directory = IMAGES_PATH, publicRoot = "/images") => {
+      const uploadMediaFile = async (file, directory = ARTICLE_IMAGE_ASSETS_PATH, publicRoot = "/article-assets") => {
         const safeName = makeUploadName(file);
         const path = `${directory}/${safeName}`;
         const publicPath = `${publicRoot}/${safeName}`;
         const remote = mediaStorageMode() === "r2";
-        const isVideo = publicRoot.startsWith("/videos") || publicRoot.startsWith("/personal-video");
+        const isVideo = publicRoot.startsWith("/article-videos") || publicRoot.startsWith("/personal-video");
         const queued = {
           kind: isVideo ? "video" : "image",
           name: safeName,
@@ -2737,10 +2776,10 @@ const initialData = {
       };
 
       const addUploadedAssetIfVisible = (asset) => {
-        if (asset.publicPath?.startsWith("/images/") && !state.images.some((image) => image.path === asset.path)) {
+        if (asset.publicPath?.startsWith("/article-assets/") && !state.images.some((image) => image.path === asset.path)) {
           state.images = [asset, ...state.images];
         }
-        if (asset.publicPath?.startsWith("/videos/") && !state.videos.some((video) => video.path === asset.path)) {
+        if (asset.publicPath?.startsWith("/article-videos/") && !state.videos.some((video) => video.path === asset.path)) {
           state.videos = [asset, ...state.videos];
         }
       };
@@ -2868,9 +2907,9 @@ const initialData = {
         if (mediaStorageMode() === "r2") requireMediaAccess();
         else requireWriteAccess();
         if (!files.length) return [];
-        const directory = options.directory || IMAGES_PATH;
-        const publicRoot = options.publicRoot || "/images";
-        const reloadAssets = options.reloadAssets ?? directory === IMAGES_PATH;
+        const directory = options.directory || ARTICLE_IMAGE_ASSETS_PATH;
+        const publicRoot = options.publicRoot || "/article-assets";
+        const reloadAssets = options.reloadAssets ?? directory === ARTICLE_IMAGE_ASSETS_PATH;
         validateMediaFiles(files, "image");
         setStatus(`上传 ${files.length} 张图片中...`);
         const uploaded = [];
@@ -2890,9 +2929,9 @@ const initialData = {
         if (mediaStorageMode() === "r2") requireMediaAccess();
         else requireWriteAccess();
         validateMediaFile(file, "video");
-        const directory = options.directory || VIDEOS_PATH;
-        const publicRoot = options.publicRoot || "/videos";
-        const reloadAssets = options.reloadAssets ?? directory === VIDEOS_PATH;
+        const directory = options.directory || ARTICLE_VIDEO_ASSETS_PATH;
+        const publicRoot = options.publicRoot || "/article-videos";
+        const reloadAssets = options.reloadAssets ?? directory === ARTICLE_VIDEO_ASSETS_PATH;
         setStatus("上传视频中...");
         const video = await uploadMediaFile(file, directory, publicRoot);
         if (reloadAssets) addUploadedAssetIfVisible(video);
@@ -3186,7 +3225,7 @@ const initialData = {
         run(async () => {
           const [image] = await uploadImages([file]);
           insertImageMarkdown(image);
-          setStatus("图片已上传到素材图片库，并插入正文。");
+          setStatus("图片已上传到 ARTICLE_IMAGE_ASSETS，并插入正文。");
         });
       });
       $("[data-post-upload-video]").addEventListener("click", () => $("[data-post-video-file]").click());
@@ -3202,7 +3241,7 @@ const initialData = {
       $("[data-post-insert-selected-image]").addEventListener("click", () =>
         run(async () => {
           insertImageMarkdown(state.current.image);
-          setStatus("已把选中的素材图片插入正文。");
+          setStatus("已把选中的 ARTICLE_IMAGE_ASSETS 图片插入正文。");
         }),
       );
 
@@ -3216,19 +3255,23 @@ const initialData = {
         const file = event.target.files?.[0];
         if (!file) return;
         run(async () => {
-          const [image] = await uploadImages([file]);
+          const [image] = await uploadImages([file], {
+            directory: RECOMMENDATION_ASSETS_PATH,
+            publicRoot: "/recommendation-assets",
+            reloadAssets: false,
+          });
           recommendationFields.image.value = mediaContentValue(image);
           renderRecommendationPreview();
-          setStatus("推荐封面已上传到素材图片库。");
+          setStatus("推荐封面已上传到 RECOMMENDATION_ASSETS。");
         });
       });
       $("[data-recommendation-use-selected-image]").addEventListener("click", () =>
         run(async () => {
           const imageValue = mediaContentValue(state.current.image);
-          if (!imageValue) throw new Error("请先在素材图片库选择一张图片");
+          if (!imageValue) throw new Error("请先在 ARTICLE_IMAGE_ASSETS 选择一张图片");
           recommendationFields.image.value = imageValue;
           renderRecommendationPreview();
-          setStatus("已把选中的素材图片设为推荐封面。");
+          setStatus("已把选中的 ARTICLE_IMAGE_ASSETS 图片设为推荐封面。");
         }),
       );
 
@@ -3275,7 +3318,7 @@ const initialData = {
           const [image] = await uploadImages([file]);
           personalVideoFields.poster.value = mediaContentValue(image);
           renderPersonalVideoPreview();
-          setStatus("视频封面图已上传到素材图片库。");
+          setStatus("视频封面图已上传到 ARTICLE_IMAGE_ASSETS。");
         });
       });
 
@@ -3308,7 +3351,7 @@ const initialData = {
       $("[data-insert-selected-video]").addEventListener("click", () =>
         run(async () => {
           insertVideoHtml(state.current.video);
-          setStatus("已把选中的素材视频插入正文。");
+          setStatus("已把选中的 ARTICLE_VIDEO_ASSETS 视频插入正文。");
           selectSection("posts");
         }),
       );
@@ -3331,7 +3374,7 @@ const initialData = {
         const field = $('[data-settings-field="home.heroBackgroundImage"]');
         const imageValue = mediaContentValue(state.current.image);
         if (!imageValue) {
-          setStatus("请先在素材图片库中选择一张背景图。");
+          setStatus("请先在 ARTICLE_IMAGE_ASSETS 中选择一张背景图。");
           return;
         }
         field.value = imageValue;

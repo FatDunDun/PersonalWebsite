@@ -27,16 +27,6 @@ const isPersonalPhotoImage = (image = "") => {
 const personalPhotoItems = galleryItems.filter((item) => isPersonalPhotoImage(item.image));
 const featuredFrames = personalPhotoItems.slice(0, 3);
 const featuredProjects = projects.slice(0, 3);
-const projectYears = featuredProjects
-  .map((project) => Number.parseInt(project.year, 10))
-  .filter((year) => Number.isFinite(year))
-  .sort((a, b) => a - b);
-const projectYearLabel = projectYears.length
-  ? projectYears[0] === projectYears[projectYears.length - 1]
-    ? String(projectYears[0])
-    : `${projectYears[0]}-${projectYears[projectYears.length - 1]}`
-  : "now";
-const projectTagHighlights = [...new Set(featuredProjects.flatMap((project) => project.tags))].slice(0, 5);
 const isExternalLink = (href: string) => /^https?:\/\//.test(href);
 ---
 
@@ -160,58 +150,35 @@ const isExternalLink = (href: string) => /^https?:\/\//.test(href);
     </div>
   </section>
 
-  <section class="container grid gap-4 pb-12 md:grid-cols-[0.66fr_1.34fr] md:pb-20">
-    <div class="exhibition-panel flex h-full flex-col justify-between rounded-[2rem] p-6 md:p-8">
-      <div>
+  <section class="container pb-12 md:pb-20" data-home-works>
+    <div class="exhibition-panel rounded-[2rem] p-5 md:p-8">
+      <div class="mb-6">
         <p class="exhibition-kicker">Works / small machines</p>
-        <h2 class="literary-title mt-3 text-4xl leading-tight md:text-5xl">把想法做成工具</h2>
-        <p class="mt-5 max-w-md text-sm leading-7 text-[var(--muted)]">
-          作品索引里放的是能反复帮我省时间的小系统：写作、整理、发布和个人站点本身。
-        </p>
+        <h2 class="literary-title mt-3 text-4xl md:text-5xl">把想法做成工具</h2>
       </div>
-
-      <div class="mt-10 border-t border-[var(--line)] pt-6">
-        <div class="grid gap-3 font-mono">
-          <div class="flex items-baseline justify-between gap-4">
-            <p class="exhibition-meta text-[0.65rem] uppercase tracking-[0.2em]">objects</p>
-            <p class="text-lg text-[var(--foreground)]">{projects.length} pieces</p>
-          </div>
-          <div class="flex items-baseline justify-between gap-4">
-            <p class="exhibition-meta text-[0.65rem] uppercase tracking-[0.2em]">timeline</p>
-            <p class="text-lg text-[var(--foreground)]">{projectYearLabel}</p>
-          </div>
-          <div class="flex items-baseline justify-between gap-4">
-            <p class="exhibition-meta text-[0.65rem] uppercase tracking-[0.2em]">mode</p>
-            <p class="text-lg text-[var(--foreground)]">open archive</p>
-          </div>
-        </div>
-        <div class="mt-6 flex flex-wrap gap-2">
-          {projectTagHighlights.map((tag) => <span class="tag-chip px-2 py-1 font-mono text-xs">{tag}</span>)}
-        </div>
-      </div>
-    </div>
-    <div class="grid gap-4">
-      {featuredProjects.map((project, index) => {
-        const external = isExternalLink(project.link);
-        return (
-          <a
-            href={project.link}
-            target={external ? "_blank" : undefined}
-            rel={external ? "noopener noreferrer" : undefined}
-            class="artifact-card group grid gap-4 rounded-[1.5rem] p-5 transition hover:-translate-y-1 hover:border-[var(--foreground)] md:grid-cols-[72px_1fr_auto] md:items-center"
-          >
-            <div class="folio-number text-3xl">{String(index + 1).padStart(2, "0")}</div>
-            <div>
-              <div class="flex flex-wrap items-center gap-3">
-                <h3 class="literary-title text-2xl">{project.name}</h3>
-                <span class="exhibition-meta text-xs">{project.year}</span>
+      <div class="grid gap-4" data-home-works-list>
+        {featuredProjects.map((project, index) => {
+          const external = isExternalLink(project.link);
+          return (
+            <a
+              href={project.link}
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener noreferrer" : undefined}
+              class="artifact-card group grid gap-4 rounded-[1.5rem] p-5 transition hover:-translate-y-1 hover:border-[var(--foreground)] md:grid-cols-[72px_1fr_auto] md:items-center"
+            >
+              <div class="folio-number text-3xl">{String(index + 1).padStart(2, "0")}</div>
+              <div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <h3 class="literary-title text-2xl">{project.name}</h3>
+                  <span class="exhibition-meta text-xs">{project.year}</span>
+                </div>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">{project.description}</p>
               </div>
-              <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">{project.description}</p>
-            </div>
-            <span class="exhibition-meta text-sm">open</span>
-          </a>
-        );
-      })}
+              <span class="exhibition-meta text-sm">open</span>
+            </a>
+          );
+        })}
+      </div>
     </div>
   </section>
 

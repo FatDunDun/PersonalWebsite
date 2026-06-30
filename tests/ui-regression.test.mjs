@@ -16,12 +16,35 @@ assert.ok(
   "Footer should explicitly use foreground text color for light mode readability",
 );
 
-assert.ok(homeSource.includes("projectYearLabel"), "Home works section should summarize the project timeline");
-assert.ok(homeSource.includes("projectTagHighlights"), "Home works section should surface project tags in the left panel");
-assert.ok(homeSource.includes("作品索引"), "Home works section should give the large left panel a clear information role");
+assert.ok(!homeSource.includes("projectYearLabel"), "Home works section should not add maintenance-like timeline filler");
+assert.ok(!homeSource.includes("projectTagHighlights"), "Home works section should not add tag filler to solve layout");
+assert.ok(!homeSource.includes("作品索引"), "Home works section should not add extra explanatory content just to fill space");
+assert.ok(!homeSource.includes("pieces"), "Home works section should not show object counts as filler content");
+assert.ok(!homeSource.includes('md:grid-cols-[0.52fr_1.48fr]'), "Home works section should not use a separate left intro card");
 assert.ok(
-  homeSource.includes('md:grid-cols-[0.66fr_1.34fr]'),
-  "Home works section should give more space to project cards than the left intro panel",
+  homeSource.includes("data-home-works") && homeSource.includes("data-home-works-list"),
+  "Home works section should be one unified panel with the project list beneath the heading",
 );
+
+assert.ok(
+  !adminSource.includes("color: var(--background);"),
+  "Admin buttons should not use the page background color as button text color",
+);
+assert.ok(
+  adminSource.includes(".orbit-button:disabled"),
+  "Admin buttons should define disabled text color instead of falling back to the browser default",
+);
+assert.ok(
+  adminSource.includes(".dark .orbit-button-primary"),
+  "Admin primary buttons should keep explicit contrast in dark mode",
+);
+assert.ok(adminSource.includes('const ARTICLE_IMAGE_ASSETS_PATH = "public/article-assets"'), "Admin should store article images in public/article-assets");
+assert.ok(adminSource.includes('const ARTICLE_VIDEO_ASSETS_PATH = "public/article-videos"'), "Admin should store article videos in public/article-videos");
+assert.ok(adminSource.includes('const PERSONAL_PHOTO_PATH = "public/personal-photo"'), "Admin should keep homepage photos in public/personal-photo");
+assert.ok(adminSource.includes('const PERSONAL_VIDEO_PATH = "public/personal-video"'), "Admin should keep homepage videos in public/personal-video");
+assert.ok(adminSource.includes('const RECOMMENDATION_ASSETS_PATH = "public/recommendation-assets"'), "Admin should store recommendation covers separately");
+assert.ok(adminSource.includes('const SITE_ASSETS_PATH = "public/site-assets"'), "Admin should store site-level assets separately");
+assert.ok(!adminSource.includes('const IMAGES_PATH = "public/images"'), "Admin should not use public/images as a mixed asset bucket");
+assert.ok(!adminSource.includes('const VIDEOS_PATH = "public/videos"'), "Admin should not use public/videos as a generic article video bucket");
 
 console.log("ui regression checks passed");

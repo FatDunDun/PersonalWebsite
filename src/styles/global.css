@@ -70,7 +70,7 @@ body::before {
   z-index: 0;
   background:
     linear-gradient(115deg, rgb(248 244 234 / 0.58), rgb(248 244 234 / 0.10) 42%, rgb(8 18 26 / 0.36) 100%),
-    var(--exhibition-bg, url("/images/home-exhibition-bg.jpg")) center / cover no-repeat;
+    var(--exhibition-bg, url("/site-assets/home-exhibition-bg.jpg")) center / cover no-repeat;
   transform: scale(1.035);
   animation: exhibition-breathe 24s ease-in-out infinite alternate;
 }
@@ -86,7 +86,7 @@ body::after {
 .dark body::before {
   background:
     linear-gradient(115deg, rgb(8 18 26 / 0.82), rgb(8 18 26 / 0.28) 46%, rgb(0 0 0 / 0.58) 100%),
-    var(--exhibition-bg, url("/images/home-exhibition-bg.jpg")) center / cover no-repeat;
+    var(--exhibition-bg, url("/site-assets/home-exhibition-bg.jpg")) center / cover no-repeat;
 }
 
 .dark body::after {

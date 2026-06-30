@@ -23,7 +23,7 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
 const canonical = Astro.url.href;
 const resolvedOgImage = assetUrl(image);
 const ogImage = resolvedOgImage.startsWith("http") ? resolvedOgImage : absoluteUrl(image);
-const heroBackgroundImage = homeConfig.heroBackgroundImage || "/images/home-exhibition-bg.jpg";
+const heroBackgroundImage = homeConfig.heroBackgroundImage || "/site-assets/home-exhibition-bg.jpg";
 ---
 
 <!doctype html>

@@ -41,13 +41,15 @@ const requiredSnippets = [
   "data-section-group=\"personalVideos\"",
   "data-media-grid=\"personalPhotoAssets\"",
   "data-media-grid=\"personalVideoAssets\"",
-  "主页照片",
-  "主页视频",
-  "文章素材",
-  "展示条目",
-  "照片文件",
-  "图片素材",
-  "视频素材",
+  "PERSONAL_PHOTO",
+  "PERSONAL_VIDEO",
+  "PERSONAL_PHOTO_ASSETS",
+  "PERSONAL_VIDEO_ASSETS",
+  "ARTICLE_ASSETS",
+  "PERSONAL_PHOTO_ENTRIES",
+  "PERSONAL_VIDEO_ENTRIES",
+  "ARTICLE_IMAGE_ASSETS",
+  "ARTICLE_VIDEO_ASSETS",
 ];
 
 for (const snippet of requiredSnippets) {
@@ -112,7 +114,7 @@ assert.ok(
 
 assert.ok(
   source.includes('state.personalPhotoAssets = mergeMediaAssets(INITIAL_DATA.personalPhotoAssets, await mediaApiList("/personal-photo"))') &&
-    source.includes('state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/images"))'),
+    source.includes('state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/article-assets"))'),
   "Expected R2 media library reads to keep built-in repository fallback assets visible",
 );
 
@@ -129,8 +131,8 @@ assert.ok(
 );
 
 const requiredMediaRoots = [
-  'publicRoot: "/images"',
-  'publicRoot: "/videos"',
+  'publicRoot: "/article-assets"',
+  'publicRoot: "/article-videos"',
   'publicRoot: "/personal-photo"',
   'publicRoot: "/personal-video"',
   'await mediaApiList("/personal-photo")',
@@ -186,6 +188,11 @@ assert.ok(
 assert.ok(
   !source.includes('$(\"[data-delete-video]\").addEventListener(\"click\", () => run(deleteVideo))'),
   "Video asset delete button should queue deletion instead of committing immediately",
+);
+
+assert.ok(
+  source.includes('const setCount = (key, value) => {') && source.includes('if (node) node.textContent = value;'),
+  "Admin count updates should not throw when a grouped subsection has no sidebar counter",
 );
 
 const imageLimitBlock = source.match(/image:\s*\{[\s\S]*?\n\s*\},\n\s*video:/)?.[0] || "";

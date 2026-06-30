@@ -1311,15 +1311,28 @@ const initialData = {
         if (!state.mediaToken) throw new Error("R2 上传、删除和读取素材库需要先输入 Media Token。这个值对应 Cloudflare Worker 的 ADMIN_TOKEN。");
       };
 
+      const describeMediaError = (error) => {
+        const message = error instanceof Error ? error.message : "";
+        if (!message || message === "Failed to fetch") {
+          return "R2 API 无法访问：请检查 PUBLIC_MEDIA_API_URL、Cloudflare Worker CORS 配置和 Media Token 是否正确。";
+        }
+        return message;
+      };
+
       const mediaApi = async (path, options = {}) => {
         requireMediaAccess();
-        const response = await fetch(`${MEDIA_API_URL.replace(/\/$/, "")}${path}`, {
-          ...options,
-          headers: {
-            Authorization: `Bearer ${state.mediaToken}`,
-            ...(options.headers || {}),
-          },
-        });
+        let response;
+        try {
+          response = await fetch(`${MEDIA_API_URL.replace(/\/$/, "")}${path}`, {
+            ...options,
+            headers: {
+              Authorization: `Bearer ${state.mediaToken}`,
+              ...(options.headers || {}),
+            },
+          });
+        } catch (error) {
+          throw new Error(describeMediaError(error));
+        }
         const data = await response.json().catch(() => null);
         if (!response.ok) throw new Error(data?.message || `Media API error ${response.status}`);
         return data;
@@ -1796,7 +1809,9 @@ const initialData = {
         });
         listKicker.textContent = labels[section].kicker;
         listTitle.textContent = labels[section].title;
-        $("[data-new-current]").textContent = section === "settings" ? "save" : "new";
+        const newButton = $("[data-new-current]");
+        newButton.hidden = isMediaLibrarySection(section);
+        newButton.textContent = section === "settings" ? "save" : "new";
         renderList();
       };
 
@@ -2066,6 +2081,27 @@ const initialData = {
 
       const loadAllMediaLibraries = async () => {
         await Promise.all([loadImages(), loadPersonalPhotoAssets(), loadVideos(), loadPersonalVideoAssets()]);
+      };
+
+      const refreshAfterMediaSync = async (successStatus, refreshFailedStatus) => {
+        try {
+          await loadAllMediaLibraries();
+        } catch (error) {
+          selectImage(null);
+          selectVideo(null);
+          updateCounts();
+          renderList();
+          updatePendingChangesUi();
+          setStatus(`${refreshFailedStatus}：${describeMediaError(error)} 请刷新页面后确认 R2 素材库。`);
+          return false;
+        }
+        selectImage(null);
+        selectVideo(null);
+        updateCounts();
+        renderList();
+        updatePendingChangesUi();
+        setStatus(successStatus);
+        return true;
       };
 
       const applyInitialMediaLibraries = () => {
@@ -2833,13 +2869,7 @@ const initialData = {
           state.pendingMedia.deletes = [];
           state.pendingMedia.selectedImages.clear();
           state.pendingMedia.selectedVideos.clear();
-          await loadAllMediaLibraries();
-          selectImage(null);
-          selectVideo(null);
-          updateCounts();
-          renderList();
-          updatePendingChangesUi();
-          setStatus("R2 媒体操作已同步。");
+          await refreshAfterMediaSync("R2 媒体操作已同步。", "R2 媒体操作已同步，但素材列表刷新失败");
           return;
         }
 
@@ -2896,6 +2926,10 @@ const initialData = {
         state.pendingMedia.selectedVideos.clear();
         state.pendingChanges.files = [];
         state.pendingChanges.deletes = [];
+        if (remoteUploads.length || remoteDeletes.length) {
+          await refreshAfterMediaSync("全部待处理改动已同步为 1 次 Git commit。", "全部待处理改动已同步，但素材列表刷新失败");
+          return;
+        }
         await loadAll();
         selectImage(null);
         selectVideo(null);
@@ -3200,10 +3234,6 @@ const initialData = {
         if (state.section === "recommendations") newRecommendation();
         if (state.section === "gallery") newGallery();
         if (state.section === "personalVideos") newPersonalVideo();
-        if (state.section === "images") $("[data-image-file]").click();
-        if (state.section === "personalPhotoAssets") $("[data-personal-photo-asset-file]").click();
-        if (state.section === "videos") $("[data-video-file]").click();
-        if (state.section === "personalVideoAssets") $("[data-personal-video-asset-file]").click();
         if (state.section === "settings") run(saveSettings);
       });
 

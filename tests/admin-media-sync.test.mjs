@@ -95,6 +95,20 @@ assert.ok(
 );
 
 assert.ok(
+  source.includes("const describeMediaError = (error) => {") &&
+    source.includes("R2 API 无法访问") &&
+    !source.includes('throw new Error(error instanceof Error ? error.message : "Failed to fetch")'),
+  "Expected R2 network failures to show a clear Media API message instead of raw Failed to fetch",
+);
+
+assert.ok(
+  source.includes("await refreshAfterMediaSync(") &&
+    source.includes("R2 媒体操作已同步，但素材列表刷新失败") &&
+    source.includes("全部待处理改动已同步，但素材列表刷新失败"),
+  "Expected successful R2 uploads to stay successful even if the post-upload media library refresh fails",
+);
+
+assert.ok(
   source.includes("await loadContentFiles();") && source.includes("const mediaStatus = await loadMediaLibrariesSafely();"),
   "Expected GitHub content loading to be separated from optional R2 media library loading",
 );
@@ -194,6 +208,22 @@ assert.ok(
   source.includes('const setCount = (key, value) => {') && source.includes('if (node) node.textContent = value;'),
   "Admin count updates should not throw when a grouped subsection has no sidebar counter",
 );
+
+assert.ok(
+  source.includes("newButton.hidden = isMediaLibrarySection(section);"),
+  "Media library sections should hide the global new button and use their explicit upload button only",
+);
+
+const duplicateMediaNewTriggers = [
+  'if (state.section === "images") $("[data-image-file]").click();',
+  'if (state.section === "personalPhotoAssets") $("[data-personal-photo-asset-file]").click();',
+  'if (state.section === "videos") $("[data-video-file]").click();',
+  'if (state.section === "personalVideoAssets") $("[data-personal-video-asset-file]").click();',
+];
+
+for (const snippet of duplicateMediaNewTriggers) {
+  assert.ok(!source.includes(snippet), "Global new button should not duplicate asset upload controls: " + snippet);
+}
 
 const imageLimitBlock = source.match(/image:\s*\{[\s\S]*?\n\s*\},\n\s*video:/)?.[0] || "";
 assert.ok(imageLimitBlock, "Expected admin page to define image media rules");

@@ -11,7 +11,7 @@ const currentPath = Astro.url.pathname;
       <span class="inverse-control grid size-8 place-items-center rounded-md font-mono text-xs transition">
         {siteConfig.logoText || "M"}
       </span>
-      <span class="hidden font-mono text-sm tracking-wide sm:inline">{siteConfig.author}</span>
+      <span class="max-w-[42vw] truncate font-mono text-sm tracking-wide sm:max-w-none">{siteConfig.author}</span>
     </a>
 
     <div class="flex items-center gap-2">

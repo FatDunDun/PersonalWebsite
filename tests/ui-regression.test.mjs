@@ -3,6 +3,7 @@ import { strict as assert } from "node:assert";
 
 const adminSource = readFileSync(new URL("../src/pages/silent-orbit-7429/index.astro", import.meta.url), "utf8");
 const footerSource = readFileSync(new URL("../src/components/Footer.astro", import.meta.url), "utf8");
+const headerSource = readFileSync(new URL("../src/components/Header.astro", import.meta.url), "utf8");
 const homeSource = readFileSync(new URL("../src/pages/index.astro", import.meta.url), "utf8");
 
 assert.ok(!adminSource.includes("分享图路径"), "Admin settings should not show the unused share image path field");
@@ -14,6 +15,11 @@ assert.equal(footerMutedText.length, 0, "Footer small text should use the same f
 assert.ok(
   footerSource.includes("text-[var(--foreground)]"),
   "Footer should explicitly use foreground text color for light mode readability",
+);
+
+assert.ok(
+  headerSource.includes("{siteConfig.author}") && !headerSource.includes("hidden font-mono text-sm tracking-wide sm:inline"),
+  "Header author name should stay visible on mobile instead of hiding below the sm breakpoint",
 );
 
 assert.ok(!homeSource.includes("projectYearLabel"), "Home works section should not add maintenance-like timeline filler");

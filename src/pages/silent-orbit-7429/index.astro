@@ -684,6 +684,17 @@ const initialData = {
               </div>
             </div>
             <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-media-pending-summary="images">暂无待同步图片操作。</p>
+            <div class="mt-3 flex flex-col gap-3 rounded border border-[var(--line)] bg-[var(--surface-soft)] p-3" data-media-directory-controls="images">
+              <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <p class="break-all font-mono text-xs text-[var(--foreground)]" data-media-current-directory="images">/article-assets/</p>
+                <button class="orbit-button" type="button" data-media-parent-folder="images">上级目录</button>
+              </div>
+              <div class="flex flex-wrap gap-2" data-media-folder-list="images"></div>
+              <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <input class="orbit-input font-mono text-sm" data-media-folder-input="images" placeholder="new-folder" />
+                <button class="orbit-button orbit-button-primary" type="button" data-media-create-folder="images">新建目录</button>
+              </div>
+            </div>
 
             <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
               <div class="grid max-h-[calc(100vh-260px)] grid-cols-2 gap-3 overflow-auto pr-1 md:grid-cols-3 2xl:grid-cols-4" data-image-grid data-media-grid="images">
@@ -727,6 +738,17 @@ const initialData = {
               </div>
             </div>
             <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-media-pending-summary="personalPhotoAssets">暂无待同步 PersonalPhoto 文件操作。</p>
+            <div class="mt-3 flex flex-col gap-3 rounded border border-[var(--line)] bg-[var(--surface-soft)] p-3" data-media-directory-controls="personalPhotoAssets">
+              <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <p class="break-all font-mono text-xs text-[var(--foreground)]" data-media-current-directory="personalPhotoAssets">/personal-photo/</p>
+                <button class="orbit-button" type="button" data-media-parent-folder="personalPhotoAssets">上级目录</button>
+              </div>
+              <div class="flex flex-wrap gap-2" data-media-folder-list="personalPhotoAssets"></div>
+              <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <input class="orbit-input font-mono text-sm" data-media-folder-input="personalPhotoAssets" placeholder="new-folder" />
+                <button class="orbit-button orbit-button-primary" type="button" data-media-create-folder="personalPhotoAssets">新建目录</button>
+              </div>
+            </div>
 
             <div class="mt-4 grid max-h-[calc(100vh-260px)] grid-cols-2 gap-3 overflow-auto pr-1 md:grid-cols-3 2xl:grid-cols-4" data-media-grid="personalPhotoAssets">
               <p class="text-sm text-[var(--muted)]">连接后加载 PersonalPhoto 文件。</p>
@@ -819,6 +841,17 @@ const initialData = {
               </div>
             </div>
             <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-media-pending-summary="videos">暂无待同步视频操作。</p>
+            <div class="mt-3 flex flex-col gap-3 rounded border border-[var(--line)] bg-[var(--surface-soft)] p-3" data-media-directory-controls="videos">
+              <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <p class="break-all font-mono text-xs text-[var(--foreground)]" data-media-current-directory="videos">/article-videos/</p>
+                <button class="orbit-button" type="button" data-media-parent-folder="videos">上级目录</button>
+              </div>
+              <div class="flex flex-wrap gap-2" data-media-folder-list="videos"></div>
+              <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <input class="orbit-input font-mono text-sm" data-media-folder-input="videos" placeholder="new-folder" />
+                <button class="orbit-button orbit-button-primary" type="button" data-media-create-folder="videos">新建目录</button>
+              </div>
+            </div>
 
             <div class="mt-4 grid gap-4 lg:grid-cols-[1fr_360px]">
               <div class="grid max-h-[calc(100vh-260px)] grid-cols-1 gap-3 overflow-auto pr-1 2xl:grid-cols-2" data-video-grid data-media-grid="videos">
@@ -862,6 +895,17 @@ const initialData = {
               </div>
             </div>
             <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-media-pending-summary="personalVideoAssets">暂无待同步 PersonalVideo 文件操作。</p>
+            <div class="mt-3 flex flex-col gap-3 rounded border border-[var(--line)] bg-[var(--surface-soft)] p-3" data-media-directory-controls="personalVideoAssets">
+              <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <p class="break-all font-mono text-xs text-[var(--foreground)]" data-media-current-directory="personalVideoAssets">/personal-video/</p>
+                <button class="orbit-button" type="button" data-media-parent-folder="personalVideoAssets">上级目录</button>
+              </div>
+              <div class="flex flex-wrap gap-2" data-media-folder-list="personalVideoAssets"></div>
+              <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <input class="orbit-input font-mono text-sm" data-media-folder-input="personalVideoAssets" placeholder="new-folder" />
+                <button class="orbit-button orbit-button-primary" type="button" data-media-create-folder="personalVideoAssets">新建目录</button>
+              </div>
+            </div>
 
             <div class="mt-4 grid max-h-[calc(100vh-260px)] grid-cols-1 gap-3 overflow-auto pr-1 2xl:grid-cols-2" data-media-grid="personalVideoAssets">
               <p class="text-sm text-[var(--muted)]">连接后加载 PersonalVideo 文件。</p>
@@ -1067,6 +1111,12 @@ const initialData = {
           selectedImages: new Set(),
           selectedVideos: new Set(),
         },
+        mediaDirectoryState: {
+          images: { currentPublicRoot: "/article-assets", folders: [] },
+          personalPhotoAssets: { currentPublicRoot: "/personal-photo", folders: [] },
+          videos: { currentPublicRoot: "/article-videos", folders: [] },
+          personalVideoAssets: { currentPublicRoot: "/personal-video", folders: [] },
+        },
         pendingChanges: {
           files: [],
           deletes: [],
@@ -1195,6 +1245,30 @@ const initialData = {
       };
 
       const isMediaLibrarySection = (section) => !!mediaLibraries[section];
+
+      const mediaDirectoryState = (section) => state.mediaDirectoryState[section];
+
+      const sectionForMediaRoot = (publicRoot = "") =>
+        Object.keys(mediaLibraries).find((section) => {
+          const root = mediaLibraries[section].publicRoot;
+          return publicRoot === root || publicRoot.startsWith(`${root}/`);
+        });
+
+      const normalizePublicRoot = (publicRoot = "") => `/${mediaRootFromPublicRoot(publicRoot)}`;
+
+      const mediaCurrentPublicRoot = (section) => mediaDirectoryState(section)?.currentPublicRoot || mediaLibraries[section]?.publicRoot || "";
+
+      const mediaTargetPublicRoot = (kindOrSection) => {
+        const section = mediaLibraries[kindOrSection] ? kindOrSection : kindOrSection === "image" ? "images" : "videos";
+        return mediaCurrentPublicRoot(section);
+      };
+
+      const mediaTargetDirectory = (section) => {
+        const config = mediaLibraries[section];
+        const currentRoot = mediaCurrentPublicRoot(section);
+        const suffix = currentRoot.startsWith(`${config.publicRoot}/`) ? currentRoot.slice(config.publicRoot.length + 1) : "";
+        return suffix ? `${config.directory}/${suffix}` : config.directory;
+      };
 
       const setStatus = (message) => {
         status.textContent = message;
@@ -1376,6 +1450,15 @@ const initialData = {
       const mediaApiList = async (publicRoot) => {
         const prefix = mediaRootFromPublicRoot(publicRoot);
         const data = await mediaApi(`/media?prefix=${encodeURIComponent(prefix)}`);
+        const section = sectionForMediaRoot(normalizePublicRoot(publicRoot));
+        if (section) {
+          mediaDirectoryState(section).folders = (data.folders || []).map((folder) => ({
+            ...folder,
+            type: "folder",
+            publicPath: normalizePublicRoot(folder.path || folder.key),
+            folderPrefix: folder.key,
+          }));
+        }
         return (data.objects || []).map((item) => ({
           name: item.name,
           key: item.key,
@@ -1387,6 +1470,15 @@ const initialData = {
           remote: true,
           type: "file",
         }));
+      };
+
+      const mediaApiCreateFolder = async (publicRoot) => {
+        const form = new FormData();
+        form.append("key", mediaKeyFromPublicPath(publicRoot));
+        return mediaApi("/media/folder", {
+          method: "POST",
+          body: form,
+        });
       };
 
       const mediaApiUpload = async (upload) => {
@@ -1723,11 +1815,18 @@ const initialData = {
 
       const assetPreviewUrl = (asset) => asset?.previewUrl || asset?.url || (asset?.publicPath ? assetUrl(asset.publicPath) : "");
 
+      const isInImmediateDirectory = (asset, currentRoot) => {
+        const path = asset?.publicPath || "";
+        if (!path.startsWith(`${currentRoot}/`)) return false;
+        return !path.slice(currentRoot.length + 1).includes("/");
+      };
+
       const visibleMediaAssets = (section) => {
         const config = mediaLibraries[section];
         if (!config) return [];
+        const currentRoot = mediaCurrentPublicRoot(section);
         return [
-          ...state.pendingMedia.uploads.filter((item) => item.kind === config.kind && item.publicPath?.startsWith(`${config.publicRoot}/`)),
+          ...state.pendingMedia.uploads.filter((item) => item.kind === config.kind && isInImmediateDirectory(item, currentRoot)),
           ...state[config.stateKey].filter((asset) => !isPendingDelete(config.kind, asset.path)),
         ];
       };
@@ -1752,6 +1851,84 @@ const initialData = {
         const selected = kind === "image" ? state.pendingMedia.selectedImages : state.pendingMedia.selectedVideos;
         const assets = isMediaLibrarySection(state.section) ? visibleMediaAssets(state.section) : kind === "image" ? visibleImages() : visibleVideos();
         return assets.filter((asset) => selected.has(asset.path));
+      };
+
+      const loadMediaLibrarySection = async (section) => {
+        if (section === "images") await loadImages();
+        if (section === "personalPhotoAssets") await loadPersonalPhotoAssets();
+        if (section === "videos") await loadVideos();
+        if (section === "personalVideoAssets") await loadPersonalVideoAssets();
+      };
+
+      const parentPublicRoot = (section) => {
+        const config = mediaLibraries[section];
+        const currentRoot = mediaCurrentPublicRoot(section);
+        if (currentRoot === config.publicRoot) return currentRoot;
+        const parent = currentRoot.split("/").slice(0, -1).join("/");
+        return parent || config.publicRoot;
+      };
+
+      const renderMediaDirectoryControls = (section) => {
+        const config = mediaLibraries[section];
+        const directory = mediaDirectoryState(section);
+        const controls = $(`[data-media-directory-controls="${section}"]`);
+        if (!config || !directory || !controls) return;
+        const currentRoot = mediaCurrentPublicRoot(section);
+        const currentNode = controls.querySelector(`[data-media-current-directory="${section}"]`);
+        const parentButton = controls.querySelector(`[data-media-parent-folder="${section}"]`);
+        const folderList = controls.querySelector(`[data-media-folder-list="${section}"]`);
+        if (currentNode) currentNode.textContent = `${currentRoot}/`;
+        if (parentButton) parentButton.disabled = currentRoot === config.publicRoot;
+        if (!folderList) return;
+        folderList.innerHTML = "";
+        const folders = directory.folders || [];
+        if (!folders.length) {
+          folderList.innerHTML = `<span class="font-mono text-xs text-[var(--muted)]">NO_SUBDIRECTORIES</span>`;
+          return;
+        }
+        folders.forEach((folder) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "orbit-button";
+          button.dataset.mediaFolderCard = section;
+          button.textContent = `${folder.name}/`;
+          button.addEventListener("click", () => run(() => selectMediaDirectory(section, folder.publicPath)));
+          folderList.append(button);
+        });
+      };
+
+      const renderAllMediaDirectoryControls = () => Object.keys(mediaLibraries).forEach(renderMediaDirectoryControls);
+
+      const selectMediaDirectory = async (section, publicRoot) => {
+        const config = mediaLibraries[section];
+        if (!config) return;
+        const normalizedRoot = normalizePublicRoot(publicRoot);
+        if (normalizedRoot !== config.publicRoot && !normalizedRoot.startsWith(`${config.publicRoot}/`)) {
+          throw new Error("目录必须位于当前素材库根目录下。");
+        }
+        mediaDirectoryState(section).currentPublicRoot = normalizedRoot;
+        clearSelections(config.kind);
+        await loadMediaLibrarySection(section);
+        if (config.kind === "image") selectImage(null);
+        else selectVideo(null);
+        updateCounts();
+        renderList();
+        renderMediaDirectoryControls(section);
+        updatePendingMediaUi();
+      };
+
+      const createMediaFolder = async (section) => {
+        const config = mediaLibraries[section];
+        const input = $(`[data-media-folder-input="${section}"]`);
+        const name = input?.value.trim().replace(/^\/+|\/+$/g, "");
+        if (!config || !name) throw new Error("请输入目录名");
+        if (name.includes("..") || name.includes("/") || name.includes("\\")) throw new Error("目录名不能包含 /、\\ 或 ..");
+        if (mediaStorageMode() !== "r2") throw new Error("R2 目录管理需要先配置并连接 R2 素材库。");
+        const nextRoot = `${mediaCurrentPublicRoot(section)}/${name}`;
+        await mediaApiCreateFolder(nextRoot);
+        if (input) input.value = "";
+        await selectMediaDirectory(section, nextRoot);
+        setStatus(`R2 目录已创建：${nextRoot}/`);
       };
 
       const updatePendingMediaUi = () => {
@@ -1928,17 +2105,32 @@ const initialData = {
         const grid = $(`[data-media-grid="${section}"]`);
         if (!config || !grid) return;
         grid.innerHTML = "";
+        const folders = mediaDirectoryState(section)?.folders || [];
         const assets = visibleMediaAssets(section);
-        if (!assets.length) {
+        if (!folders.length && !assets.length) {
           grid.innerHTML = `<p class="text-sm text-[var(--muted)]">${config.empty}</p>`;
           updatePendingMediaUi();
+          renderMediaDirectoryControls(section);
           return;
         }
-        assets.forEach((asset) => {
+        folders.forEach((folder) => {
           const button = document.createElement("button");
           button.type = "button";
-          button.className = "orbit-card quiet-card overflow-hidden p-2 text-left transition hover:border-[var(--foreground)]";
+          button.className = "orbit-card quiet-card p-4 text-left transition hover:border-[var(--foreground)]";
+          button.dataset.mediaFolderCard = section;
+          button.innerHTML = `
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">FOLDER</p>
+            <p class="mt-3 break-all text-lg font-semibold">${escapeHtml(folder.name)}/</p>
+            <p class="mt-2 break-all font-mono text-xs text-[var(--muted)]">${escapeHtml(folder.publicPath)}/</p>
+          `;
+          button.addEventListener("click", () => run(() => selectMediaDirectory(section, folder.publicPath)));
+          grid.append(button);
+        });
+        assets.forEach((asset) => {
           if (config.kind === "image") {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "orbit-card quiet-card overflow-hidden p-2 text-left transition hover:border-[var(--foreground)]";
             button.dataset.active = String(state.current.image?.path === asset.path);
             button.innerHTML = `
               <label class="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]" data-media-select-wrapper>
@@ -1953,28 +2145,46 @@ const initialData = {
             button.querySelector("[data-image-select]").addEventListener("click", (event) => event.stopPropagation());
             button.querySelector("[data-image-select]").addEventListener("change", (event) => setSelection("image", asset.path, event.target.checked));
             button.addEventListener("click", () => selectImage(asset));
+            grid.append(button);
           } else {
-            button.dataset.active = String(state.current.video?.path === asset.path);
-            button.innerHTML = `
+            const card = document.createElement("div");
+            card.className = "orbit-card quiet-card overflow-hidden p-2 text-left transition hover:border-[var(--foreground)]";
+            card.dataset.active = String(state.current.video?.path === asset.path);
+            card.dataset.videoAssetCard = "true";
+            card.tabIndex = 0;
+            card.setAttribute("role", "button");
+            card.innerHTML = `
               <label class="mb-2 flex items-center gap-2 text-xs text-[var(--muted)]" data-media-select-wrapper>
                 <input data-video-select type="checkbox" ${state.pendingMedia.selectedVideos.has(asset.path) ? "checked" : ""} />
                 <span>${asset.pending ? "待新增" : "选择"}</span>
               </label>
               <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
-                <video class="aspect-video w-full object-cover" src="${assetPreviewUrl(asset)}" preload="metadata" muted playsinline></video>
+                <video class="aspect-video w-full object-cover" src="${assetPreviewUrl(asset)}" controls playsinline preload="metadata"></video>
               </div>
               <p class="mt-2 break-all font-mono text-xs">${escapeHtml(asset.publicPath)}</p>
             `;
-            button.querySelector("[data-video-select]").addEventListener("click", (event) => event.stopPropagation());
-            button.querySelector("[data-video-select]").addEventListener("change", (event) => setSelection("video", asset.path, event.target.checked));
-            button.addEventListener("click", () => selectVideo(asset));
+            card.querySelector("[data-video-select]").addEventListener("click", (event) => event.stopPropagation());
+            card.querySelector("[data-video-select]").addEventListener("change", (event) => setSelection("video", asset.path, event.target.checked));
+            card.addEventListener("click", (event) => {
+              if (event.target.closest("video") || event.target.closest("[data-media-select-wrapper]")) return;
+              selectVideo(asset);
+            });
+            card.addEventListener("keydown", (event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              selectVideo(asset);
+            });
+            grid.append(card);
           }
-          grid.append(button);
         });
+        renderMediaDirectoryControls(section);
         updatePendingMediaUi();
       };
 
-      const renderMediaGrids = () => Object.keys(mediaLibraries).forEach(renderMediaGrid);
+      const renderMediaGrids = () => {
+        Object.keys(mediaLibraries).forEach(renderMediaGrid);
+        renderAllMediaDirectoryControls();
+      };
 
       const renderImageGrid = () => renderMediaGrid("images");
 
@@ -2032,51 +2242,55 @@ const initialData = {
       };
 
       const loadImages = async () => {
+        const currentRoot = mediaCurrentPublicRoot("images");
         if (mediaStorageMode() === "r2") {
-          state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/article-assets"));
+          state.images = mergeMediaAssets(currentRoot === "/article-assets" ? INITIAL_DATA.images : [], await mediaApiList(currentRoot));
           return;
         }
-        const files = await getDir(ARTICLE_IMAGE_ASSETS_PATH);
+        const files = await getDir(mediaTargetDirectory("images"));
         state.images = files
           .filter((file) => file.type === "file" && /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(file.name))
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => ({ ...file, publicPath: `/article-assets/${file.name}` }));
+          .map((file) => ({ ...file, publicPath: `${currentRoot}/${file.name}` }));
       };
 
       const loadPersonalPhotoAssets = async () => {
+        const currentRoot = mediaCurrentPublicRoot("personalPhotoAssets");
         if (mediaStorageMode() === "r2") {
-          state.personalPhotoAssets = mergeMediaAssets(INITIAL_DATA.personalPhotoAssets, await mediaApiList("/personal-photo"));
+          state.personalPhotoAssets = mergeMediaAssets(currentRoot === "/personal-photo" ? INITIAL_DATA.personalPhotoAssets : [], await mediaApiList(currentRoot));
           return;
         }
-        const files = await getDir(PERSONAL_PHOTO_PATH);
+        const files = await getDir(mediaTargetDirectory("personalPhotoAssets"));
         state.personalPhotoAssets = files
           .filter((file) => file.type === "file" && /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(file.name))
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => ({ ...file, publicPath: `/personal-photo/${file.name}` }));
+          .map((file) => ({ ...file, publicPath: `${currentRoot}/${file.name}` }));
       };
 
       const loadVideos = async () => {
+        const currentRoot = mediaCurrentPublicRoot("videos");
         if (mediaStorageMode() === "r2") {
-          state.videos = mergeMediaAssets(INITIAL_DATA.videos, await mediaApiList("/article-videos"));
+          state.videos = mergeMediaAssets(currentRoot === "/article-videos" ? INITIAL_DATA.videos : [], await mediaApiList(currentRoot));
           return;
         }
-        const files = await getDir(ARTICLE_VIDEO_ASSETS_PATH);
+        const files = await getDir(mediaTargetDirectory("videos"));
         state.videos = files
           .filter((file) => file.type === "file" && /\.(mp4|webm|mov|m4v)$/i.test(file.name))
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => ({ ...file, publicPath: `/article-videos/${file.name}` }));
+          .map((file) => ({ ...file, publicPath: `${currentRoot}/${file.name}` }));
       };
 
       const loadPersonalVideoAssets = async () => {
+        const currentRoot = mediaCurrentPublicRoot("personalVideoAssets");
         if (mediaStorageMode() === "r2") {
-          state.personalVideoAssets = mergeMediaAssets(INITIAL_DATA.personalVideoAssets, await mediaApiList("/personal-video"));
+          state.personalVideoAssets = mergeMediaAssets(currentRoot === "/personal-video" ? INITIAL_DATA.personalVideoAssets : [], await mediaApiList(currentRoot));
           return;
         }
-        const files = await getDir(PERSONAL_VIDEO_PATH);
+        const files = await getDir(mediaTargetDirectory("personalVideoAssets"));
         state.personalVideoAssets = files
           .filter((file) => file.type === "file" && /\.(mp4|webm|mov|m4v)$/i.test(file.name))
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => ({ ...file, publicPath: `/personal-video/${file.name}` }));
+          .map((file) => ({ ...file, publicPath: `${currentRoot}/${file.name}` }));
       };
 
       const loadAllMediaLibraries = async () => {
@@ -3011,8 +3225,9 @@ const initialData = {
         const config = mediaLibraries[kindOrSection] || (kindOrSection === "image" ? mediaLibraries.images : mediaLibraries.videos);
         const kind = config.kind;
         const isImage = kind === "image";
-        const directory = config.directory;
-        const publicRoot = config.publicRoot;
+        const section = mediaLibraries[kindOrSection] ? kindOrSection : kindOrSection === "image" ? "images" : "videos";
+        const directory = mediaTargetDirectory(section);
+        const publicRoot = mediaTargetPublicRoot(kindOrSection);
         const remote = mediaStorageMode() === "r2";
         validateMediaFiles(files, kind);
         setStatus("加入" + files.length + " 个" + (isImage ? "图片" : "视频") + "到待同步队列中...");
@@ -3396,6 +3611,20 @@ const initialData = {
         });
       });
       $("[data-delete-personal-video-asset]").addEventListener("click", () => run(() => queueMediaDeletes("video")));
+
+      $$("[data-media-create-folder]").forEach((button) => {
+        button.addEventListener("click", () => run(() => createMediaFolder(button.dataset.mediaCreateFolder)));
+      });
+      $$("[data-media-folder-input]").forEach((input) => {
+        input.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          run(() => createMediaFolder(input.dataset.mediaFolderInput));
+        });
+      });
+      $$("[data-media-parent-folder]").forEach((button) => {
+        button.addEventListener("click", () => run(() => selectMediaDirectory(button.dataset.mediaParentFolder, parentPublicRoot(button.dataset.mediaParentFolder))));
+      });
 
       $$("[data-sync-media]").forEach((button) => button.addEventListener("click", () => run(syncPendingChanges)));
       $("[data-sync-all]").addEventListener("click", () => run(syncPendingChanges));

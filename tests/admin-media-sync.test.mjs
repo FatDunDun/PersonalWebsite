@@ -127,9 +127,10 @@ assert.ok(
 );
 
 assert.ok(
-  source.includes('state.personalPhotoAssets = mergeMediaAssets(INITIAL_DATA.personalPhotoAssets, await mediaApiList("/personal-photo"))') &&
-    source.includes('state.images = mergeMediaAssets(INITIAL_DATA.images, await mediaApiList("/article-assets"))'),
-  "Expected R2 media library reads to keep built-in repository fallback assets visible",
+  source.includes('currentRoot === "/personal-photo" ? INITIAL_DATA.personalPhotoAssets : []') &&
+    source.includes('currentRoot === "/article-assets" ? INITIAL_DATA.images : []') &&
+    source.includes("await mediaApiList(currentRoot)"),
+  "Expected R2 media library reads to keep built-in repository fallback assets visible at root while supporting subdirectories",
 );
 
 assert.ok(
@@ -149,13 +150,47 @@ const requiredMediaRoots = [
   'publicRoot: "/article-videos"',
   'publicRoot: "/personal-photo"',
   'publicRoot: "/personal-video"',
-  'await mediaApiList("/personal-photo")',
-  'await mediaApiList("/personal-video")',
+  "await mediaApiList(currentRoot)",
+  "mediaCurrentPublicRoot(\"personalPhotoAssets\")",
+  "mediaCurrentPublicRoot(\"personalVideoAssets\")",
 ];
 
 for (const snippet of requiredMediaRoots) {
   assert.ok(source.includes(snippet), "Expected categorized media library support for " + snippet);
 }
+
+const requiredDirectorySnippets = [
+  "mediaDirectoryState",
+  "data-media-folder-list",
+  "data-media-folder-input",
+  "data-media-create-folder",
+  "mediaApiCreateFolder",
+  "mediaTargetPublicRoot",
+  "selectMediaDirectory",
+  "renderMediaDirectoryControls",
+  "folderPrefix",
+];
+
+for (const snippet of requiredDirectorySnippets) {
+  assert.ok(source.includes(snippet), "Expected R2 folder navigation and upload targeting support for " + snippet);
+}
+
+assert.ok(
+  source.includes("const publicRoot = mediaTargetPublicRoot(kindOrSection);"),
+  "Expected media uploads to target the currently selected media directory",
+);
+
+assert.ok(
+  source.includes("folderPrefix") && source.includes("mediaFolderCard"),
+  "Expected media grids to show clickable R2 subfolders",
+);
+
+assert.ok(
+  source.includes("videoAssetCard") &&
+    source.includes("controls playsinline preload=\"metadata\"") &&
+    source.includes('event.target.closest("video")'),
+  "Expected video asset cards to be playable without the card click swallowing video controls",
+);
 
 const duplicateNavLabels = [
   "<span>PersonalPhoto</span>",

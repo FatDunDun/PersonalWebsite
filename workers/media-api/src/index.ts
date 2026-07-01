@@ -5,7 +5,7 @@ interface Env {
   ALLOWED_ORIGIN?: string;
 }
 
-const MEDIA_ROOTS = ["images", "personal-photo", "videos", "personal-video"];
+const MEDIA_ROOTS = ["article-assets", "article-videos", "images", "personal-photo", "personal-video", "videos"];
 const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "avif", "svg", "gif"];
 const VIDEO_EXTENSIONS = ["mp4", "webm", "mov", "m4v"];
 
@@ -52,21 +52,36 @@ function requireAdmin(request: Request, env: Env) {
   return !!env.ADMIN_TOKEN && token === env.ADMIN_TOKEN;
 }
 
+function rootFromMediaPath(path: string) {
+  return path.split("/")[0];
+}
+
+function normalizeMediaPath(value: FormDataEntryValue | string | null, fallback = "article-assets") {
+  const path = String(value || fallback).replace(/^\/+|\/+$/g, "");
+  const root = rootFromMediaPath(path);
+  if (!MEDIA_ROOTS.includes(root)) throw new Error("Media path must start with an allowed root");
+  if (!path || path.includes("..") || path.includes("\\") || path.includes("//")) throw new Error("Media path is not safe");
+  return path;
+}
+
 function normalizeKey(value: FormDataEntryValue | string | null) {
-  const key = String(value || "").replace(/^\/+/, "");
-  const root = key.split("/")[0];
+  const key = normalizeMediaPath(value, "");
   const extension = key.split(".").pop()?.toLowerCase() || "";
   const allowedExtension = IMAGE_EXTENSIONS.includes(extension) || VIDEO_EXTENSIONS.includes(extension);
-  if (!MEDIA_ROOTS.includes(root)) throw new Error("Media key must start with an allowed root");
   if (!allowedExtension) throw new Error("Media key has an unsupported extension");
-  if (key.includes("..") || key.includes("\\") || key.endsWith("/")) throw new Error("Media key is not safe");
+  if (key.endsWith("/")) throw new Error("Media key is not safe");
   return key;
 }
 
 function normalizePrefix(value: string | null) {
-  const prefix = String(value || "images").replace(/^\/+|\/+$/g, "");
-  if (!MEDIA_ROOTS.includes(prefix)) throw new Error("Media prefix is not allowed");
+  const prefix = normalizeMediaPath(value, "article-assets");
   return `${prefix}/`;
+}
+
+function normalizeFolderKey(value: FormDataEntryValue | string | null) {
+  const folder = normalizeMediaPath(value, "");
+  if (!folder.includes("/")) throw new Error("Folder must be created under a media root");
+  return `${folder}/`;
 }
 
 function publicPathForKey(key: string) {
@@ -80,7 +95,15 @@ function publicUrlForKey(env: Env, key: string) {
 async function handleList(request: Request, env: Env) {
   const url = new URL(request.url);
   const prefix = normalizePrefix(url.searchParams.get("prefix"));
-  const listed = await env.ASSETS_BUCKET.list({ prefix, limit: 1000 });
+  const listed = await env.ASSETS_BUCKET.list({ prefix, delimiter: "/", limit: 1000 });
+  const folders = ((listed as unknown as { delimitedPrefixes?: string[] }).delimitedPrefixes || [])
+    .sort((a, b) => a.localeCompare(b))
+    .map((folderPrefix) => ({
+      type: "folder",
+      key: folderPrefix,
+      name: folderPrefix.slice(prefix.length).replace(/\/$/, ""),
+      path: publicPathForKey(folderPrefix),
+    }));
   const objects = listed.objects
     .filter((object) => !object.key.endsWith("/"))
     .sort((a, b) => b.uploaded.getTime() - a.uploaded.getTime())
@@ -93,7 +116,7 @@ async function handleList(request: Request, env: Env) {
       uploaded: object.uploaded.toISOString(),
     }));
 
-  return json(env, { objects, truncated: listed.truncated, cursor: listed.cursor || "" });
+  return json(env, { objects, folders, prefix, truncated: listed.truncated, cursor: listed.cursor || "" });
 }
 
 async function handleUpload(request: Request, env: Env) {
@@ -120,6 +143,24 @@ async function handleUpload(request: Request, env: Env) {
   });
 }
 
+async function handleCreateFolder(request: Request, env: Env) {
+  const form = await request.formData();
+  const key = normalizeFolderKey(form.get("key"));
+  await env.ASSETS_BUCKET.put(key, "", {
+    httpMetadata: {
+      contentType: "application/x-directory",
+      cacheControl: "no-store",
+    },
+  });
+
+  return json(env, {
+    type: "folder",
+    key,
+    name: key.split("/").filter(Boolean).slice(-1)[0] || key,
+    path: publicPathForKey(key),
+  });
+}
+
 async function handleDelete(request: Request, env: Env) {
   const url = new URL(request.url);
   const key = normalizeKey(url.searchParams.get("key"));
@@ -136,6 +177,7 @@ export default {
       const url = new URL(request.url);
       if (request.method === "GET" && url.pathname === "/media") return handleList(request, env);
       if (request.method === "POST" && url.pathname === "/media/upload") return handleUpload(request, env);
+      if (request.method === "POST" && url.pathname === "/media/folder") return handleCreateFolder(request, env);
       if (request.method === "DELETE" && url.pathname === "/media") return handleDelete(request, env);
       if (request.method === "GET" && url.pathname === "/health") return json(env, { ok: true });
       return json(env, { message: "Not found" }, 404);

@@ -1,5 +1,11 @@
 export const galleryItems = [
   {
+    "title": "婚纱剪影",
+    "description": "一只在草坪上拍婚纱照的猪",
+    "image": "https://pub-f391fe6f8e924935bcda42a0b88e5143.r2.dev/personal-photo/1782832614633-bg-married-03-e1cae563.jpg",
+    "height": "medium"
+  },
+  {
     "title": "晨光里的笔记",
     "description": "把一天开始前最安静的十五分钟留给纸面。",
     "image": "/personal-photo/gallery-workspace.png",

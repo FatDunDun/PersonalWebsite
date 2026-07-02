@@ -175,6 +175,30 @@ for (const snippet of requiredDirectorySnippets) {
   assert.ok(source.includes(snippet), "Expected R2 folder navigation and upload targeting support for " + snippet);
 }
 
+const requiredImagePickerSnippets = [
+  "pendingImagePick",
+  "data-image-pick-target",
+  "startImagePicker",
+  "applyPickedImage",
+  'data-image-pick-target="postCover"',
+  'data-image-pick-target="postBody"',
+  'data-image-pick-target="recommendationImage"',
+  'data-image-pick-target="galleryImage"',
+  'data-image-pick-target="personalVideoPoster"',
+  'data-image-pick-target="heroBackground"',
+];
+
+for (const snippet of requiredImagePickerSnippets) {
+  assert.ok(source.includes(snippet), "Expected image fields to support direct R2 asset picking with " + snippet);
+}
+
+assert.ok(
+  source.includes("applyPickedImage(state.pendingImagePick, image)") &&
+    source.includes("selectSection(pick.returnSection)") &&
+    source.includes("galleryFields.image.value = imageValue"),
+  "Expected selecting an R2 image to fill the original image field and return to the editor",
+);
+
 assert.ok(
   source.includes("const publicRoot = mediaTargetPublicRoot(kindOrSection);"),
   "Expected media uploads to target the currently selected media directory",

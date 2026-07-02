@@ -416,6 +416,7 @@ const initialData = {
               <div class="orbit-actions">
                 <button class="orbit-button" data-post-upload-cover type="button">封面</button>
                 <button class="orbit-button" data-post-upload-body-image type="button">插入图片</button>
+                <button class="orbit-button" data-image-pick-target="postBody" data-image-pick-section="images" type="button">选图插入</button>
                 <button class="orbit-button" data-post-upload-video type="button">插入视频</button>
                 <button class="orbit-button" data-post-insert-selected-image type="button">用选中图</button>
                 <button class="orbit-button orbit-button-primary" data-save-post type="button">保存文章</button>
@@ -449,7 +450,10 @@ const initialData = {
                 <div class="grid gap-4 md:grid-cols-2">
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Cover</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="cover" placeholder="/article-assets/cover.png" />
+                    <div class="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+                      <input class="orbit-input font-mono text-sm" data-post-field="cover" placeholder="/article-assets/cover.png" />
+                      <button class="orbit-button" data-image-pick-target="postCover" data-image-pick-section="images" type="button">选择图片</button>
+                    </div>
                   </label>
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Tags</span>
@@ -571,7 +575,10 @@ const initialData = {
                 <div class="grid gap-4 md:grid-cols-2">
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Image</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-recommendation-field="image" placeholder="/recommendation-assets/cover.png" />
+                    <div class="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+                      <input class="orbit-input font-mono text-sm" data-recommendation-field="image" placeholder="/recommendation-assets/cover.png" />
+                      <button class="orbit-button" data-image-pick-target="recommendationImage" data-image-pick-section="images" type="button">选择图片</button>
+                    </div>
                   </label>
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Link</span>
@@ -634,7 +641,10 @@ const initialData = {
                 <div class="grid gap-4 md:grid-cols-[1fr_180px]">
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Image</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-gallery-field="image" placeholder="/personal-photo/example.png" />
+                    <div class="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+                      <input class="orbit-input font-mono text-sm" data-gallery-field="image" placeholder="/personal-photo/example.png" />
+                      <button class="orbit-button" data-image-pick-target="galleryImage" data-image-pick-section="personalPhotoAssets" type="button">选择图片</button>
+                    </div>
                     <p class="mt-2 text-xs leading-5 text-[var(--muted)]">这里引用 `/personal-photo/` 的照片文件，用于主页和图集展示，不是文章素材。</p>
                   </label>
                   <label>
@@ -799,7 +809,10 @@ const initialData = {
                   </label>
                   <label>
                     <span class="font-mono text-xs text-[var(--muted)]">Poster</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-personal-video-field="poster" placeholder="/article-assets/poster.png" />
+                    <div class="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+                      <input class="orbit-input font-mono text-sm" data-personal-video-field="poster" placeholder="/article-assets/poster.png" />
+                      <button class="orbit-button" data-image-pick-target="personalVideoPoster" data-image-pick-section="images" type="button">选择图片</button>
+                    </div>
                   </label>
                 </div>
               </form>
@@ -972,8 +985,9 @@ const initialData = {
                   </label>
                   <label class="block md:col-span-2">
                     <span class="font-mono text-xs text-[var(--muted)]">首页背景图路径</span>
-                    <div class="mt-2 grid gap-2 md:grid-cols-[1fr_auto]">
+                    <div class="mt-2 grid gap-2 md:grid-cols-[1fr_auto_auto]">
                       <input class="orbit-input font-mono text-sm" data-settings-field="home.heroBackgroundImage" placeholder="/site-assets/home-exhibition-bg.jpg" />
+                      <button class="orbit-button" data-image-pick-target="heroBackground" data-image-pick-section="personalPhotoAssets" type="button">选择图片</button>
                       <button class="orbit-button" data-use-selected-hero-background type="button">用选中图</button>
                     </div>
                     <p class="mt-2 text-xs leading-5 text-[var(--muted)]">SITE_ASSETS 存储目录：public/site-assets；公开路径：/site-assets/。</p>
@@ -1138,6 +1152,7 @@ const initialData = {
           image: null,
           video: null,
         },
+        pendingImagePick: null,
       };
 
       const $ = (selector) => document.querySelector(selector);
@@ -3192,6 +3207,78 @@ const initialData = {
         return video;
       };
 
+      const imagePickTargets = {
+        postCover: {
+          section: "images",
+          label: "文章封面",
+          apply: (image, imageValue) => {
+            postFields.cover.value = imageValue;
+            renderMarkdownPreview();
+          },
+        },
+        postBody: {
+          section: "images",
+          label: "文章正文",
+          apply: (image) => insertImageMarkdown(image),
+        },
+        recommendationImage: {
+          section: "images",
+          label: "推荐封面",
+          apply: (image, imageValue) => {
+            recommendationFields.image.value = imageValue;
+            renderRecommendationPreview();
+          },
+        },
+        galleryImage: {
+          section: "personalPhotoAssets",
+          label: "PERSONAL_PHOTO 图片",
+          apply: (image, imageValue) => {
+            if (!isPersonalPhotoValue(imageValue)) throw new Error("PERSONAL_PHOTO 只能选择 /personal-photo/ 里的图片。");
+            galleryFields.image.value = imageValue;
+            renderGalleryPreview();
+          },
+        },
+        personalVideoPoster: {
+          section: "images",
+          label: "PERSONAL_VIDEO 封面",
+          apply: (image, imageValue) => {
+            personalVideoFields.poster.value = imageValue;
+            renderPersonalVideoPreview();
+          },
+        },
+        heroBackground: {
+          section: "personalPhotoAssets",
+          label: "首页背景图",
+          apply: (_image, imageValue) => {
+            const field = $('[data-settings-field="home.heroBackgroundImage"]');
+            field.value = imageValue;
+          },
+        },
+      };
+
+      const startImagePicker = (targetKey, sectionKey = "") => {
+        const target = imagePickTargets[targetKey];
+        if (!target) throw new Error("未知的图片选择目标。");
+        const section = sectionKey || target.section;
+        state.pendingImagePick = {
+          target: targetKey,
+          section,
+          returnSection: state.section,
+        };
+        selectSection(section);
+        setStatus(`请选择一张图片填入${target.label}。`);
+      };
+
+      const applyPickedImage = (pick, image) => {
+        const target = imagePickTargets[pick?.target];
+        const imageValue = mediaContentValue(image);
+        if (!target || !imageValue) return;
+        state.pendingImagePick = null;
+        target.apply(image, imageValue);
+        if (pick.returnSection) selectSection(pick.returnSection);
+        setStatus(`已把选中的图片填入${target.label}。`);
+      };
+
       const selectImage = (image) => {
         state.current.image = image;
         const preview = $("[data-selected-image-preview]");
@@ -3203,6 +3290,7 @@ const initialData = {
         else preview.removeAttribute("src");
         $("[data-selected-image-path]").value = mediaContentValue(image);
         renderList();
+        if (state.pendingImagePick && image?.publicPath) applyPickedImage(state.pendingImagePick, image);
       };
 
       const selectVideo = (video) => {
@@ -3450,6 +3538,10 @@ const initialData = {
         if (state.section === "gallery") newGallery();
         if (state.section === "personalVideos") newPersonalVideo();
         if (state.section === "settings") run(saveSettings);
+      });
+
+      $$("[data-image-pick-target]").forEach((button) => {
+        button.addEventListener("click", () => run(() => startImagePicker(button.dataset.imagePickTarget, button.dataset.imagePickSection)));
       });
 
       $("[data-save-post]").addEventListener("click", () => run(savePost));

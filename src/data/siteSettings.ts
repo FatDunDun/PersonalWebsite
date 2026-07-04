@@ -11,7 +11,7 @@ export const siteSettings = {
   "home": {
     "heroBackgroundImage": "https://pub-f391fe6f8e924935bcda42a0b88e5143.r2.dev/personal-photo/1782816543016-bg-marrird-01-2d81aa84.jpg",
     "badge": "notebook for human feelings and machine logic",
-    "headline": "在代码的边界，收藏日常的回声。",
+    "headline": "也许人是,最不彻底的,海过了一夜还是蓝色.",
     "intro": "文章像注释，影像像断点，项目像一次次重构。这里不是展示橱窗，而是一间持续生长的工作室：把生活里的微光写下来，也把工程里的秩序留下来。",
     "primaryButton": {
       "label": "阅读手记",

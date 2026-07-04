@@ -1,9 +1,11 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { assetUrl } from "@/utils/site";
+import { assetUrl, pageConfig } from "@/utils/site";
+
+const pageCopy = pageConfig.about;
 ---
 
-<BaseLayout title="关于我" description="关于这个网站、个人兴趣、技术栈和联系方式。">
+<BaseLayout title={pageCopy.title} description={pageCopy.description}>
   <section class="container grid gap-10 py-12 md:grid-cols-[0.9fr_1.1fr] md:py-18">
     <aside>
       <div class="sticky top-28">
@@ -11,9 +13,9 @@ import { assetUrl } from "@/utils/site";
           <img class="aspect-[4/5] w-full rounded border border-[var(--line)] object-cover photo-shadow" src={assetUrl("/personal-photo/gallery-workspace.png")} alt="桌面上的笔记和咖啡" />
         </div>
         <div class="mt-5 page-hero pb-6">
-          <p class="page-kicker">Profile / archive owner</p>
-          <h1 class="page-title mt-3 text-6xl">Micy</h1>
-          <p class="mt-3 text-sm leading-6 text-[var(--muted)]">写作、影像、前端工程和小型工具爱好者。</p>
+          <p class="page-kicker">{pageCopy.kicker}</p>
+          <h1 class="page-title mt-3 text-6xl">{pageCopy.title}</h1>
+          <p class="mt-3 text-sm leading-6 text-[var(--muted)]">{pageCopy.description}</p>
         </div>
       </div>
     </aside>

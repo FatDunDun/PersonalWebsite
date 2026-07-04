@@ -378,6 +378,10 @@ const initialData = {
               <span>页面配置</span>
               <span class="text-[var(--muted)]" data-count="settings">编辑</span>
             </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="pageCopy" type="button">
+              <span>栏目文案</span>
+              <span class="text-[var(--muted)]" data-count="pageCopy">编辑</span>
+            </button>
             <button class="orbit-button flex items-center justify-between text-left" data-section="drafts" type="button">
               <span>本地保存</span>
               <span class="text-[var(--muted)]" data-count="drafts">0</span>
@@ -1105,6 +1109,111 @@ const initialData = {
               </section>
             </div>
           </section>
+
+          <section class="orbit-view" data-view="pageCopy" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Page Copy</p>
+                <h2 class="mt-1 text-2xl font-semibold">栏目文案</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">编辑文章、图集、视频、推荐和关于页面顶部展示的栏目小字、标题和说明。</p>
+              </div>
+              <div class="orbit-actions">
+                <button class="orbit-button orbit-button-primary" data-save-settings type="button">保存栏目文案</button>
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 xl:grid-cols-2">
+              <section class="orbit-field-panel quiet-card p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Articles</p>
+                <div class="mt-4 grid gap-4">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">文章小字</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.articles.kicker" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">文章标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.articles.title" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">文章说明</span>
+                    <textarea class="orbit-input mt-2 min-h-24" data-settings-field="pages.articles.description"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <section class="orbit-field-panel quiet-card p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Gallery</p>
+                <div class="mt-4 grid gap-4">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">图集小字</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.gallery.kicker" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">图集标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.gallery.title" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">图集说明</span>
+                    <textarea class="orbit-input mt-2 min-h-24" data-settings-field="pages.gallery.description"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <section class="orbit-field-panel quiet-card p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Videos</p>
+                <div class="mt-4 grid gap-4">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">视频小字</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.videos.kicker" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">视频标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.videos.title" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">视频说明</span>
+                    <textarea class="orbit-input mt-2 min-h-24" data-settings-field="pages.videos.description"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <section class="orbit-field-panel quiet-card p-4">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Recommendations</p>
+                <div class="mt-4 grid gap-4">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">推荐小字</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.recommendations.kicker" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">推荐标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.recommendations.title" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">推荐说明</span>
+                    <textarea class="orbit-input mt-2 min-h-24" data-settings-field="pages.recommendations.description"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <section class="orbit-field-panel quiet-card p-4 xl:col-span-2">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">About</p>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">关于小字</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.about.kicker" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">关于标题</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.about.title" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">关于说明</span>
+                    <textarea class="orbit-input mt-2 min-h-24" data-settings-field="pages.about.description"></textarea>
+                  </label>
+                </div>
+              </section>
+            </div>
+          </section>
         </section>
         </div>
       </div>
@@ -1261,6 +1370,7 @@ const initialData = {
         videos: { kicker: "ARTICLE_VIDEO_ASSETS", title: "ARTICLE_VIDEO_ASSETS", empty: "暂无 ARTICLE_VIDEO_ASSETS。" },
         personalVideoAssets: { kicker: "PersonalVideo Assets", title: "PersonalVideo文件", empty: "暂无 PersonalVideo 文件。" },
         settings: { kicker: "Settings", title: "页面配置", empty: "在右侧编辑网站配置。" },
+        pageCopy: { kicker: "Page Copy", title: "栏目文案", empty: "在右侧编辑栏目文案。" },
         drafts: { kicker: "LOCAL_DRAFTS", title: "本地保存", empty: "暂无本地保存。" },
       };
 
@@ -1824,6 +1934,7 @@ const initialData = {
         setCount("videos", state.videos.length);
         setCount("personalVideoAssets", state.personalVideoAssets.length);
         setCount("settings", "编辑");
+        setCount("pageCopy", "编辑");
         setCount("drafts", allPendingChanges().length);
       };
 
@@ -2199,7 +2310,7 @@ const initialData = {
         listKicker.textContent = labels[section].kicker;
         listTitle.textContent = labels[section].title;
         const newButton = $("[data-new-current]");
-        newButton.hidden = isMediaLibrarySection(section) || section === "drafts";
+        newButton.hidden = isMediaLibrarySection(section) || section === "drafts" || section === "pageCopy";
         newButton.textContent = section === "settings" ? "save" : "new";
         renderList();
       };
@@ -2674,6 +2785,9 @@ const initialData = {
         if (!settings.site?.author) throw new Error("请填写作者");
         if (!settings.home?.headline) throw new Error("请填写首页大标题");
         if (!settings.nav?.length) throw new Error("至少保留一条导航");
+        ["articles", "gallery", "videos", "recommendations", "about"].forEach((key) => {
+          if (!settings.pages?.[key]?.title) throw new Error(`请填写 ${key} 栏目标题`);
+        });
         queueContentChange({
           path: SETTINGS_PATH,
           content: stringifySettingsModule(settings),
@@ -4045,7 +4159,7 @@ const initialData = {
         state.pendingDraftSelection.clear();
         updatePendingChangesUi();
       });
-      $("[data-save-settings]").addEventListener("click", () => run(saveSettings));
+      $$("[data-save-settings]").forEach((button) => button.addEventListener("click", () => run(saveSettings)));
       $("[data-use-selected-hero-background]").addEventListener("click", () => {
         const field = $('[data-settings-field="home.heroBackgroundImage"]');
         const imageValue = mediaContentValue(state.current.image);

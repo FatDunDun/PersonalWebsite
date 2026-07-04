@@ -47,6 +47,33 @@ export const siteSettings = {
     "title": "和西伯利亚无敌飞天棒棒猪已经在一起",
     "startAt": "2024-01-20T20:00:00+08:00"
   },
+  "pages": {
+    "articles": {
+      "kicker": "Journal / field notes",
+      "title": "文章",
+      "description": "面向长期维护的 Markdown/MDX 文章索引。记录技术复盘、产品想法、读书笔记和一些个人观察。"
+    },
+    "gallery": {
+      "kicker": "Frames / captured light",
+      "title": "图集",
+      "description": "以网格方式保存图片样本。默认呈现原始色彩，适合照片、日常记录和视觉作品的长期整理。"
+    },
+    "videos": {
+      "kicker": "PersonalVideo / moving frames",
+      "title": "视频",
+      "description": "用短视频保存日常、旅行和 vlog 片段。适合压缩后的 MP4 或 WebM，让动态记忆也能长期整理。"
+    },
+    "recommendations": {
+      "kicker": "Taste / private index",
+      "title": "推荐",
+      "description": "把长期喜欢、反复回看或想郑重推荐的书籍、影视、歌曲和游戏放在这里。它不是榜单，更像一份慢慢变化的个人品味索引。"
+    },
+    "about": {
+      "kicker": "Profile / archive owner",
+      "title": "Micy",
+      "description": "写作、影像、前端工程和小型工具爱好者。"
+    }
+  },
   "nav": [
     {
       "href": "/",

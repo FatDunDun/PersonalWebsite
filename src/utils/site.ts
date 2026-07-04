@@ -6,6 +6,8 @@ export const homeConfig = siteSettings.home;
 
 export const anniversaryConfig = siteSettings.anniversary;
 
+export const pageConfig = siteSettings.pages;
+
 export const navItems = siteSettings.nav.filter((item) => item.visible !== false);
 
 export function withBase(path = "/") {

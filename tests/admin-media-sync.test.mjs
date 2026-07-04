@@ -310,8 +310,8 @@ assert.ok(
 );
 
 assert.ok(
-  source.includes('newButton.hidden = isMediaLibrarySection(section) || section === "drafts";'),
-  "Media library and local draft sections should hide the global new button and use their explicit controls only",
+  source.includes('newButton.hidden = isMediaLibrarySection(section) || section === "drafts" || section === "pageCopy";'),
+  "Media library, page copy, and local draft sections should hide the global new button and use their explicit controls only",
 );
 
 const duplicateMediaNewTriggers = [

@@ -6,12 +6,24 @@ const source = readFileSync(new URL("../src/pages/silent-orbit-7429/index.astro"
 const requiredSnippets = [
   "pendingMedia",
   "pendingChanges",
+  "pendingDraftSelection",
+  "data-section=\"drafts\"",
+  "data-view=\"drafts\"",
+  "data-draft-list",
+  "data-draft-stats",
   "data-sync-media",
   "data-sync-all",
+  "data-sync-selected-drafts",
   "queueMediaUploads",
   "queueMediaDeletes",
   "queueContentChange",
   "queueDeleteChange",
+  "draftChangeId",
+  "renderDrafts",
+  "selectedPendingChanges",
+  "syncSelectedPendingChanges",
+  "removePendingChange",
+  "assetPreviewForValue",
   "syncPendingChanges",
   "beforeunload",
   "syncPendingMedia",
@@ -200,6 +212,28 @@ assert.ok(
 );
 
 assert.ok(
+  source.includes("preview.src = assetPreviewForValue(image)") &&
+    source.includes("state.pendingMedia.uploads.find((item) => mediaContentValue(item) === value)") &&
+    source.includes("item.previewUrl || mediaUrlFromPublicPath(value) || assetUrl(value)"),
+  "Expected gallery previews to use local blob URLs for queued uploads before falling back to public asset URLs",
+);
+
+assert.ok(
+  source.includes("const wasNew = state.current.galleryIndex < 0") &&
+    source.includes("if (wasNew) newGallery();") &&
+    source.includes("else renderList();"),
+  "Expected saving a new PersonalPhoto card to reset the editor so the next upload creates a new card instead of overwriting it",
+);
+
+assert.ok(
+  source.includes("const selected = selectedPendingChanges()") &&
+    source.includes("state.pendingDraftSelection") &&
+    source.includes("data-draft-selected") &&
+    source.includes("data-draft-remove"),
+  "Expected the local drafts page to support previewing, selecting, and removing pending changes before sync",
+);
+
+assert.ok(
   source.includes("const publicRoot = mediaTargetPublicRoot(kindOrSection);"),
   "Expected media uploads to target the currently selected media directory",
 );
@@ -269,8 +303,8 @@ assert.ok(
 );
 
 assert.ok(
-  source.includes("newButton.hidden = isMediaLibrarySection(section);"),
-  "Media library sections should hide the global new button and use their explicit upload button only",
+  source.includes('newButton.hidden = isMediaLibrarySection(section) || section === "drafts";'),
+  "Media library and local draft sections should hide the global new button and use their explicit controls only",
 );
 
 const duplicateMediaNewTriggers = [

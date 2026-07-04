@@ -378,6 +378,10 @@ const initialData = {
               <span>页面配置</span>
               <span class="text-[var(--muted)]" data-count="settings">编辑</span>
             </button>
+            <button class="orbit-button flex items-center justify-between text-left" data-section="drafts" type="button">
+              <span>本地保存</span>
+              <span class="text-[var(--muted)]" data-count="drafts">0</span>
+            </button>
           </nav>
 
           <section class="orbit-status-card mt-4 border p-3">
@@ -407,6 +411,32 @@ const initialData = {
         </section>
 
         <section class="orbit-panel exhibition-panel min-w-0 p-4 md:p-5">
+          <section class="orbit-view" data-view="drafts" hidden>
+            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">LOCAL_DRAFTS</p>
+                <h2 class="mt-1 text-2xl font-semibold">本地保存</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">本次在管理页暂存的内容和媒体操作会汇总在这里，可选择同步或取消。</p>
+              </div>
+              <div class="orbit-actions">
+                <button class="orbit-button orbit-button-primary" data-sync-selected-drafts type="button">同步选中改动</button>
+                <button class="orbit-button" data-select-all-drafts type="button">全选</button>
+                <button class="orbit-button" data-select-no-drafts type="button">清空选择</button>
+              </div>
+            </div>
+
+            <section class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" data-draft-stats>
+              <div class="orbit-status-card border p-3">
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Content</p>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">暂无内容改动。</p>
+              </div>
+            </section>
+
+            <section class="mt-4 grid gap-3" data-draft-list>
+              <p class="text-sm text-[var(--muted)]">暂无本地保存。</p>
+            </section>
+          </section>
+
           <section class="orbit-view" data-view="posts">
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -1125,6 +1155,7 @@ const initialData = {
           selectedImages: new Set(),
           selectedVideos: new Set(),
         },
+        pendingDraftSelection: new Set(),
         mediaDirectoryState: {
           images: { currentPublicRoot: "/article-assets", folders: [] },
           personalPhotoAssets: { currentPublicRoot: "/personal-photo", folders: [] },
@@ -1136,6 +1167,14 @@ const initialData = {
           deletes: [],
         },
         settings: null,
+        original: {
+          posts: [],
+          projects: [],
+          recommendations: [],
+          gallery: [],
+          personalVideos: [],
+          settings: null,
+        },
         files: {
           projects: null,
           recommendations: null,
@@ -1222,6 +1261,7 @@ const initialData = {
         videos: { kicker: "ARTICLE_VIDEO_ASSETS", title: "ARTICLE_VIDEO_ASSETS", empty: "暂无 ARTICLE_VIDEO_ASSETS。" },
         personalVideoAssets: { kicker: "PersonalVideo Assets", title: "PersonalVideo文件", empty: "暂无 PersonalVideo 文件。" },
         settings: { kicker: "Settings", title: "页面配置", empty: "在右侧编辑网站配置。" },
+        drafts: { kicker: "LOCAL_DRAFTS", title: "本地保存", empty: "暂无本地保存。" },
       };
 
       const mediaLibraries = {
@@ -1784,6 +1824,7 @@ const initialData = {
         setCount("videos", state.videos.length);
         setCount("personalVideoAssets", state.personalVideoAssets.length);
         setCount("settings", "编辑");
+        setCount("drafts", allPendingChanges().length);
       };
 
       const pendingMediaCount = (kind, publicRoot = "") => {
@@ -1802,12 +1843,27 @@ const initialData = {
         ...state.pendingMedia.deletes,
       ];
 
+      const draftChangeId = (item) => `${item?.draftKind || "change"}:${item?.path || item?.publicPath || item?.label || item?.name || ""}`;
+
+      const selectDraft = (item, selected = true) => {
+        const id = draftChangeId(item);
+        if (!id) return;
+        if (selected) state.pendingDraftSelection.add(id);
+        else state.pendingDraftSelection.delete(id);
+      };
+
+      const selectedPendingChanges = () => {
+        const selected = state.pendingDraftSelection;
+        return allPendingChanges().filter((item) => selected.has(draftChangeId(item)));
+      };
+
       const queueContentChange = ({ path, content, label }) => {
         state.pendingChanges.deletes = state.pendingChanges.deletes.filter((item) => item.path !== path);
         const existing = state.pendingChanges.files.findIndex((item) => item.path === path);
-        const entry = { path, content, label, pending: true };
+        const entry = { path, content, label, pending: true, draftKind: "content-write" };
         if (existing >= 0) state.pendingChanges.files[existing] = entry;
         else state.pendingChanges.files.push(entry);
+        selectDraft(entry, true);
         updatePendingChangesUi();
       };
 
@@ -1816,12 +1872,15 @@ const initialData = {
         const pendingUploadIndex = state.pendingMedia.uploads.findIndex((item) => item.path === path);
         if (pendingUploadIndex >= 0) {
           const [removed] = state.pendingMedia.uploads.splice(pendingUploadIndex, 1);
+          selectDraft(removed, false);
           if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
           updatePendingChangesUi();
           return;
         }
         if (!state.pendingChanges.deletes.some((item) => item.path === path)) {
-          state.pendingChanges.deletes.push({ path, label, pending: true });
+          const entry = { path, label, pending: true, draftKind: "content-delete" };
+          state.pendingChanges.deletes.push(entry);
+          selectDraft(entry, true);
         }
         updatePendingChangesUi();
       };
@@ -1829,6 +1888,13 @@ const initialData = {
       const isPendingDelete = (kind, path) => state.pendingMedia.deletes.some((item) => item.kind === kind && item.path === path);
 
       const assetPreviewUrl = (asset) => asset?.previewUrl || asset?.url || (asset?.publicPath ? assetUrl(asset.publicPath) : "");
+
+      const assetPreviewForValue = (value = "") => {
+        if (!value) return "";
+        const item = state.pendingMedia.uploads.find((item) => mediaContentValue(item) === value);
+        if (item) return item.previewUrl || mediaUrlFromPublicPath(value) || assetUrl(value);
+        return mediaUrlFromPublicPath(value) || assetUrl(value);
+      };
 
       const isInImmediateDirectory = (asset, currentRoot) => {
         const path = asset?.publicPath || "";
@@ -1967,6 +2033,132 @@ const initialData = {
         updatePendingChangesUi();
       };
 
+      const rememberOriginalContent = () => {
+        state.original.posts = clone(state.posts);
+        state.original.projects = clone(state.projects);
+        state.original.recommendations = clone(state.recommendations);
+        state.original.gallery = clone(state.gallery);
+        state.original.personalVideos = clone(state.personalVideos);
+        state.original.settings = clone(state.settings || INITIAL_DATA.settings);
+      };
+
+      const entityDiff = (currentItems, originalItems, identity) => {
+        const currentMap = new Map(currentItems.map((item) => [identity(item), item]));
+        const originalMap = new Map(originalItems.map((item) => [identity(item), item]));
+        let added = 0;
+        let updated = 0;
+        let deleted = 0;
+        currentMap.forEach((item, key) => {
+          if (!originalMap.has(key)) {
+            added += 1;
+          } else if (JSON.stringify(item) !== JSON.stringify(originalMap.get(key))) {
+            updated += 1;
+          }
+        });
+        originalMap.forEach((_item, key) => {
+          if (!currentMap.has(key)) deleted += 1;
+        });
+        return { added, updated, deleted };
+      };
+
+      const contentDraftStats = () => ({
+        posts: entityDiff(state.posts, state.original.posts, (item) => item.path || item.name || postSlug(item)),
+        projects: entityDiff(state.projects, state.original.projects, (item) => item.name || item.link || JSON.stringify(item)),
+        recommendations: entityDiff(state.recommendations, state.original.recommendations, (item) => item.title || item.link || JSON.stringify(item)),
+        gallery: entityDiff(state.gallery, state.original.gallery, (item) => item.image || item.title || JSON.stringify(item)),
+        personalVideos: entityDiff(state.personalVideos, state.original.personalVideos, (item) => item.video || item.title || JSON.stringify(item)),
+      });
+
+      const statLine = (label, stat) => {
+        const parts = [
+          stat.added ? `新增 ${stat.added}` : "",
+          stat.updated ? `修改 ${stat.updated}` : "",
+          stat.deleted ? `删除 ${stat.deleted}` : "",
+        ].filter(Boolean);
+        return `${label}：${parts.length ? parts.join("，") : "无"}`;
+      };
+
+      const renderDraftStats = () => {
+        const node = $("[data-draft-stats]");
+        if (!node) return;
+        const stats = contentDraftStats();
+        const uploads = state.pendingMedia.uploads;
+        const deletes = state.pendingMedia.deletes;
+        const imageUploads = uploads.filter((item) => item.kind === "image").length;
+        const videoUploads = uploads.filter((item) => item.kind === "video").length;
+        const imageDeletes = deletes.filter((item) => item.kind === "image").length;
+        const videoDeletes = deletes.filter((item) => item.kind === "video").length;
+        node.innerHTML = `
+          <div class="orbit-status-card border p-3">
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Articles</p>
+            <p class="mt-2 text-sm leading-6 text-[var(--muted)]">${escapeHtml(statLine("文章", stats.posts))}</p>
+          </div>
+          <div class="orbit-status-card border p-3">
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Photos</p>
+            <p class="mt-2 text-sm leading-6 text-[var(--muted)]">${escapeHtml(statLine("照片卡片", stats.gallery))}</p>
+          </div>
+          <div class="orbit-status-card border p-3">
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Content</p>
+            <p class="mt-2 text-sm leading-6 text-[var(--muted)]">${escapeHtml(statLine("项目", stats.projects))}<br />${escapeHtml(statLine("推荐", stats.recommendations))}<br />${escapeHtml(statLine("视频记录", stats.personalVideos))}</p>
+          </div>
+          <div class="orbit-status-card border p-3">
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Media</p>
+            <p class="mt-2 text-sm leading-6 text-[var(--muted)]">图片：上传 ${imageUploads}，删除 ${imageDeletes}<br />视频：上传 ${videoUploads}，删除 ${videoDeletes}</p>
+          </div>
+        `;
+      };
+
+      const draftKindLabel = (item) => {
+        if (item.draftKind === "content-write") return "写入内容";
+        if (item.draftKind === "content-delete") return "删除内容";
+        if (item.draftKind === "media-upload") return item.kind === "video" ? "上传视频" : "上传图片";
+        if (item.draftKind === "media-delete") return item.kind === "video" ? "删除视频" : "删除图片";
+        return "待处理";
+      };
+
+      const renderDrafts = () => {
+        renderDraftStats();
+        const node = $("[data-draft-list]");
+        if (!node) return;
+        const items = allPendingChanges();
+        if (!items.length) {
+          node.innerHTML = `<p class="text-sm text-[var(--muted)]">暂无本地保存。</p>`;
+          return;
+        }
+        node.innerHTML = "";
+        items.forEach((item) => {
+          const id = draftChangeId(item);
+          const selected = state.pendingDraftSelection.has(id);
+          const card = document.createElement("article");
+          card.className = "orbit-card quiet-card grid gap-3 p-3 md:grid-cols-[auto_96px_minmax(0,1fr)_auto] md:items-center";
+          const preview = item.draftKind === "media-upload" && item.kind === "image"
+            ? `<img class="aspect-[4/3] w-24 rounded border border-[var(--line)] object-cover" src="${assetPreviewUrl(item)}" alt="" />`
+            : item.draftKind === "media-upload" && item.kind === "video"
+              ? `<video class="aspect-video w-24 rounded border border-[var(--line)] bg-black object-cover" src="${assetPreviewUrl(item)}" preload="metadata" muted playsinline></video>`
+              : `<div class="grid aspect-[4/3] w-24 place-items-center rounded border border-[var(--line)] bg-[var(--surface-soft)] font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">Content</div>`;
+          card.innerHTML = `
+            <label class="flex items-center gap-2 text-sm text-[var(--muted)]">
+              <input data-draft-selected="${escapeHtml(id)}" type="checkbox" ${selected ? "checked" : ""} />
+              <span>选择</span>
+            </label>
+            ${preview}
+            <div class="min-w-0">
+              <p class="font-semibold">${escapeHtml(item.label || item.name || item.publicPath || item.path || "未命名改动")}</p>
+              <p class="mt-1 font-mono text-xs uppercase tracking-[0.16em] text-[var(--muted)]">${escapeHtml(draftKindLabel(item))}</p>
+              <p class="mt-2 break-all font-mono text-xs text-[var(--muted)]">${escapeHtml(item.publicPath || item.path || "")}</p>
+            </div>
+            <button class="orbit-button orbit-danger" data-draft-remove="${escapeHtml(id)}" type="button">取消</button>
+          `;
+          card.querySelector("[data-draft-selected]").addEventListener("change", (event) => {
+            if (event.target.checked) state.pendingDraftSelection.add(id);
+            else state.pendingDraftSelection.delete(id);
+            updatePendingChangesUi();
+          });
+          card.querySelector("[data-draft-remove]").addEventListener("click", () => removePendingChange(id));
+          node.append(card);
+        });
+      };
+
       const updatePendingChangesUi = () => {
         const contentFiles = state.pendingChanges.files.length;
         const contentDeletes = state.pendingChanges.deletes.length;
@@ -1980,6 +2172,10 @@ const initialData = {
         }
         const button = $("[data-sync-all]");
         if (button) button.disabled = total === 0;
+        const selectedButton = $("[data-sync-selected-drafts]");
+        if (selectedButton) selectedButton.disabled = selectedPendingChanges().length === 0;
+        updateCounts();
+        renderDrafts();
       };
 
       const selectSection = (section) => {
@@ -2002,7 +2198,7 @@ const initialData = {
         listKicker.textContent = labels[section].kicker;
         listTitle.textContent = labels[section].title;
         const newButton = $("[data-new-current]");
-        newButton.hidden = isMediaLibrarySection(section);
+        newButton.hidden = isMediaLibrarySection(section) || section === "drafts";
         newButton.textContent = section === "settings" ? "save" : "new";
         renderList();
       };
@@ -2379,6 +2575,7 @@ const initialData = {
         state.files.personalVideos = null;
         state.files.settings = null;
         fillSettings();
+        rememberOriginalContent();
         updateCounts();
         renderList();
         if (!state.current.post) newPost();
@@ -2408,6 +2605,7 @@ const initialData = {
         applyInitialData();
         try {
           await loadContentFiles();
+          rememberOriginalContent();
         } catch (error) {
           const mediaStatus = await loadMediaLibrariesSafely();
           updateCounts();
@@ -2534,6 +2732,7 @@ const initialData = {
 
         const path = `${POSTS_PATH}/${slug}.mdx`;
         const current = state.current.post;
+        const wasNew = !current?.path;
         const content = stringifyPost();
         queueContentChange({
           path,
@@ -2562,7 +2761,8 @@ const initialData = {
         state.posts.sort((a, b) => new Date(b.data?.publishDate || 0).valueOf() - new Date(a.data?.publishDate || 0).valueOf());
         state.current.post = { ...current, slug, path, sha: item.sha, data: item.data, body: item.body };
         updateCounts();
-        renderList();
+        if (wasNew) newPost();
+        else renderList();
         setStatus("文章已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
@@ -2612,6 +2812,7 @@ const initialData = {
         };
         if (!project.name) throw new Error("请填写项目名称");
         if (!project.description) throw new Error("请填写项目简介");
+        const wasNew = state.current.projectIndex < 0;
         const items = [...state.projects];
         if (state.current.projectIndex >= 0) items[state.current.projectIndex] = project;
         else items.unshift(project);
@@ -2623,7 +2824,8 @@ const initialData = {
         state.projects = items;
         state.current.projectIndex = items.findIndex((item) => item === project);
         updateCounts();
-        renderList();
+        if (wasNew) newProject();
+        else renderList();
         setStatus("项目已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
@@ -2684,7 +2886,7 @@ const initialData = {
         preview.hidden = !image;
         preview.classList.toggle("hidden", !image);
         empty.hidden = !!image;
-        if (image) preview.src = assetUrl(image);
+        if (image) preview.src = assetPreviewForValue(image);
         else preview.removeAttribute("src");
         preview.alt = recommendationFields.title.value.trim();
         $("[data-recommendation-preview-title]").textContent = recommendationFields.title.value.trim() || "预览";
@@ -2713,6 +2915,7 @@ const initialData = {
         };
         if (!item.title) throw new Error("请填写推荐名称");
         if (!item.description) throw new Error("请填写推荐理由");
+        const wasNew = state.current.recommendationIndex < 0;
         const items = [...state.recommendations];
         if (state.current.recommendationIndex >= 0) items[state.current.recommendationIndex] = item;
         else items.unshift(item);
@@ -2724,7 +2927,8 @@ const initialData = {
         state.recommendations = items;
         state.current.recommendationIndex = items.findIndex((entry) => entry === item);
         updateCounts();
-        renderList();
+        if (wasNew) newRecommendation();
+        else renderList();
         setStatus("推荐已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
@@ -2775,7 +2979,7 @@ const initialData = {
         preview.hidden = !image;
         preview.classList.toggle("hidden", !image);
         empty.hidden = !!image;
-        if (image) preview.src = assetUrl(image);
+        if (image) preview.src = assetPreviewForValue(image);
         else preview.removeAttribute("src");
         preview.alt = galleryFields.title.value.trim();
         $("[data-gallery-preview-title]").textContent = galleryFields.title.value.trim() || "预览";
@@ -2793,6 +2997,7 @@ const initialData = {
         if (!item.title) throw new Error("请填写照片标题");
         if (!item.image) throw new Error("请选择或上传照片");
         if (!isPersonalPhotoValue(item.image)) throw new Error("主页照片只能使用 /personal-photo/ 路径或对应的 R2 主页照片 URL。ARTICLE_IMAGE_ASSETS 的 /article-assets/ 不会进入前台图集。");
+        const wasNew = state.current.galleryIndex < 0;
         const items = [...state.gallery];
         if (state.current.galleryIndex >= 0) items[state.current.galleryIndex] = item;
         else items.unshift(item);
@@ -2804,7 +3009,8 @@ const initialData = {
         state.gallery = items;
         state.current.galleryIndex = items.findIndex((entry) => entry === item);
         updateCounts();
-        renderList();
+        if (wasNew) newGallery();
+        else renderList();
         setStatus("PersonalPhoto 已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
@@ -2837,7 +3043,9 @@ const initialData = {
               key: mediaKeyFromPublicPath(item.image),
               publicPath: item.image,
               remote: true,
+              draftKind: "media-delete",
             });
+            selectDraft(state.pendingMedia.deletes.at(-1), true);
             updatePendingChangesUi();
           } else {
             const imagePath = publicPathToRepoPath(item.image);
@@ -2882,9 +3090,9 @@ const initialData = {
         preview.hidden = !video;
         preview.classList.toggle("hidden", !video);
         empty.hidden = !!video;
-        if (video) preview.src = assetUrl(video);
+        if (video) preview.src = assetPreviewForValue(video);
         else preview.removeAttribute("src");
-        preview.poster = poster ? assetUrl(poster) : "";
+        preview.poster = poster ? assetPreviewForValue(poster) : "";
         $("[data-personal-video-preview-title]").textContent = personalVideoFields.title.value.trim() || "预览";
         $("[data-personal-video-preview-description]").textContent =
           personalVideoFields.description.value.trim() || "上传或选择视频后显示。";
@@ -2901,6 +3109,7 @@ const initialData = {
         };
         if (!item.title) throw new Error("请填写视频标题");
         if (!item.video) throw new Error("请上传或填写视频路径");
+        const wasNew = state.current.personalVideoIndex < 0;
         const items = [...state.personalVideos];
         if (state.current.personalVideoIndex >= 0) items[state.current.personalVideoIndex] = item;
         else items.unshift(item);
@@ -2912,7 +3121,8 @@ const initialData = {
         state.personalVideos = items;
         state.current.personalVideoIndex = items.findIndex((entry) => entry === item);
         updateCounts();
-        renderList();
+        if (wasNew) newPersonalVideo();
+        else renderList();
         setStatus("PersonalVideo 已暂存。确认无误后点“同步全部改动”一次提交。");
       };
 
@@ -2945,7 +3155,9 @@ const initialData = {
               key: mediaKeyFromPublicPath(item.video),
               publicPath: item.video,
               remote: true,
+              draftKind: "media-delete",
             });
+            selectDraft(state.pendingMedia.deletes.at(-1), true);
             updatePendingChangesUi();
           } else {
             const videoPath = publicPathToRepoPath(item.video);
@@ -3034,8 +3246,10 @@ const initialData = {
           ...(remote ? { file, remote: true } : { content: arrayBufferToBase64(await file.arrayBuffer()) }),
           previewUrl: URL.createObjectURL(file),
           pending: true,
+          draftKind: "media-upload",
         };
         state.pendingMedia.uploads.push(queued);
+        selectDraft(queued, true);
         updatePendingChangesUi();
         return queued;
       };
@@ -3053,23 +3267,127 @@ const initialData = {
         const existing = state.pendingMedia.uploads.findIndex((item) => item.path === path);
         if (existing >= 0) {
           const [removed] = state.pendingMedia.uploads.splice(existing, 1);
+          selectDraft(removed, false);
           if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
         }
-        state.pendingMedia.deletes = state.pendingMedia.deletes.filter((item) => item.path !== path);
+        state.pendingMedia.deletes = state.pendingMedia.deletes.filter((item) => {
+          const keep = item.path !== path;
+          if (!keep) selectDraft(item, false);
+          return keep;
+        });
         state.images = state.images.filter((image) => image.path !== path);
         state.videos = state.videos.filter((video) => video.path !== path);
         updatePendingChangesUi();
       };
 
-      const syncPendingChanges = async () => {
-        const uploads = [...state.pendingMedia.uploads];
-        const mediaDeletes = [...state.pendingMedia.deletes];
+      const restorePostPath = (path) => {
+        const original = state.original.posts.find((post) => post.path === path);
+        state.posts = state.posts.filter((post) => post.path !== path);
+        if (original) state.posts.push(clone(original));
+        state.posts.sort((a, b) => new Date(b.data?.publishDate || 0).valueOf() - new Date(a.data?.publishDate || 0).valueOf());
+        if (state.current.post?.path === path) newPost();
+      };
+
+      const revertContentPath = (path) => {
+        if (path.startsWith(`${POSTS_PATH}/`)) {
+          restorePostPath(path);
+        } else if (path === PROJECTS_PATH) {
+          state.projects = clone(state.original.projects);
+          newProject();
+        } else if (path === RECOMMENDATIONS_PATH) {
+          state.recommendations = clone(state.original.recommendations);
+          newRecommendation();
+        } else if (path === GALLERY_PATH) {
+          state.gallery = clone(state.original.gallery);
+          newGallery();
+        } else if (path === PERSONAL_VIDEOS_DATA_PATH) {
+          state.personalVideos = clone(state.original.personalVideos);
+          newPersonalVideo();
+        } else if (path === SETTINGS_PATH) {
+          state.settings = clone(state.original.settings || INITIAL_DATA.settings);
+          fillSettings();
+        }
+      };
+
+      const removePendingChange = (id) => {
+        const removeFrom = (items) => {
+          const index = items.findIndex((item) => draftChangeId(item) === id);
+          if (index < 0) return null;
+          const [removed] = items.splice(index, 1);
+          state.pendingDraftSelection.delete(id);
+          return removed;
+        };
+        const removedFile = removeFrom(state.pendingChanges.files);
+        const removedDelete = removeFrom(state.pendingChanges.deletes);
+        const removedUpload = removeFrom(state.pendingMedia.uploads);
+        const removedMediaDelete = removeFrom(state.pendingMedia.deletes);
+
+        if (removedUpload?.previewUrl) URL.revokeObjectURL(removedUpload.previewUrl);
+        if (removedFile?.path) revertContentPath(removedFile.path);
+        if (removedDelete?.path) revertContentPath(removedDelete.path);
+        if (removedUpload?.path) {
+          state.images = state.images.filter((image) => image.path !== removedUpload.path);
+          state.personalPhotoAssets = state.personalPhotoAssets.filter((image) => image.path !== removedUpload.path);
+          state.videos = state.videos.filter((video) => video.path !== removedUpload.path);
+          state.personalVideoAssets = state.personalVideoAssets.filter((video) => video.path !== removedUpload.path);
+        }
+        if (removedMediaDelete && state.current.image?.path === removedMediaDelete.path) selectImage(null);
+        if (removedMediaDelete && state.current.video?.path === removedMediaDelete.path) selectVideo(null);
+        updateCounts();
+        renderList();
+        updatePendingChangesUi();
+        setStatus("已取消这条本地保存。");
+      };
+
+      const markSyncedContentAsOriginal = (files, deletes) => {
+        files.forEach((file) => {
+          if (file.path.startsWith(`${POSTS_PATH}/`)) {
+            const post = state.posts.find((item) => item.path === file.path);
+            state.original.posts = state.original.posts.filter((item) => item.path !== file.path);
+            if (post) state.original.posts.push(clone(post));
+          } else if (file.path === PROJECTS_PATH) {
+            state.original.projects = clone(state.projects);
+          } else if (file.path === RECOMMENDATIONS_PATH) {
+            state.original.recommendations = clone(state.recommendations);
+          } else if (file.path === GALLERY_PATH) {
+            state.original.gallery = clone(state.gallery);
+          } else if (file.path === PERSONAL_VIDEOS_DATA_PATH) {
+            state.original.personalVideos = clone(state.personalVideos);
+          } else if (file.path === SETTINGS_PATH) {
+            state.original.settings = clone(state.settings || INITIAL_DATA.settings);
+          }
+        });
+        deletes.forEach((deleted) => {
+          if (deleted.path.startsWith(`${POSTS_PATH}/`)) {
+            state.original.posts = state.original.posts.filter((item) => item.path !== deleted.path);
+          }
+        });
+      };
+
+      const clearSyncedPendingChanges = (selectedIds, uploads, files, deletes) => {
+        uploads.forEach((upload) => {
+          if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl);
+        });
+        state.pendingMedia.uploads = state.pendingMedia.uploads.filter((item) => !selectedIds.has(draftChangeId(item)));
+        state.pendingMedia.deletes = state.pendingMedia.deletes.filter((item) => !selectedIds.has(draftChangeId(item)));
+        state.pendingChanges.files = state.pendingChanges.files.filter((item) => !selectedIds.has(draftChangeId(item)));
+        state.pendingChanges.deletes = state.pendingChanges.deletes.filter((item) => !selectedIds.has(draftChangeId(item)));
+        selectedIds.forEach((id) => state.pendingDraftSelection.delete(id));
+        state.pendingMedia.selectedImages.clear();
+        state.pendingMedia.selectedVideos.clear();
+        markSyncedContentAsOriginal(files, deletes);
+      };
+
+      const syncPendingChanges = async (changes = allPendingChanges()) => {
+        const selectedIds = new Set(changes.map(draftChangeId));
+        const uploads = state.pendingMedia.uploads.filter((item) => selectedIds.has(draftChangeId(item)));
+        const mediaDeletes = state.pendingMedia.deletes.filter((item) => selectedIds.has(draftChangeId(item)));
         const remoteUploads = uploads.filter((item) => usesRemoteMedia(item));
         const remoteDeletes = mediaDeletes.filter((item) => usesRemoteMedia(item));
         const gitUploads = uploads.filter((item) => !usesRemoteMedia(item));
         const gitMediaDeletes = mediaDeletes.filter((item) => !usesRemoteMedia(item));
-        const files = [...state.pendingChanges.files];
-        const deletes = [...state.pendingChanges.deletes];
+        const files = state.pendingChanges.files.filter((item) => selectedIds.has(draftChangeId(item)));
+        const deletes = state.pendingChanges.deletes.filter((item) => selectedIds.has(draftChangeId(item)));
         if (!uploads.length && !mediaDeletes.length && !files.length && !deletes.length) throw new Error("暂无待同步操作");
         if (files.length || deletes.length || gitUploads.length || gitMediaDeletes.length) requireWriteAccess();
         if (remoteUploads.length || remoteDeletes.length) requireMediaAccess();
@@ -3091,13 +3409,7 @@ const initialData = {
         }
 
         if (!files.length && !deletes.length && !gitUploads.length && !gitMediaDeletes.length) {
-          uploads.forEach((upload) => {
-            if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl);
-          });
-          state.pendingMedia.uploads = [];
-          state.pendingMedia.deletes = [];
-          state.pendingMedia.selectedImages.clear();
-          state.pendingMedia.selectedVideos.clear();
+          clearSyncedPendingChanges(selectedIds, uploads, files, deletes);
           await refreshAfterMediaSync("R2 媒体操作已同步。", "R2 媒体操作已同步，但素材列表刷新失败");
           return;
         }
@@ -3146,24 +3458,23 @@ const initialData = {
         });
         await updateBranchRef(commit.sha);
 
-        uploads.forEach((upload) => {
-          if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl);
-        });
-        state.pendingMedia.uploads = [];
-        state.pendingMedia.deletes = [];
-        state.pendingMedia.selectedImages.clear();
-        state.pendingMedia.selectedVideos.clear();
-        state.pendingChanges.files = [];
-        state.pendingChanges.deletes = [];
+        clearSyncedPendingChanges(selectedIds, uploads, files, deletes);
         if (remoteUploads.length || remoteDeletes.length) {
           await refreshAfterMediaSync("全部待处理改动已同步为 1 次 Git commit。", "全部待处理改动已同步，但素材列表刷新失败");
           return;
         }
-        await loadAll();
         selectImage(null);
         selectVideo(null);
+        updateCounts();
+        renderList();
         updatePendingChangesUi();
         setStatus("全部待处理改动已同步为 1 次 Git commit。");
+      };
+
+      const syncSelectedPendingChanges = async () => {
+        const selected = selectedPendingChanges();
+        if (!selected.length) throw new Error("请先在本地保存页选择要同步的改动。");
+        await syncPendingChanges(selected);
       };
 
       const uploadImages = async (files, options = {}) => {
@@ -3333,7 +3644,9 @@ const initialData = {
             ...(remote ? { file, remote: true } : { content: arrayBufferToBase64(await file.arrayBuffer()) }),
             previewUrl: URL.createObjectURL(file),
             pending: true,
+            draftKind: "media-upload",
           });
+          selectDraft(state.pendingMedia.uploads.at(-1), true);
         }
         clearSelections(kind);
         const latest = state.pendingMedia.uploads.filter((item) => item.kind === kind && item.publicPath?.startsWith(`${publicRoot}/`)).at(-1);
@@ -3366,7 +3679,9 @@ const initialData = {
               key: asset.key || mediaKeyFromPublicPath(asset.publicPath),
               publicPath: asset.publicPath,
               remote: usesRemoteMedia(asset),
+              draftKind: "media-delete",
             });
+            selectDraft(state.pendingMedia.deletes.at(-1), true);
           }
         }
         clearSelections(kind);
@@ -3720,6 +4035,15 @@ const initialData = {
 
       $$("[data-sync-media]").forEach((button) => button.addEventListener("click", () => run(syncPendingChanges)));
       $("[data-sync-all]").addEventListener("click", () => run(syncPendingChanges));
+      $("[data-sync-selected-drafts]").addEventListener("click", () => run(syncSelectedPendingChanges));
+      $("[data-select-all-drafts]").addEventListener("click", () => {
+        allPendingChanges().forEach((item) => selectDraft(item, true));
+        updatePendingChangesUi();
+      });
+      $("[data-select-no-drafts]").addEventListener("click", () => {
+        state.pendingDraftSelection.clear();
+        updatePendingChangesUi();
+      });
       $("[data-save-settings]").addEventListener("click", () => run(saveSettings));
       $("[data-use-selected-hero-background]").addEventListener("click", () => {
         const field = $('[data-settings-field="home.heroBackgroundImage"]');

@@ -2131,9 +2131,10 @@ const initialData = {
           const selected = state.pendingDraftSelection.has(id);
           const card = document.createElement("article");
           card.className = "orbit-card quiet-card grid gap-3 p-3 md:grid-cols-[auto_96px_minmax(0,1fr)_auto] md:items-center";
-          const preview = item.draftKind === "media-upload" && item.kind === "image"
+          const isMediaDraft = item.draftKind === "media-upload" || item.draftKind === "media-delete";
+          const preview = isMediaDraft && item.kind === "image"
             ? `<img class="aspect-[4/3] w-24 rounded border border-[var(--line)] object-cover" src="${assetPreviewUrl(item)}" alt="" />`
-            : item.draftKind === "media-upload" && item.kind === "video"
+            : isMediaDraft && item.kind === "video"
               ? `<video class="aspect-video w-24 rounded border border-[var(--line)] bg-black object-cover" src="${assetPreviewUrl(item)}" preload="metadata" muted playsinline></video>`
               : `<div class="grid aspect-[4/3] w-24 place-items-center rounded border border-[var(--line)] bg-[var(--surface-soft)] font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">Content</div>`;
           card.innerHTML = `

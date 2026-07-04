@@ -234,6 +234,13 @@ assert.ok(
 );
 
 assert.ok(
+  source.includes('const isMediaDraft = item.draftKind === "media-upload" || item.draftKind === "media-delete"') &&
+    source.includes('isMediaDraft && item.kind === "image"') &&
+    source.includes('isMediaDraft && item.kind === "video"'),
+  "Expected local drafts to show thumbnails for queued media deletes as well as uploads",
+);
+
+assert.ok(
   source.includes("const publicRoot = mediaTargetPublicRoot(kindOrSection);"),
   "Expected media uploads to target the currently selected media directory",
 );

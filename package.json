@@ -5,16 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
-    "test": "node tests/admin-media-sync.test.mjs && node tests/page-copy-settings.test.mjs && node tests/asset-url.test.mjs && node tests/r2-worker.test.mjs && node tests/deploy-workflow-actions.test.mjs && node tests/ui-regression.test.mjs",
+    "test": "node tests/security-hardening.test.mjs && node tests/admin-media-sync.test.mjs && node tests/page-copy-settings.test.mjs && node tests/asset-url.test.mjs && node tests/r2-worker.test.mjs && node tests/deploy-workflow-actions.test.mjs && node tests/ui-regression.test.mjs",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview"
   },
   "dependencies": {
-    "@astrojs/mdx": "^6.0.2",
+    "@astrojs/mdx": "^7.0.2",
     "@astrojs/sitemap": "^3.7.3",
-    "@tailwindcss/vite": "^4.1.17",
-    "astro": "^6.4.4",
-    "tailwindcss": "^4.1.17",
+    "@tailwindcss/vite": "^4.3.2",
+    "astro": "^7.0.6",
+    "tailwindcss": "^4.3.2",
     "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "vite": "^8.1.3"
   }
 }

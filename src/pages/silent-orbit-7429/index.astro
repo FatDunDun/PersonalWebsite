@@ -336,10 +336,6 @@ const initialData = {
               />
             </label>
             <div class="flex flex-wrap items-center gap-2">
-              <label class="flex items-center gap-2 text-sm text-[var(--muted)]">
-                <input data-remember-token type="checkbox" />
-                记住
-              </label>
               <button class="orbit-button orbit-button-primary" data-save-token type="button">connect</button>
               <button class="orbit-button" data-clear-token type="button">clear</button>
             </div>
@@ -1243,11 +1239,17 @@ const initialData = {
       const BASE_URL = import.meta.env.BASE_URL;
       const MEDIA_API_URL = import.meta.env.PUBLIC_MEDIA_API_URL || "";
       const ASSET_BASE_URL = import.meta.env.PUBLIC_ASSET_BASE_URL || "";
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(MEDIA_TOKEN_KEY);
+      } catch {
+        // Ignore storage access errors in locked-down browser contexts.
+      }
 
       const state = {
         mode: "readonly",
-        token: sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "",
-        mediaToken: sessionStorage.getItem(MEDIA_TOKEN_KEY) || localStorage.getItem(MEDIA_TOKEN_KEY) || "",
+        token: sessionStorage.getItem(TOKEN_KEY) || "",
+        mediaToken: sessionStorage.getItem(MEDIA_TOKEN_KEY) || "",
         section: "posts",
         posts: [],
         projects: [],
@@ -1792,16 +1794,14 @@ const initialData = {
         return { data, body: match[2] };
       };
 
-      const readExportedArray = (content, exportName) => {
+      const readExportedJson = (content, exportName) => {
         const match = content.match(new RegExp(`export\\s+const\\s+${exportName}(?:\\s*:[^=]+)?\\s*=\\s*([\\s\\S]*);?\\s*$`));
         if (!match) throw new Error(`无法解析 ${exportName}`);
-        return Function(`"use strict"; return (${match[1].replace(/;\s*$/, "")});`)();
+        return JSON.parse(match[1].replace(/;\s*$/, ""));
       };
 
       const readExportedValue = (content, exportName) => {
-        const match = content.match(new RegExp(`export\\s+const\\s+${exportName}(?:\\s*:[^=]+)?\\s*=\\s*([\\s\\S]*);?\\s*$`));
-        if (!match) throw new Error(`无法解析 ${exportName}`);
-        return Function(`"use strict"; return (${match[1].replace(/;\s*$/, "")});`)();
+        return readExportedJson(content, exportName);
       };
 
       const stringifyArrayModule = (exportName, items) => `export const ${exportName} = ${JSON.stringify(items, null, 2)};\n`;
@@ -3910,12 +3910,9 @@ const initialData = {
         state.mediaToken = mediaToken;
         state.mode = "github";
         sessionStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(TOKEN_KEY);
         sessionStorage.removeItem(MEDIA_TOKEN_KEY);
-        localStorage.removeItem(MEDIA_TOKEN_KEY);
-        const storage = $("[data-remember-token]").checked ? localStorage : sessionStorage;
-        if (token) storage.setItem(TOKEN_KEY, token);
-        if (mediaToken) storage.setItem(MEDIA_TOKEN_KEY, mediaToken);
+        if (token) sessionStorage.setItem(TOKEN_KEY, token);
+        if (mediaToken) sessionStorage.setItem(MEDIA_TOKEN_KEY, mediaToken);
         await loadAll();
       };
 
@@ -3923,9 +3920,7 @@ const initialData = {
         state.token = "";
         state.mediaToken = "";
         sessionStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(TOKEN_KEY);
         sessionStorage.removeItem(MEDIA_TOKEN_KEY);
-        localStorage.removeItem(MEDIA_TOKEN_KEY);
         $("[data-token-input]").value = "";
         $("[data-media-token-input]").value = "";
         state.mode = "readonly";

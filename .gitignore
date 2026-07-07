@@ -7,3 +7,4 @@ dist/
 .env
 .env.local
 workers/media-api/wrangler.toml
+LOCAL_MAINTENANCE.md

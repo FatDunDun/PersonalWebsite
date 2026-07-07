@@ -18,6 +18,9 @@ const base =
 
 function localContentApi() {
   const root = process.cwd();
+  const enabled = process.env.LOCAL_CONTENT_API_ENABLED === "1";
+  const apiToken = process.env.LOCAL_CONTENT_API_TOKEN || "";
+  const maxBodyBytes = 10 * 1024 * 1024;
   const allowedRoots = [
     "src/content/posts",
     "src/data/projects.ts",
@@ -41,7 +44,14 @@ function localContentApi() {
   const readBody = (req) =>
     new Promise((resolve, reject) => {
       let body = "";
+      let bytes = 0;
       req.on("data", (chunk) => {
+        bytes += Buffer.byteLength(chunk);
+        if (bytes > maxBodyBytes) {
+          reject(new Error("Payload is too large"));
+          req.destroy();
+          return;
+        }
         body += chunk;
       });
       req.on("end", () => {
@@ -92,6 +102,19 @@ function localContentApi() {
   return {
     name: "local-content-api",
     configureServer(server) {
+      if (!enabled) return;
+      if (!apiToken) throw new Error("LOCAL_CONTENT_API_TOKEN is required when LOCAL_CONTENT_API_ENABLED=1");
+
+      const requestAllowed = (req) => {
+        const origin = req.headers.origin;
+        const hostOrigin = req.headers.host ? `http://${req.headers.host}` : "";
+        if (origin && origin !== hostOrigin) return false;
+
+        const auth = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+        const token = String(req.headers["x-local-content-token"] || auth || "");
+        return token === apiToken;
+      };
+
       server.middlewares.use(async (req, res, next) => {
         if (!req.url?.startsWith("/__silent_orbit_local")) {
           next();
@@ -99,6 +122,11 @@ function localContentApi() {
         }
 
         try {
+          if (!requestAllowed(req)) {
+            send(res, 403, { message: "Forbidden" });
+            return;
+          }
+
           const url = new URL(req.url, "http://localhost");
           if (req.method === "GET" && url.pathname === "/__silent_orbit_local/status") {
             send(res, 200, { ok: true, mode: "local" });

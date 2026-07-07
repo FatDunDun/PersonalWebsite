@@ -1,159 +1,62 @@
-# PersonalWebsite Memory
+# PersonalWebsite 公开记忆
 
-这个文件用于在上下文丢失或压缩后快速恢复项目状态。后续如果忘记项目背景，先读这个文件。
+这份记忆文件可以安全地保留在公开仓库中。它用于说明项目长期维护原则，但不保存私有路径、隐藏管理入口、真实部署配置或密钥。
 
-## 项目位置
+## 项目定位
 
-```text
-/Users/micylt/Desktop/PersonalWebsite
-```
-
-## 远端仓库
-
-```text
-https://github.com/FatDunDun/PersonalWebsite.git
-```
-
-GitHub Pages:
-
-```text
-https://fatdundun.github.io/PersonalWebsite/
-```
-
-隐藏管理页:
-
-```text
-/silent-orbit-7429/
-```
-
-线上管理页完整地址:
-
-```text
-https://fatdundun.github.io/PersonalWebsite/silent-orbit-7429/
-```
+这是一个纯静态 Astro 个人博客，部署目标是 GitHub Pages。项目保留静态博客的简单性，不引入自管服务器。
 
 ## 技术栈
 
 ```text
-Astro + TypeScript + Tailwind CSS + Markdown/MDX + GitHub Pages
+Astro + TypeScript + Tailwind CSS + MDX + GitHub Pages
 ```
 
-评论系统:
+## 内容位置
 
 ```text
-Waline + Vercel + Neon
+src/content/posts/        文章
+src/data/projects.ts      项目
+src/data/recommendations.ts 推荐
+src/data/gallery.ts       图集数据
+src/data/videos.ts        视频数据
+src/data/siteSettings.ts  站点和页面配置
+public/                   公开静态资源和兜底媒体
 ```
 
-## Git 规则
+## 维护规则
 
-每次本地修改并准备 push 前，必须先同步远端，避免覆盖管理页在线改动：
+1. 修改前检查工作区。
+2. 发布前同步远端。
+3. 修改安全相关逻辑后运行测试和构建。
+4. 公开仓库只保存公开信息。
+5. 私有维护信息只放在本机忽略文件 `LOCAL_MAINTENANCE.md`。
 
-```bash
-git pull --rebase origin main
-```
+## 不应提交的信息
 
-推荐完整流程：
+- 本机绝对路径
+- 隐藏管理入口和完整管理 URL
+- GitHub Token
+- Cloudflare Worker `ADMIN_TOKEN`
+- Waline 密钥
+- 数据库连接串
+- 真实 `workers/media-api/wrangler.toml`
+- `.env` / `.env.local`
+- `.DS_Store`
+
+## 发布前检查
 
 ```bash
 git status -sb
 git pull --rebase origin main
+npm run test
 npm run build
-git add .
-git commit -m "描述这次改动"
-git push origin main
+git status -sb
 ```
 
-Git 作者信息保持：
+## 近期安全约束
 
-```bash
-git config user.name FatPig
-git config user.email FatDunDun@users.noreply.github.com
-```
-
-最新已知提交：
-
-```text
-0ee7b7b Add recommendations page and git guide
-```
-
-## 重要页面
-
-```text
-/                       首页
-/articles/              文章列表
-/articles/[slug]/       文章详情
-/gallery/               PersonalPhoto 图集
-/videos/                PersonalVideo 视频
-/recommendations/       推荐页
-/projects/              项目页
-/about/                 关于页
-/silent-orbit-7429/     隐藏内容管理页
-```
-
-## 内容数据位置
-
-文章：
-
-```text
-src/content/posts/*.mdx
-```
-
-项目：
-
-```text
-src/data/projects.ts
-```
-
-推荐：
-
-```text
-src/data/recommendations.ts
-```
-
-PersonalPhoto：
-
-```text
-src/data/gallery.ts
-public/personal-photo/
-```
-
-PersonalVideo：
-
-```text
-src/data/videos.ts
-public/personal-video/
-```
-
-素材图片库：
-
-```text
-public/images/
-```
-
-素材视频库：
-
-```text
-public/videos/
-```
-
-## 最近新增/已完成
-
-- 推荐页 `/recommendations/`
-- 管理页新增“推荐”模块，支持新增、修改、删除、上传封面、使用素材图片库选中图
-- 推荐数据文件 `src/data/recommendations.ts`
-- Git 推送流程图 `docs/git-push-guide.svg`
-- Waline 部署维护图 `docs/waline-guide.svg`
-- Waline / Vercel / Neon 关系图 `docs/waline-vercel-neon-map.svg`
-- 项目地图 `docs/project-guide.svg` 已同步推荐页说明
-- 清理了旧 giscus / Cusdis 残留
-- 清理了 `.DS_Store`、`.playwright-cli/`、`.astro/`、`dist/` 等本地垃圾/可再生成产物
-
-## 注意事项
-
-- `public/images/` 是素材库，不直接等于前台图集。
-- 前台图集只展示 `src/data/gallery.ts` 中 `/personal-photo/` 路径的 PersonalPhoto。
-- 推荐封面建议放到 `public/images/`。
-- 本地管理页写入白名单在 `astro.config.mjs`，新增数据文件时要同步加入。
-- 不要随意删除 `node_modules/`，这是本地依赖目录。
-- 不要把 GitHub Token 写进项目文件。
-
+- 管理页输入的 GitHub Token 和 Media Token 只保存在会话级浏览器存储里，不做长期保存。
+- 本地内容写入 API 默认关闭，启用时必须配置本地 token。
+- Worker CORS 不默认允许所有来源。
+- `public/` 和 `dist/` 中不能出现 `.DS_Store`。

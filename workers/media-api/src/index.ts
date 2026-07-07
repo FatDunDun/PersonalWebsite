@@ -23,28 +23,51 @@ const contentTypes: Record<string, string> = {
   webp: "image/webp",
 };
 
-function corsHeaders(env: Env) {
+function configuredOrigin(env: Env) {
+  return (env.ALLOWED_ORIGIN || "").replace(/\/$/, "");
+}
+
+function requestOrigin(request: Request) {
+  return (request.headers.get("Origin") || "").replace(/\/$/, "");
+}
+
+function originAllowed(request: Request, env: Env) {
+  const allowed = configuredOrigin(env);
+  const origin = requestOrigin(request);
+  if (!allowed) return false;
+  return !origin || origin === allowed;
+}
+
+function corsHeaders(env: Env, request?: Request) {
+  const allowed = configuredOrigin(env);
+  const origin = request ? requestOrigin(request) : "";
+  const allowOrigin = origin && origin === allowed ? origin : allowed;
   return {
-    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
     "Access-Control-Max-Age": "86400",
+    "Vary": "Origin",
   };
 }
 
-function json(env: Env, data: unknown, status = 200) {
+function json(env: Env, request: Request, data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
-      ...corsHeaders(env),
+      ...corsHeaders(env, request),
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",
     },
   });
 }
 
-function unauthorized(env: Env) {
-  return json(env, { message: "Unauthorized" }, 401);
+function unauthorized(env: Env, request: Request) {
+  return json(env, request, { message: "Unauthorized" }, 401);
+}
+
+function forbiddenOrigin(env: Env, request: Request) {
+  return json(env, request, { message: "Forbidden origin" }, 403);
 }
 
 function requireAdmin(request: Request, env: Env) {
@@ -116,7 +139,7 @@ async function handleList(request: Request, env: Env) {
       uploaded: object.uploaded.toISOString(),
     }));
 
-  return json(env, { objects, folders, prefix, truncated: listed.truncated, cursor: listed.cursor || "" });
+  return json(env, request, { objects, folders, prefix, truncated: listed.truncated, cursor: listed.cursor || "" });
 }
 
 async function handleUpload(request: Request, env: Env) {
@@ -134,7 +157,7 @@ async function handleUpload(request: Request, env: Env) {
     },
   });
 
-  return json(env, {
+  return json(env, request, {
     key,
     name: key.split("/").pop() || key,
     path: publicPathForKey(key),
@@ -153,7 +176,7 @@ async function handleCreateFolder(request: Request, env: Env) {
     },
   });
 
-  return json(env, {
+  return json(env, request, {
     type: "folder",
     key,
     name: key.split("/").filter(Boolean).slice(-1)[0] || key,
@@ -165,13 +188,14 @@ async function handleDelete(request: Request, env: Env) {
   const url = new URL(request.url);
   const key = normalizeKey(url.searchParams.get("key"));
   await env.ASSETS_BUCKET.delete(key);
-  return json(env, { ok: true, key, path: publicPathForKey(key) });
+  return json(env, request, { ok: true, key, path: publicPathForKey(key) });
 }
 
 export default {
   async fetch(request: Request, env: Env) {
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(env) });
-    if (!requireAdmin(request, env)) return unauthorized(env);
+    if (!originAllowed(request, env)) return forbiddenOrigin(env, request);
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(env, request) });
+    if (!requireAdmin(request, env)) return unauthorized(env, request);
 
     try {
       const url = new URL(request.url);
@@ -179,10 +203,10 @@ export default {
       if (request.method === "POST" && url.pathname === "/media/upload") return handleUpload(request, env);
       if (request.method === "POST" && url.pathname === "/media/folder") return handleCreateFolder(request, env);
       if (request.method === "DELETE" && url.pathname === "/media") return handleDelete(request, env);
-      if (request.method === "GET" && url.pathname === "/health") return json(env, { ok: true });
-      return json(env, { message: "Not found" }, 404);
+      if (request.method === "GET" && url.pathname === "/health") return json(env, request, { ok: true });
+      return json(env, request, { message: "Not found" }, 404);
     } catch (error) {
-      return json(env, { message: error instanceof Error ? error.message : "Media API error" }, 400);
+      return json(env, request, { message: error instanceof Error ? error.message : "Media API error" }, 400);
     }
   },
 };

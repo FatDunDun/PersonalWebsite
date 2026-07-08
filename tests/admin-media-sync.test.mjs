@@ -241,6 +241,20 @@ assert.ok(
 );
 
 assert.ok(
+  source.includes("const draftPreviewForContent = (item) => {") &&
+    source.includes('if (item.path === RECOMMENDATIONS_PATH)') &&
+    source.includes("assetPreviewForValue(entry?.image)"),
+  "Expected local content drafts to show recommendation thumbnails instead of a generic content placeholder",
+);
+
+assert.ok(
+  source.includes("const mediaListPayload = data && typeof data === \"object\" ? data : { objects: [], folders: [] };") &&
+    source.includes("const mediaFolders = Array.isArray(mediaListPayload.folders) ? mediaListPayload.folders : [];") &&
+    source.includes("const mediaObjects = Array.isArray(mediaListPayload.objects) ? mediaListPayload.objects : [];"),
+  "Expected R2 media list refresh to tolerate empty or malformed payloads without reading folders from null",
+);
+
+assert.ok(
   source.includes("const publicRoot = mediaTargetPublicRoot(kindOrSection);"),
   "Expected media uploads to target the currently selected media directory",
 );

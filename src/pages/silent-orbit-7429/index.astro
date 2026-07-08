@@ -1617,16 +1617,19 @@ const initialData = {
       const mediaApiList = async (publicRoot) => {
         const prefix = mediaRootFromPublicRoot(publicRoot);
         const data = await mediaApi(`/media?prefix=${encodeURIComponent(prefix)}`);
+        const mediaListPayload = data && typeof data === "object" ? data : { objects: [], folders: [] };
+        const mediaFolders = Array.isArray(mediaListPayload.folders) ? mediaListPayload.folders : [];
+        const mediaObjects = Array.isArray(mediaListPayload.objects) ? mediaListPayload.objects : [];
         const section = sectionForMediaRoot(normalizePublicRoot(publicRoot));
         if (section) {
-          mediaDirectoryState(section).folders = (data.folders || []).map((folder) => ({
+          mediaDirectoryState(section).folders = mediaFolders.map((folder) => ({
             ...folder,
             type: "folder",
             publicPath: normalizePublicRoot(folder.path || folder.key),
             folderPrefix: folder.key,
           }));
         }
-        return (data.objects || []).map((item) => ({
+        return mediaObjects.map((item) => ({
           name: item.name,
           key: item.key,
           path: item.key,
@@ -1968,10 +1971,10 @@ const initialData = {
         return allPendingChanges().filter((item) => selected.has(draftChangeId(item)));
       };
 
-      const queueContentChange = ({ path, content, label }) => {
+      const queueContentChange = ({ path, content, label, previewValue = "" }) => {
         state.pendingChanges.deletes = state.pendingChanges.deletes.filter((item) => item.path !== path);
         const existing = state.pendingChanges.files.findIndex((item) => item.path === path);
-        const entry = { path, content, label, pending: true, draftKind: "content-write" };
+        const entry = { path, content, label, previewValue, pending: true, draftKind: "content-write" };
         if (existing >= 0) state.pendingChanges.files[existing] = entry;
         else state.pendingChanges.files.push(entry);
         selectDraft(entry, true);
@@ -2227,6 +2230,41 @@ const initialData = {
         return "待处理";
       };
 
+      const firstImageFromExport = (content, exportName, getImage) => {
+        try {
+          const entries = readExportedValue(content || "", exportName);
+          if (!Array.isArray(entries)) return "";
+          const entry = entries.find((candidate) => getImage(candidate));
+          return assetPreviewForValue(getImage(entry));
+        } catch {
+          return "";
+        }
+      };
+
+      const draftPreviewForContent = (item) => {
+        if (item.previewValue) return assetPreviewForValue(item.previewValue);
+        if (item.path?.startsWith(`${POSTS_PATH}/`)) return assetPreviewForValue(parseFrontmatter(item.content || "").data.cover);
+        if (item.path === RECOMMENDATIONS_PATH) {
+          try {
+            const entries = readExportedValue(item.content || "", "recommendations");
+            const entry = Array.isArray(entries) ? entries.find((candidate) => candidate?.image) : null;
+            return assetPreviewForValue(entry?.image);
+          } catch {
+            return "";
+          }
+        }
+        if (item.path === GALLERY_PATH) return firstImageFromExport(item.content, "galleryItems", (entry) => entry?.image);
+        if (item.path === PERSONAL_VIDEOS_DATA_PATH) return firstImageFromExport(item.content, "videoItems", (entry) => entry?.poster);
+        if (item.path === SETTINGS_PATH) {
+          try {
+            return assetPreviewForValue(readExportedValue(item.content || "", "siteSettings")?.home?.heroBackgroundImage);
+          } catch {
+            return "";
+          }
+        }
+        return "";
+      };
+
       const renderDrafts = () => {
         renderDraftStats();
         const node = $("[data-draft-list]");
@@ -2243,11 +2281,14 @@ const initialData = {
           const card = document.createElement("article");
           card.className = "orbit-card quiet-card grid gap-3 p-3 md:grid-cols-[auto_96px_minmax(0,1fr)_auto] md:items-center";
           const isMediaDraft = item.draftKind === "media-upload" || item.draftKind === "media-delete";
+          const contentPreviewUrl = item.draftKind?.startsWith("content-") ? draftPreviewForContent(item) : "";
           const preview = isMediaDraft && item.kind === "image"
             ? `<img class="aspect-[4/3] w-24 rounded border border-[var(--line)] object-cover" src="${assetPreviewUrl(item)}" alt="" />`
             : isMediaDraft && item.kind === "video"
               ? `<video class="aspect-video w-24 rounded border border-[var(--line)] bg-black object-cover" src="${assetPreviewUrl(item)}" preload="metadata" muted playsinline></video>`
-              : `<div class="grid aspect-[4/3] w-24 place-items-center rounded border border-[var(--line)] bg-[var(--surface-soft)] font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">Content</div>`;
+              : contentPreviewUrl
+                ? `<img class="aspect-[4/3] w-24 rounded border border-[var(--line)] object-cover" src="${contentPreviewUrl}" alt="" />`
+                : `<div class="grid aspect-[4/3] w-24 place-items-center rounded border border-[var(--line)] bg-[var(--surface-soft)] font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">Content</div>`;
           card.innerHTML = `
             <label class="flex items-center gap-2 text-sm text-[var(--muted)]">
               <input data-draft-selected="${escapeHtml(id)}" type="checkbox" ${selected ? "checked" : ""} />
@@ -2792,6 +2833,7 @@ const initialData = {
           path: SETTINGS_PATH,
           content: stringifySettingsModule(settings),
           label: "页面配置",
+          previewValue: settings.home?.heroBackgroundImage,
         });
         state.settings = settings;
         fillSettings();
@@ -2853,6 +2895,7 @@ const initialData = {
           path,
           content,
           label: current?.path ? `文章：${slug}` : `新文章：${slug}`,
+          previewValue: parseFrontmatter(content).data.cover,
         });
 
         if (current?.sha && current.path && current.path !== path) {
@@ -3038,6 +3081,7 @@ const initialData = {
           path: RECOMMENDATIONS_PATH,
           content: stringifyArrayModule("recommendations", items),
           label: "推荐数据",
+          previewValue: item.image,
         });
         state.recommendations = items;
         state.current.recommendationIndex = items.findIndex((entry) => entry === item);
@@ -3120,6 +3164,7 @@ const initialData = {
           path: GALLERY_PATH,
           content: stringifyArrayModule("galleryItems", items),
           label: "PersonalPhoto 数据",
+          previewValue: item.image,
         });
         state.gallery = items;
         state.current.galleryIndex = items.findIndex((entry) => entry === item);
@@ -3232,6 +3277,7 @@ const initialData = {
           path: PERSONAL_VIDEOS_DATA_PATH,
           content: stringifyArrayModule("videoItems", items),
           label: "PersonalVideo 数据",
+          previewValue: item.poster,
         });
         state.personalVideos = items;
         state.current.personalVideoIndex = items.findIndex((entry) => entry === item);

@@ -27,7 +27,7 @@ public/                   公开静态资源和兜底媒体
 ## 维护规则
 
 1. 修改前检查工作区。
-2. 发布前同步远端。
+2. 修改项目代码前先同步远端：先执行 `git fetch origin main`，确认分支关系；如远端有新提交，先用 `git pull --rebase origin main` 整合，再开始改代码。不要等到 push 前才拉远端。
 3. 修改安全相关逻辑后运行测试和构建。
 4. 公开仓库只保存公开信息。
 5. 私有维护信息只放在本机忽略文件 `LOCAL_MAINTENANCE.md`。
@@ -48,6 +48,7 @@ public/                   公开静态资源和兜底媒体
 
 ```bash
 git status -sb
+git fetch origin main
 git pull --rebase origin main
 npm run test
 npm run build

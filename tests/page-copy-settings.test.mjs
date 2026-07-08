@@ -40,6 +40,31 @@ for (const key of pageKeys) {
 assert.ok(adminSource.includes('data-section="pageCopy"'), "Expected admin sidebar to include a page copy editor section");
 assert.ok(adminSource.includes('data-view="pageCopy"'), "Expected admin to render a page copy editor view");
 assert.ok(adminSource.includes("栏目文案"), "Expected admin copy to name the page copy editor in Chinese");
+
+const aboutResumeFields = [
+  "pages.about.image",
+  "pages.about.imageAlt",
+  "pages.about.role",
+  "pages.about.company",
+  "pages.about.email",
+  "pages.about.location",
+  "aboutSummaryText",
+  "aboutFocusText",
+  "aboutLinksText",
+];
+
+for (const field of aboutResumeFields) {
+  assert.ok(adminSource.includes(`data-settings-field="${field}"`), `Expected admin to edit about resume field ${field}`);
+}
+
+const aboutPageSource = read("src/pages/about.astro");
+for (const snippet of ["pageCopy.company", "pageCopy.email", "pageCopy.summary", "pageCopy.focus", "pageCopy.links"]) {
+  assert.ok(aboutPageSource.includes(snippet), `Expected about page to render editable resume data via ${snippet}`);
+}
+for (const staleCopy of ["关于这个网站", "这是一个从零搭建的个人网站模板", "你可以把这里替换为邮箱"]) {
+  assert.ok(!aboutPageSource.includes(staleCopy), `Expected about page to avoid old hard-coded template copy: ${staleCopy}`);
+}
+
 assert.ok(
   adminSource.includes('newButton.hidden = isMediaLibrarySection(section) || section === "drafts" || section === "pageCopy";'),
   "Expected page copy section to avoid showing the global new button",

@@ -1206,6 +1206,42 @@ const initialData = {
                     <span class="font-mono text-xs text-[var(--muted)]">关于说明</span>
                     <textarea class="orbit-input mt-2 min-h-24" data-settings-field="pages.about.description"></textarea>
                   </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">头像 / 简历图片</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="pages.about.image" placeholder="/personal-photo/profile.png" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">图片替代文字</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.about.imageAlt" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">角色 / 职位</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.about.role" placeholder="前端工程师 / 内容系统维护者" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">公司</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.about.company" placeholder="公司 / 团队 / 自由职业" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">邮箱</span>
+                    <input class="orbit-input mt-2 font-mono text-sm" data-settings-field="pages.about.email" placeholder="hello@example.com" />
+                  </label>
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">所在地</span>
+                    <input class="orbit-input mt-2" data-settings-field="pages.about.location" placeholder="Shanghai / Remote" />
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">个人简介（每行一段）</span>
+                    <textarea class="orbit-input mt-2 min-h-32" data-settings-field="aboutSummaryText"></textarea>
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">关注方向（每行一条）</span>
+                    <textarea class="orbit-input mt-2 min-h-32" data-settings-field="aboutFocusText"></textarea>
+                  </label>
+                  <label class="block md:col-span-2">
+                    <span class="font-mono text-xs text-[var(--muted)]">公开链接（每行：名称|链接）</span>
+                    <textarea class="orbit-input mt-2 min-h-28 font-mono text-sm" data-settings-field="aboutLinksText" placeholder="GitHub|https://github.com/FatDunDun"></textarea>
+                  </label>
                 </div>
               </section>
             </div>
@@ -1832,6 +1868,12 @@ const initialData = {
       const stringifyCodeLines = (items = []) =>
         items.map((item) => `${item.label || ""}|${item.value || ""}`).join("\n");
 
+      const stringifyTextList = (items = []) =>
+        Array.isArray(items) ? items.filter(Boolean).join("\n") : "";
+
+      const stringifyAboutLinks = (items = []) =>
+        Array.isArray(items) ? items.map((item) => `${item.label || ""}|${item.href || ""}`).join("\n") : "";
+
       const parseCodeLines = (text) =>
         text
           .split("\n")
@@ -1842,6 +1884,23 @@ const initialData = {
             return { label: label.trim() || "note", value: rest.join("|").trim() };
           })
           .filter((item) => item.value);
+
+      const parseTextList = (text) =>
+        text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+      const parseAboutLinks = (text) =>
+        text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const [label = "", ...rest] = line.split("|");
+            return { label: label.trim(), href: rest.join("|").trim() };
+          })
+          .filter((item) => item.label && item.href);
 
       const parseNavText = (text) =>
         text
@@ -2789,6 +2848,18 @@ const initialData = {
             field.value = stringifyCodeLines(settings.home?.codeLines || []);
             return;
           }
+          if (key === "aboutSummaryText") {
+            field.value = stringifyTextList(settings.pages?.about?.summary || []);
+            return;
+          }
+          if (key === "aboutFocusText") {
+            field.value = stringifyTextList(settings.pages?.about?.focus || []);
+            return;
+          }
+          if (key === "aboutLinksText") {
+            field.value = stringifyAboutLinks(settings.pages?.about?.links || []);
+            return;
+          }
           field.value = getByPath(settings, key) ?? "";
         });
       };
@@ -2803,6 +2874,18 @@ const initialData = {
           }
           if (key === "codeLinesText") {
             settings.home.codeLines = parseCodeLines(field.value);
+            return;
+          }
+          if (key === "aboutSummaryText") {
+            setByPath(settings, "pages.about.summary", parseTextList(field.value));
+            return;
+          }
+          if (key === "aboutFocusText") {
+            setByPath(settings, "pages.about.focus", parseTextList(field.value));
+            return;
+          }
+          if (key === "aboutLinksText") {
+            setByPath(settings, "pages.about.links", parseAboutLinks(field.value));
             return;
           }
           setByPath(settings, key, field.value.trim());

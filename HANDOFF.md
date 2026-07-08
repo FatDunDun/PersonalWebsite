@@ -18,9 +18,10 @@
    git status -sb
    ```
 
-2. 发布前先同步远端，避免覆盖静态管理页产生的线上内容提交：
+2. 修改项目代码前先同步远端，避免在本地改完后才发现静态管理页已经产生线上内容提交：
 
    ```bash
+   git fetch origin main
    git pull --rebase origin main
    ```
 

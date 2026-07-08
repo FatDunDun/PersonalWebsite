@@ -71,7 +71,28 @@ export const siteSettings = {
     "about": {
       "kicker": "Profile / archive owner",
       "title": "Micy",
-      "description": "写作、影像、前端工程和小型工具爱好者。"
+      "description": "写作、影像、前端工程和小型工具爱好者。",
+      "image": "/personal-photo/gallery-workspace.png",
+      "imageAlt": "桌面上的笔记和咖啡",
+      "role": "前端工程师 / 内容系统维护者",
+      "company": "可在管理页填写公司",
+      "email": "hello@example.com",
+      "location": "China",
+      "summary": [
+        "我长期关注内容系统、前端体验和个人工具，把写作、整理、发布和自动化连接成一套稳定的工作流。",
+        "这个页面可以作为公开简历使用：展示当前身份、公司、联系方式、擅长方向和想被记住的个人介绍。"
+      ],
+      "focus": [
+        "内容系统：让写作、整理和发布更顺手。",
+        "前端体验：界面层级、性能、动效克制和可维护性。",
+        "个人工具：把重复的小事变成可靠的自动化。"
+      ],
+      "links": [
+        {
+          "label": "GitHub",
+          "href": "https://github.com/FatDunDun"
+        }
+      ]
     }
   },
   "nav": [

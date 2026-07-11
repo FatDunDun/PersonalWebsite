@@ -64,6 +64,13 @@ for (const snippet of ["pageCopy.company", "pageCopy.email", "pageCopy.summary",
 for (const staleCopy of ["关于这个网站", "这是一个从零搭建的个人网站模板", "你可以把这里替换为邮箱"]) {
   assert.ok(!aboutPageSource.includes(staleCopy), `Expected about page to avoid old hard-coded template copy: ${staleCopy}`);
 }
+for (const snippet of ["about-content-card", "profile-index", "profile-index__header", "profile-index__grid", "profile-index__item"]) {
+  assert.ok(aboutPageSource.includes(snippet), `Expected redesigned about page to include ${snippet}`);
+}
+assert.ok(
+  !aboutPageSource.includes('mt-6 grid gap-3 sm:grid-cols-2'),
+  "Expected about page to avoid the old four-card facts grid",
+);
 
 assert.ok(
   adminSource.includes('newButton.hidden = isMediaLibrarySection(section) || section === "drafts" || section === "pageCopy";'),

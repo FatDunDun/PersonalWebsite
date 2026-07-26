@@ -25,7 +25,7 @@ const isExternalLink = (href: string) => /^https?:\/\//.test(href);
             href={project.link}
             target={external ? "_blank" : undefined}
             rel={external ? "noopener noreferrer" : undefined}
-            class="artifact-card group grid gap-5 rounded-md p-5 transition hover:-translate-y-0.5 hover:border-[var(--foreground)] md:grid-cols-[120px_1fr_auto] md:items-center"
+            class="artifact-card group grid gap-5 rounded-[1.75rem] p-5 transition hover:-translate-y-0.5 md:grid-cols-[96px_1fr_auto] md:items-center"
           >
             <div class="folio-number text-5xl">{String(index + 1).padStart(2, "0")}</div>
             <div>

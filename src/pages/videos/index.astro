@@ -22,8 +22,8 @@ const pageCopy = pageConfig.videos;
       videoItems.length ? (
         <div class="mt-10 grid gap-5 lg:grid-cols-2">
           {videoItems.map((item, index) => (
-            <article class="artifact-card rounded-md p-2">
-              <div class="overflow-hidden rounded border border-[var(--line)] bg-black">
+            <article class="artifact-card rounded-[1.75rem] p-2">
+              <div class="overflow-hidden rounded-[1.25rem] border border-[var(--line)] bg-black">
                 <video class="aspect-video w-full object-cover" controls playsinline preload="metadata" poster={item.poster ? assetUrl(item.poster) : undefined} src={assetUrl(item.video)}></video>
               </div>
               <div class="flex items-start justify-between gap-4 px-2 py-4">
@@ -38,7 +38,7 @@ const pageCopy = pageConfig.videos;
           ))}
         </div>
       ) : (
-        <div class="artifact-card mt-10 rounded-md p-8 text-[var(--muted)]">
+        <div class="artifact-card mt-10 rounded-[1.75rem] p-8 text-[var(--muted)]">
           还没有 PersonalVideo。可以在隐藏管理页上传日常视频并保存到这里。
         </div>
       )

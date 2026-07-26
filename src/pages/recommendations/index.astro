@@ -69,9 +69,9 @@ const pageCopy = pageConfig.recommendations;
                   href={href}
                   target={external ? "_blank" : undefined}
                   rel={external ? "noopener noreferrer" : undefined}
-                  class="artifact-card group flex min-h-full flex-col rounded-md p-2 transition hover:-translate-y-1 hover:border-[var(--foreground)]"
+                  class="artifact-card group flex min-h-full flex-col rounded-[1.75rem] p-2 transition hover:-translate-y-1"
                 >
-                  <div class="overflow-hidden rounded border border-[var(--line)] bg-[var(--surface-soft)]">
+                  <div class="overflow-hidden rounded-[1.25rem] border border-[var(--line)] bg-[var(--surface-soft)]">
                     {item.image ? (
                       <img class="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.03] group-hover:saturate-110" src={assetUrl(item.image)} alt={item.title} loading="lazy" />
                     ) : (

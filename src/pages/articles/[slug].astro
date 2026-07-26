@@ -34,12 +34,12 @@ const { Content } = await render(post);
     </header>
 
     {post.data.cover && (
-      <div class="artifact-card mt-10 rounded-md p-2">
-        <img class="aspect-[16/9] w-full rounded border border-[var(--line)] object-cover photo-shadow" src={assetUrl(post.data.cover)} alt="" />
+      <div class="artifact-card mt-10 rounded-[2rem] p-2">
+        <img class="aspect-[16/9] w-full rounded-[1.5rem] border border-[var(--line)] object-cover photo-shadow" src={assetUrl(post.data.cover)} alt="" />
       </div>
     )}
 
-    <div class="artifact-card mx-auto mt-12 max-w-3xl rounded-md p-6 md:p-8">
+    <div class="artifact-card mx-auto mt-12 max-w-3xl rounded-[2rem] p-6 md:p-10">
       <div class="prose max-w-none">
       <Content />
       <WalineComments pageId={post.id} />

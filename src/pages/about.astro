@@ -20,8 +20,8 @@ const facts = [
   <section class="container grid gap-10 py-12 md:grid-cols-[0.9fr_1.1fr] md:py-18">
     <aside>
       <div class="sticky top-28">
-        <div class="artifact-card rounded-md p-2">
-          <img class="aspect-[4/5] w-full rounded border border-[var(--line)] object-cover photo-shadow" src={assetUrl(profileImage)} alt={profileImageAlt} />
+        <div class="artifact-card rounded-[2rem] p-2">
+          <img class="aspect-[4/5] w-full rounded-[1.5rem] border border-[var(--line)] object-cover photo-shadow" src={assetUrl(profileImage)} alt={profileImageAlt} />
         </div>
         <div class="mt-5 page-hero pb-6">
           <p class="page-kicker">{pageCopy.kicker}</p>
@@ -31,7 +31,7 @@ const facts = [
       </div>
     </aside>
 
-    <div class="artifact-card about-content-card rounded-md p-6 md:p-8">
+    <div class="artifact-card about-content-card rounded-[2rem] p-6 md:p-10">
       <div class="space-y-10">
         <section>
           <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Profile</p>
@@ -80,7 +80,7 @@ const facts = [
             <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Links</p>
             <div class="mt-4 flex flex-wrap gap-3">
               {links.map((link) => (
-                <a class="border border-[var(--foreground)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--foreground)] hover:text-[var(--background)]" href={link.href}>
+                <a class="apple-button apple-button--secondary" href={link.href}>
                   {link.label}
                 </a>
               ))}
@@ -94,22 +94,18 @@ const facts = [
 
 <style>
   .about-content-card {
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--glass-strong) 40%, transparent), color-mix(in srgb, var(--glass) 34%, transparent)),
-      color-mix(in srgb, var(--glass) 56%, transparent);
+    background: var(--glass-strong);
   }
 
   .profile-index {
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--paper-edge) 88%, var(--accent-warm));
-    border-radius: 1.25rem;
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--glass-strong) 48%, transparent), color-mix(in srgb, var(--glass) 34%, transparent)),
-      color-mix(in srgb, var(--glass) 52%, transparent);
+    border: 1px solid var(--line);
+    border-radius: 1.4rem;
+    background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.28),
-      0 18px 42px rgb(9 26 38 / 0.08);
-    backdrop-filter: blur(18px) saturate(1.08);
+      inset 0 1px 0 rgb(255 255 255 / 0.52),
+      0 8px 26px rgb(0 0 0 / 0.035);
+    backdrop-filter: blur(20px) saturate(1.18);
   }
 
   .profile-index__header {
@@ -120,7 +116,10 @@ const facts = [
     padding: 0.8rem 1.15rem;
     border-bottom: 1px solid var(--line);
     color: var(--muted);
-    font-family: var(--font-mono);
+    font-family:
+      -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+      "Helvetica Neue", sans-serif;
+    font-weight: 620;
     font-size: 0.65rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -147,14 +146,14 @@ const facts = [
     position: absolute;
     inset: 0 auto 0 0;
     width: 2px;
-    background: var(--accent-warm);
+    background: var(--accent);
     opacity: 0;
     transform: scaleY(0.35);
     transition: opacity 180ms ease, transform 180ms ease;
   }
 
   .profile-index__item:hover {
-    background: color-mix(in srgb, var(--accent-warm) 8%, transparent);
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
   }
 
   .profile-index__item:hover::before {
@@ -167,14 +166,17 @@ const facts = [
     align-items: center;
     gap: 0.65rem;
     color: var(--muted);
-    font-family: var(--font-mono);
+    font-family:
+      -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+      "Helvetica Neue", sans-serif;
+    font-weight: 620;
     font-size: 0.7rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
   .profile-index__label span {
-    color: color-mix(in srgb, var(--accent-warm) 76%, var(--muted));
+    color: var(--accent);
   }
 
   .profile-index__item dd {

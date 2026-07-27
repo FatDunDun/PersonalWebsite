@@ -60,7 +60,7 @@ const pageCopy = pageConfig.recommendations;
             <span class="folio-number text-sm">{String(group.items.length).padStart(2, "0")}</span>
           </div>
 
-          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div class="grid gap-4 lg:grid-cols-2">
             {group.items.map((item) => {
               const href = resolveRecommendationLink(item.link);
               const external = isExternalLink(href);
@@ -69,25 +69,23 @@ const pageCopy = pageConfig.recommendations;
                   href={href}
                   target={external ? "_blank" : undefined}
                   rel={external ? "noopener noreferrer" : undefined}
-                  class="artifact-card group flex min-h-full flex-col rounded-[1.75rem] p-2 transition hover:-translate-y-1"
+                  class="artifact-card recommendation-card group grid min-h-full grid-cols-[7rem_minmax(0,1fr)] items-start gap-3 rounded-[1.25rem] p-2.5 transition sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[9.5rem_minmax(0,1fr)]"
                 >
-                  <div class="overflow-hidden rounded-[1.25rem] border border-[var(--line)] bg-[var(--surface-soft)]">
+                  <div class="recommendation-cover relative overflow-hidden rounded-[0.9rem] border border-[var(--line)] bg-[var(--surface-soft)]">
                     {item.image ? (
-                      <img class="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.03] group-hover:saturate-110" src={assetUrl(item.image)} alt={item.title} loading="lazy" />
+                      <img class="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.02]" src={assetUrl(item.image)} alt={item.title} loading="lazy" />
                     ) : (
-                      <div class="grid aspect-[4/5] place-items-center px-5 text-center">
+                      <div class="grid aspect-[4/5] place-items-center px-3 text-center">
                         <p class="font-mono text-xs uppercase tracking-[0.22em] text-[var(--muted)]">No Cover</p>
                       </div>
                     )}
+                    {item.rating && <span class="recommendation-rating absolute right-2 top-2 px-2 py-1 font-mono text-xs">{item.rating}</span>}
                   </div>
-                  <div class="flex flex-1 flex-col px-2 py-4">
-                    <div class="flex items-start justify-between gap-3">
-                      <h3 class="text-xl font-semibold leading-tight group-hover:text-[var(--accent)]">{item.title}</h3>
-                      {item.rating && <span class="tag-chip shrink-0 px-2 py-1 font-mono text-xs">{item.rating}</span>}
-                    </div>
+                  <div class="flex min-h-full min-w-0 flex-col py-1.5 pr-1.5 sm:py-2">
+                    <h3 class="recommendation-title literary-title text-lg leading-tight group-hover:text-[var(--accent)] sm:text-xl">{item.title}</h3>
                     <p class="mt-2 font-mono text-xs text-[var(--muted)]">{[item.creator, item.year].filter(Boolean).join(" · ")}</p>
-                    <p class="mt-3 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
-                    <div class="mt-auto flex flex-wrap gap-2 pt-5">
+                    <p class="recommendation-description mt-3 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
+                    <div class="mt-auto flex flex-wrap gap-1.5 pt-4">
                       {(item.tags || []).map((tag) => (
                         <span class="tag-chip px-2 py-1 font-mono text-[11px]">{tag}</span>
                       ))}

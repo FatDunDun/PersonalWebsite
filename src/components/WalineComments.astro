@@ -9,7 +9,7 @@ const enabled = Boolean(serverURL);
 const commentPath = `/articles/${pageId}/`;
 ---
 
-<section class="mt-14 border-t border-[var(--line)] pt-10">
+<section class="comments-section mt-14 border-t border-[var(--line)] pt-10">
   <div class="mb-6 flex items-end justify-between gap-4">
     <div>
       <p class="page-kicker">Comments / responses</p>
@@ -19,7 +19,7 @@ const commentPath = `/articles/${pageId}/`;
 
   {
     enabled ? (
-      <div class="artifact-card rounded-md p-4">
+      <div class="comments-card artifact-card p-4">
         <div
           id="waline-thread"
           data-server-url={serverURL}
@@ -27,14 +27,14 @@ const commentPath = `/articles/${pageId}/`;
           data-waline-lazy
           class="min-h-28"
         >
-          <button class="rounded-md border border-[var(--line)] bg-[var(--surface)] px-4 py-2.5 font-mono text-sm transition hover:border-[var(--foreground)]" data-waline-load type="button">
+          <button class="comments-load-button story-button story-button--secondary font-mono text-sm" data-waline-load type="button">
             加载留言
           </button>
           <p class="mt-3 text-sm leading-6 text-[var(--muted)]">滚动到这里时会自动加载评论，减少文章首屏的外部资源请求。</p>
         </div>
       </div>
     ) : (
-      <div class="artifact-card rounded-md border-dashed p-5 text-sm leading-6 text-[var(--muted)]">
+      <div class="comments-card artifact-card border-dashed p-5 text-sm leading-6 text-[var(--muted)]">
         留言区已切换为 Waline。部署 Waline 服务并配置 PUBLIC_WALINE_SERVER_URL 后，访客可以用昵称留言、发送表情和参与文章反应。
       </div>
     )

@@ -27,7 +27,13 @@ const isPersonalPhotoImage = (image = "") => {
 const personalPhotoItems = galleryItems.filter((item) => isPersonalPhotoImage(item.image));
 const featuredFrames = personalPhotoItems.slice(0, 3);
 const featuredProjects = projects.slice(0, 3);
-const isExternalLink = (href: string) => /^https?:\/\//.test(href);
+const isExternalLink = (href: string) => /^(?:https?:)?\/\//i.test(href);
+const isDirectLink = (href: string) => /^(?:[a-z][a-z0-9+.-]*:|#)/i.test(href);
+const resolveCtaLink = (href: string) => isExternalLink(href) || isDirectLink(href) ? href : withBase(href);
+const primaryCta = homeConfig.primaryButton;
+const secondaryCta = homeConfig.secondaryButton;
+const hasPrimaryCta = Boolean(primaryCta.label.trim() && primaryCta.href.trim());
+const hasSecondaryCta = Boolean(secondaryCta.label.trim() && secondaryCta.href.trim());
 ---
 
 <BaseLayout title={siteConfig.title} description={siteConfig.description}>
@@ -42,8 +48,26 @@ const isExternalLink = (href: string) => /^https?:\/\//.test(href);
           {homeConfig.intro}
         </p>
         <div class="home-hero__actions">
-          <a class="apple-button apple-button--primary" href={withBase("/articles/")}>阅读文章</a>
-          <a class="apple-button apple-button--secondary" href={withBase("/about/")}>了解更多</a>
+          {hasPrimaryCta && (
+            <a
+              class="story-button story-button--primary"
+              href={resolveCtaLink(primaryCta.href)}
+              target={isExternalLink(primaryCta.href) ? "_blank" : undefined}
+              rel={isExternalLink(primaryCta.href) ? "noopener noreferrer" : undefined}
+            >
+              {primaryCta.label}
+            </a>
+          )}
+          {hasSecondaryCta && (
+            <a
+              class="story-button story-button--secondary"
+              href={resolveCtaLink(secondaryCta.href)}
+              target={isExternalLink(secondaryCta.href) ? "_blank" : undefined}
+              rel={isExternalLink(secondaryCta.href) ? "noopener noreferrer" : undefined}
+            >
+              {secondaryCta.label}
+            </a>
+          )}
         </div>
       </div>
 
@@ -110,7 +134,7 @@ const isExternalLink = (href: string) => /^https?:\/\//.test(href);
           </figure>
           <div class="mt-3 flex items-start justify-between gap-4 px-1">
             <div>
-              <h3 class="font-semibold">{item.title}</h3>
+              <h3 class="literary-title font-semibold">{item.title}</h3>
               <p class="mt-1 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
             </div>
             <span class="exhibition-meta text-xs">0{index + 1}</span>

@@ -1,0 +1,11 @@
+---
+import { imageUrl, uiPresetConfig, withBase } from "@/utils/site";
+import { manifest } from "./manifest";
+
+const packConfig = uiPresetConfig(manifest.id);
+const heroImage = packConfig.appearance?.homeHero?.backgroundImage || "";
+const isHome = Astro.url.pathname === withBase("/");
+const preloadImage = isHome && heroImage ? imageUrl(heroImage, { width: 1920, quality: 78 }) : "";
+---
+
+{preloadImage && <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />}

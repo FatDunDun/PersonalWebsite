@@ -4,6 +4,8 @@ import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
 import { recommendations } from "@/data/recommendations";
 import { siteSettings } from "@/data/siteSettings";
+import { uiPresetCatalog } from "@/ui-packs/catalog.mjs";
+import { UI_PRESET_DISPLAY_NAME_FIELD } from "@/ui-packs/settings-contract.mjs";
 import { videoItems } from "@/data/videos";
 import { getCollection } from "astro:content";
 import { readdirSync } from "node:fs";
@@ -17,9 +19,20 @@ const articleVideoAssetsDirectory = new URL("../../../public/article-videos/", i
 const videoNames = readdirSync(articleVideoAssetsDirectory).filter((name) => /\.(mp4|webm|mov|m4v)$/i.test(name));
 const personalVideoDirectory = new URL("../../../public/personal-video/", import.meta.url);
 const personalVideoNames = readdirSync(personalVideoDirectory).filter((name) => /\.(mp4|webm|mov|m4v)$/i.test(name));
+const uiPresetOptions = Object.values(uiPresetCatalog);
+const currentBuildPreset = import.meta.env.PUBLIC_UI_PRESET || siteSettings.ui.activePreset;
+const currentBuildPresetOption = uiPresetOptions.find((preset) => preset.id === currentBuildPreset);
+const onlineDefaultPresetOption = uiPresetOptions.find((preset) => preset.id === siteSettings.ui.activePreset);
+const uiPresetDisplayName = (preset) =>
+  String(siteSettings.ui?.presets?.[preset?.id]?.displayName || "").trim() ||
+  preset?.label ||
+  preset?.id ||
+  "未设置";
 
 const initialData = {
   settings: siteSettings,
+  uiPresetCatalog,
+  currentBuildPreset,
   posts: posts
     .map((post) => ({
       name: `${post.id}.mdx`,
@@ -1239,16 +1252,225 @@ const initialData = {
               <div>
                 <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Site Settings</p>
                 <h2 class="mt-1 text-2xl font-semibold">页面配置</h2>
-                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">修改网站基础信息、首页文案、纪念日和导航。保存后会先进入本地待同步列表，确认后再统一同步到 GitHub main 分支。</p>
+                <p class="mt-2 text-sm leading-6 text-[var(--muted)]">共享内容会同步到全部 UI；各 UI 包自己声明并保存专属参数。保存后先进入待同步列表；同一次编辑里的共享内容与 UI 参数会合并成一条页面配置草稿，并一起同步或撤销。</p>
               </div>
               <div class="orbit-actions">
-                <button class="orbit-button orbit-button-primary" data-save-settings type="button">保存页面配置</button>
+                <button class="orbit-button orbit-button-primary" data-save-settings type="button">保存共享内容</button>
               </div>
             </div>
 
+            <section class="orbit-field-panel quiet-card mt-4 p-4" data-ui-preset-manager>
+              <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">UI Presets</p>
+                  <h3 class="mt-1 text-xl font-semibold">网站皮肤与完整界面</h3>
+                  <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                    每个 UI 包可以拥有完全不同的页面结构、组件和样式，但文章、图片、推荐及其他内容始终共用。点击切换只会提交 UI 默认项，其他草稿不会一起发布；新界面会在 GitHub Pages 重建后生效。
+                  </p>
+                </div>
+                <div class="shrink-0 rounded border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 font-mono text-xs leading-6 text-[var(--muted)]">
+                  <p>
+                    当前构建：
+                    <span class="text-[var(--foreground)]" data-ui-current-build>
+                      UI {currentBuildPresetOption?.code || currentBuildPreset} · {uiPresetDisplayName(currentBuildPresetOption)}
+                    </span>
+                  </p>
+                  <p>
+                    线上默认：
+                    <span class="text-[var(--foreground)]" data-ui-online-default>
+                      UI {onlineDefaultPresetOption?.code || siteSettings.ui.activePreset} · {uiPresetDisplayName(onlineDefaultPresetOption)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-3 md:grid-cols-2" data-ui-preset-list>
+                {uiPresetOptions.map((preset) => (
+                  <article
+                    class="orbit-card quiet-card flex h-full flex-col p-4"
+                    data-ui-preset-card={preset.id}
+                    data-active={String(siteSettings.ui.activePreset === preset.id)}
+                  >
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="font-mono text-xs uppercase tracking-[0.16em] text-[var(--accent)]">UI {preset.code}</p>
+                        <h4 class="mt-1 text-lg font-semibold" data-ui-preset-label={preset.id}>{uiPresetDisplayName(preset)}</h4>
+                        <p class="mt-1 font-mono text-[11px] text-[var(--muted)]">{preset.id}</p>
+                      </div>
+                      <div class="flex flex-wrap justify-end gap-2">
+                        <span
+                          class="rounded border border-[var(--line)] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]"
+                          data-ui-preset-build-badge={preset.id}
+                          hidden={currentBuildPreset !== preset.id}
+                        >
+                          当前构建
+                        </span>
+                        <span
+                          class="rounded border border-[var(--accent)] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--accent)]"
+                          data-ui-preset-default-badge={preset.id}
+                          hidden={siteSettings.ui.activePreset !== preset.id}
+                        >
+                          线上默认
+                        </span>
+                      </div>
+                    </div>
+                    <p class="mt-3 flex-1 text-sm leading-6 text-[var(--muted)]">{preset.description}</p>
+                    <button
+                      class="orbit-button orbit-button-primary mt-4 w-full"
+                      data-ui-preset-set-default={preset.id}
+                      type="button"
+                      disabled={siteSettings.ui.activePreset === preset.id}
+                    >
+                      {siteSettings.ui.activePreset === preset.id ? `UI ${preset.code} 已是线上默认` : `一键部署上线 UI ${preset.code}`}
+                    </button>
+                  </article>
+                ))}
+              </div>
+
+              <label class="mt-4 block">
+                <span class="font-mono text-xs text-[var(--muted)]">准备部署的 UI 包</span>
+                <select class="orbit-input mt-2 font-mono text-sm" data-ui-preset-select>
+                  {uiPresetOptions.map((preset) => (
+                    <option
+                      value={preset.id}
+                      selected={siteSettings.ui.activePreset === preset.id}
+                      data-ui-preset-option={preset.id}
+                    >UI {preset.code} · {uiPresetDisplayName(preset)}</option>
+                  ))}
+                </select>
+              </label>
+              <p class="mt-3 text-xs leading-5 text-[var(--muted)]" data-ui-preset-status aria-live="polite">
+                选择只会更改界面包，不会复制或分叉网站内容。
+              </p>
+            </section>
+
+            <section class="orbit-field-panel quiet-card mt-4 p-4" data-ui-appearance-manager>
+              <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Private Appearance</p>
+                  <h3 class="mt-1 text-xl font-semibold">UI 名称与专属参数</h3>
+                  <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                    可以给每个 UI 自定义一个容易识别的名称，并维护它自己的视觉资源与参数。改名不会改变稳定 ID、版本代号，也不会自动切换线上默认版本。
+                  </p>
+                </div>
+                <div class="grid gap-2 sm:grid-cols-[minmax(0,18rem)_auto]">
+                  <label class="block">
+                    <span class="font-mono text-xs text-[var(--muted)]">正在编辑</span>
+                    <select class="orbit-input mt-2 font-mono text-sm" data-ui-appearance-select>
+                      {uiPresetOptions.map((preset) => (
+                        <option
+                          value={preset.id}
+                          selected={currentBuildPreset === preset.id}
+                          data-ui-preset-option={preset.id}
+                        >UI {preset.code} · {uiPresetDisplayName(preset)}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <button class="orbit-button orbit-button-primary self-end" data-save-ui-appearance type="button">
+                    保存当前 UI 名称与参数
+                  </button>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                {uiPresetOptions.map((preset) => (
+                  <div
+                    class="grid gap-4 md:grid-cols-2"
+                    data-ui-appearance-panel={preset.id}
+                    hidden={currentBuildPreset !== preset.id}
+                  >
+                    {!(preset.appearanceFields || []).length && (
+                      <p class="md:col-span-2 text-sm leading-6 text-[var(--muted)]">
+                        这个 UI 包没有声明额外的外观参数，但仍可自定义名称。
+                      </p>
+                    )}
+                    {[UI_PRESET_DISPLAY_NAME_FIELD, ...(preset.appearanceFields || [])].map((field) => (
+                      <label class:list={["block", ["image", "video", "textarea"].includes(field.type) && "md:col-span-2"]}>
+                        <span class="font-mono text-xs text-[var(--muted)]">{field.label}</span>
+                        <div class:list={["mt-2 grid gap-2", ["image", "video"].includes(field.type) && "md:grid-cols-[1fr_auto]"]}>
+                          {field.type === "textarea" ? (
+                            <textarea
+                              class="orbit-input min-h-24"
+                              data-ui-appearance-field={field.path}
+                              data-ui-appearance-preset={preset.id}
+                              placeholder={field.placeholder}
+                              required={field.required}
+                            ></textarea>
+                          ) : field.type === "select" ? (
+                            <select
+                              class="orbit-input"
+                              data-ui-appearance-field={field.path}
+                              data-ui-appearance-preset={preset.id}
+                              required={field.required}
+                            >
+                              {(field.options || []).map((option) => (
+                                <option value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
+                          ) : field.type === "checkbox" ? (
+                            <input
+                              class="h-5 w-5 accent-[var(--accent)]"
+                              type="checkbox"
+                              data-ui-appearance-field={field.path}
+                              data-ui-appearance-preset={preset.id}
+                              required={field.required}
+                            />
+                          ) : (
+                            <input
+                              class="orbit-input font-mono text-sm"
+                              type={
+                                field.type === "color" ? "color" :
+                                field.type === "number" || field.type === "range" ? field.type :
+                                "text"
+                              }
+                              inputmode={field.type === "url" ? "url" : undefined}
+                              data-ui-appearance-field={field.path}
+                              data-ui-appearance-preset={preset.id}
+                              placeholder={field.placeholder}
+                              min={field.min}
+                              max={field.max}
+                              step={field.step}
+                              maxlength={field.maxLength}
+                              required={field.required}
+                            />
+                          )}
+                          {field.type === "image" && (
+                            <button
+                              class="orbit-button"
+                              data-image-pick-target="uiAppearanceImage"
+                              data-image-pick-section={field.assetLibrary}
+                              data-image-pick-preset={preset.id}
+                              data-image-pick-field={field.path}
+                              type="button"
+                            >
+                              选择图片
+                            </button>
+                          )}
+                          {field.type === "video" && (
+                            <button
+                              class="orbit-button"
+                              data-video-pick-target="uiAppearanceVideo"
+                              data-video-pick-section={field.assetLibrary}
+                              data-video-pick-preset={preset.id}
+                              data-video-pick-field={field.path}
+                              type="button"
+                            >
+                              选择视频
+                            </button>
+                          )}
+                        </div>
+                        {field.help && <p class="mt-2 text-xs leading-5 text-[var(--muted)]">{field.help}</p>}
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <p class="mt-3 text-xs leading-5 text-[var(--muted)]" data-ui-appearance-status aria-live="polite"></p>
+            </section>
+
             <div class="mt-4 grid gap-4 xl:grid-cols-2">
               <section class="orbit-field-panel quiet-card p-4">
-                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Basic</p>
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Shared · Basic</p>
                 <div class="mt-4 grid gap-4 md:grid-cols-2">
                   <label class="block">
                     <span class="font-mono text-xs text-[var(--muted)]">Logo 字母</span>
@@ -1278,7 +1500,7 @@ const initialData = {
               </section>
 
               <section class="orbit-field-panel quiet-card p-4">
-                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Home</p>
+                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Shared · Home Content</p>
                 <div class="mt-4 grid gap-4 md:grid-cols-2">
                   <label class="block md:col-span-2">
                     <span class="font-mono text-xs text-[var(--muted)]">首页标签</span>
@@ -1291,15 +1513,6 @@ const initialData = {
                   <label class="block md:col-span-2">
                     <span class="font-mono text-xs text-[var(--muted)]">首页简介</span>
                     <textarea class="orbit-input mt-2 min-h-28" data-settings-field="home.intro"></textarea>
-                  </label>
-                  <label class="block md:col-span-2">
-                    <span class="font-mono text-xs text-[var(--muted)]">首页背景图路径</span>
-                    <div class="mt-2 grid gap-2 md:grid-cols-[1fr_auto_auto]">
-                      <input class="orbit-input font-mono text-sm" data-settings-field="home.heroBackgroundImage" placeholder="/site-assets/home-exhibition-bg.jpg" />
-                      <button class="orbit-button" data-image-pick-target="heroBackground" data-image-pick-section="personalPhotoAssets" type="button">选择图片</button>
-                      <button class="orbit-button" data-use-selected-hero-background type="button">用选中图</button>
-                    </div>
-                    <p class="mt-2 text-xs leading-5 text-[var(--muted)]">SITE_ASSETS 存储目录：public/site-assets；公开路径：/site-assets/。</p>
                   </label>
                   <label class="block">
                     <span class="font-mono text-xs text-[var(--muted)]">主按钮文字</span>
@@ -1533,6 +1746,14 @@ const initialData = {
     <script type="application/json" id="initial-data" set:html={JSON.stringify(initialData)}></script>
 
     <script>
+      import {
+        UI_PRESET_DISPLAY_NAME_FIELD,
+        appearanceFieldValueError,
+        firstAppearanceImageValue,
+        mergeScopedSiteSettings,
+        normalizeAppearanceInputValue,
+      } from "@/ui-packs/settings-contract.mjs";
+
       const INITIAL_DATA = JSON.parse(document.getElementById("initial-data").textContent);
       const OWNER = "FatDunDun";
       const REPO = "PersonalWebsite";
@@ -1563,6 +1784,7 @@ const initialData = {
 
       const state = {
         mode: "readonly",
+        remoteContentReady: false,
         token: sessionStorage.getItem(TOKEN_KEY) || "",
         mediaToken: sessionStorage.getItem(MEDIA_TOKEN_KEY) || "",
         section: "posts",
@@ -1592,6 +1814,11 @@ const initialData = {
           files: [],
           deletes: [],
         },
+        uiPresetDeploying: false,
+        uiPresetDeployTarget: "",
+        uiAppearancePreset: INITIAL_DATA.currentBuildPreset,
+        sharedSettingsDirty: false,
+        uiAppearanceDirty: false,
         settings: null,
         original: {
           posts: [],
@@ -1618,6 +1845,7 @@ const initialData = {
           video: null,
         },
         pendingImagePick: null,
+        pendingVideoPick: null,
       };
 
       const $ = (selector) => document.querySelector(selector);
@@ -1675,6 +1903,13 @@ const initialData = {
       };
 
       const settingsFields = $$("[data-settings-field]");
+      const uiAppearanceFields = $$("[data-ui-appearance-field]");
+      const availableUiPresets = Array.isArray(INITIAL_DATA.uiPresetCatalog)
+        ? INITIAL_DATA.uiPresetCatalog
+        : Object.values(INITIAL_DATA.uiPresetCatalog || {});
+      const uiPresetIds = new Set(availableUiPresets.map((preset) => preset.id));
+      const uiPresetSelect = $("[data-ui-preset-select]");
+      const uiAppearanceSelect = $("[data-ui-appearance-select]");
 
       const labels = {
         posts: { kicker: "Posts", title: "文章列表", empty: "暂无文章。" },
@@ -1784,6 +2019,19 @@ const initialData = {
         }
         return false;
       };
+      const isMediaLibraryValue = (path = "", libraryKey = "") => {
+        const publicRoot = mediaLibraries[libraryKey]?.publicRoot;
+        if (!publicRoot || !path) return false;
+        if (path.startsWith(`${publicRoot}/`)) return true;
+        if (/^https?:\/\//.test(path)) {
+          try {
+            return new URL(path).pathname.startsWith(`${publicRoot}/`);
+          } catch {
+            return false;
+          }
+        }
+        return false;
+      };
       const isPersonalVideoValue = (path = "") => {
         if (path.startsWith("/personal-video/")) return true;
         if (/^https?:\/\//.test(path)) {
@@ -1860,6 +2108,9 @@ const initialData = {
 
       const requireWriteAccess = () => {
         if (!state.token) throw new Error("暂存、删除、上传和同步需要先输入 GitHub Token。改动会先留在当前页面，点“同步全部改动”后才提交到 GitHub main 分支。");
+        if (!state.remoteContentReady) {
+          throw new Error("GitHub 最新内容尚未完整加载。请检查 Token 后重新连接，避免用旧内容覆盖线上配置。");
+        }
       };
 
       const requireMediaAccess = () => {
@@ -2008,8 +2259,8 @@ const initialData = {
         return data;
       };
 
-      const getFile = async (path) => {
-        return github(`/contents/${path}?ref=${BRANCH}`);
+      const getFile = async (path, ref = BRANCH) => {
+        return github(`/contents/${path}?ref=${encodeURIComponent(ref)}`);
       };
 
       const getDir = async (path) => {
@@ -2309,14 +2560,28 @@ const initialData = {
         return allPendingChanges().filter((item) => selected.has(draftChangeId(item)));
       };
 
-      const queueContentChange = ({ path, content, label, previewValue = "" }) => {
+      const queueContentChange = ({ path, content, label, previewValue = "", settingsScopes = [] }) => {
         state.pendingChanges.deletes = state.pendingChanges.deletes.filter((item) => item.path !== path);
         const existing = state.pendingChanges.files.findIndex((item) => item.path === path);
-        const entry = { path, content, label, previewValue, pending: true, draftKind: "content-write" };
+        const entry = { path, content, label, previewValue, settingsScopes, pending: true, draftKind: "content-write" };
         if (existing >= 0) state.pendingChanges.files[existing] = entry;
         else state.pendingChanges.files.push(entry);
         selectDraft(entry, true);
         updatePendingChangesUi();
+      };
+
+      const queueSettingsChange = ({ content, scope, scopeLabel, previewValue = "" }) => {
+        const existing = state.pendingChanges.files.find((item) => item.path === SETTINGS_PATH);
+        const scopes = new Map(existing?.settingsScopes || []);
+        scopes.set(scope, scopeLabel);
+        const settingsScopes = Array.from(scopes.entries());
+        queueContentChange({
+          path: SETTINGS_PATH,
+          content,
+          label: settingsScopes.map(([, label]) => label).join(" + "),
+          previewValue,
+          settingsScopes,
+        });
       };
 
       const queueDeleteChange = ({ path, label }) => {
@@ -2593,13 +2858,7 @@ const initialData = {
         }
         if (item.path === GALLERY_PATH) return firstImageFromExport(item.content, "galleryItems", (entry) => entry?.image);
         if (item.path === PERSONAL_VIDEOS_DATA_PATH) return firstImageFromExport(item.content, "videoItems", (entry) => entry?.poster);
-        if (item.path === SETTINGS_PATH) {
-          try {
-            return assetPreviewForValue(readExportedValue(item.content || "", "siteSettings")?.home?.heroBackgroundImage);
-          } catch {
-            return "";
-          }
-        }
+        if (item.path === SETTINGS_PATH) return "";
         return "";
       };
 
@@ -2667,9 +2926,24 @@ const initialData = {
         if (selectedButton) selectedButton.disabled = selectedPendingChanges().length === 0;
         updateCounts();
         renderDrafts();
+        renderUiPresetSelection();
+      };
+
+      const cancelPendingMediaPickOutside = (section) => {
+        let cancelled = false;
+        if (state.pendingImagePick && state.pendingImagePick.section !== section) {
+          state.pendingImagePick = null;
+          cancelled = true;
+        }
+        if (state.pendingVideoPick && state.pendingVideoPick.section !== section) {
+          state.pendingVideoPick = null;
+          cancelled = true;
+        }
+        return cancelled;
       };
 
       const selectSection = (section) => {
+        const cancelledMediaPick = cancelPendingMediaPickOutside(section);
         state.section = section;
         $$("[data-section]").forEach((button) => {
           const group = button.dataset.sectionGroup;
@@ -2692,6 +2966,7 @@ const initialData = {
         newButton.hidden = isMediaLibrarySection(section) || section === "drafts" || section === "pageCopy";
         newButton.textContent = section === "settings" ? "save" : "new";
         renderList();
+        if (cancelledMediaPick) setStatus("已取消尚未完成的素材选择，未修改任何字段。");
       };
 
       const renderList = () => {
@@ -3078,6 +3353,7 @@ const initialData = {
 
       const loadAll = async () => {
         if (!state.token) {
+          state.remoteContentReady = false;
           setStatus("读取当前网站内置内容中...");
           applyInitialData();
           if (mediaStorageMode() === "r2" && state.mediaToken) {
@@ -3085,13 +3361,14 @@ const initialData = {
             updateCounts();
             renderList();
             setStatus(`${mediaStatus} 发布文章和页面数据仍需要 GitHub Token。`);
-            return;
+            return false;
           }
           setStatus("只读模式：内容已加载。线上保存、删除、上传需要 GitHub Token；R2 素材库需要 Media Token。");
-          return;
+          return false;
         }
 
         state.mode = "github";
+        state.remoteContentReady = false;
         setStatus("GitHub 模式：同步仓库内容中...");
         applyInitialData();
         try {
@@ -3102,8 +3379,9 @@ const initialData = {
           updateCounts();
           renderList();
           setStatus(`已先显示构建时内置内容。GitHub 内容同步失败：${error instanceof Error ? error.message : "未知错误"}。${mediaStatus}`);
-          return;
+          return false;
         }
+        state.remoteContentReady = true;
         const mediaStatus = await loadMediaLibrariesSafely();
         updateCounts();
         renderList();
@@ -3113,34 +3391,328 @@ const initialData = {
         if (state.current.galleryIndex < 0) newGallery();
         if (state.current.personalVideoIndex < 0) newPersonalVideo();
         setStatus(`GitHub 模式已连接。${mediaStatus} 分项操作会先暂存在当前页面，点“同步全部改动”后才提交到 main 分支。`);
+        return true;
       };
 
-      const fillSettings = () => {
+      const uiPresetCatalogEntry = (presetId) =>
+        availableUiPresets.find((preset) => preset.id === presetId);
+
+      const uiPresetSettings = (settings, presetId) =>
+        settings?.ui?.presets?.[presetId] || {};
+
+      const uiPresetLabel = (
+        presetId,
+        settings = state.settings || state.original.settings || INITIAL_DATA.settings,
+      ) =>
+        String(uiPresetSettings(settings, presetId).displayName || "").trim() ||
+        uiPresetCatalogEntry(presetId)?.label ||
+        presetId ||
+        "未设置";
+
+      const uiPresetWorkspaceLabel = (
+        presetId,
+        settings = state.settings || state.original.settings || INITIAL_DATA.settings,
+      ) => {
+        const displayNameField = uiAppearanceFields.find(
+          (field) =>
+            field.dataset.uiAppearancePreset === presetId &&
+            field.dataset.uiAppearanceField === UI_PRESET_DISPLAY_NAME_FIELD.path,
+        );
+        if (!displayNameField) return uiPresetLabel(presetId, settings);
+        return (
+          String(displayNameField.value || "").trim() ||
+          uiPresetCatalogEntry(presetId)?.label ||
+          presetId ||
+          "未设置"
+        );
+      };
+
+      const uiPresetCode = (presetId) =>
+        uiPresetCatalogEntry(presetId)?.code || presetId || "";
+
+      const uiPackageAppearanceFieldDefinitions = (presetId) =>
+        uiPresetCatalogEntry(presetId)?.appearanceFields || [];
+
+      const uiAppearanceFieldDefinitions = (presetId) =>
+        [UI_PRESET_DISPLAY_NAME_FIELD, ...uiPackageAppearanceFieldDefinitions(presetId)];
+
+      const validateUiAppearanceSettings = (settings, presetId) => {
+        const presetSettings = uiPresetSettings(settings, presetId);
+        uiAppearanceFieldDefinitions(presetId).forEach((field) => {
+          const value = getByPath(presetSettings, field.path);
+          const error = appearanceFieldValueError(field, value, { mediaLibraries });
+          if (error) {
+            throw new Error(`UI ${uiPresetCode(presetId)} 的${field.label}${error}`);
+          }
+        });
+      };
+
+      const uiAppearancePreviewValue = (settings, presetId) => {
+        const presetSettings = uiPresetSettings(settings, presetId);
+        return firstAppearanceImageValue(
+          presetSettings,
+          uiAppearanceFieldDefinitions(presetId),
+        );
+      };
+
+      const renderUiAppearanceEditor = () => {
+        const presetId = state.uiAppearancePreset;
+        $$("[data-ui-appearance-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.uiAppearancePanel !== presetId;
+        });
+        if (uiAppearanceSelect && uiAppearanceSelect.value !== presetId) {
+          uiAppearanceSelect.value = presetId;
+        }
+        const statusNode = $("[data-ui-appearance-status]");
+        if (statusNode) {
+          statusNode.textContent = state.uiAppearanceDirty
+            ? `UI ${uiPresetCode(presetId)} 名称或参数有未保存输入。请先保存或恢复后再切换编辑目标。`
+            : !uiPackageAppearanceFieldDefinitions(presetId).length
+            ? `正在编辑 UI ${uiPresetCode(presetId)} · ${uiPresetWorkspaceLabel(presetId)} 的名称；这个 UI 没有其他专属参数。`
+            : `正在编辑 UI ${uiPresetCode(presetId)} · ${uiPresetWorkspaceLabel(presetId)} 的专属参数。`;
+        }
+      };
+
+      const uiAppearanceControlValue = (field) => {
+        if (field.type === "checkbox") return field.checked;
+        if (field.dataset.uiAppearanceMissing === "true" && ["range", "color"].includes(field.type)) return "";
+        return field.value;
+      };
+
+      const setUiAppearanceControlValue = (field, value) => {
+        const missing = value == null;
+        if (missing) field.dataset.uiAppearanceMissing = "true";
+        else delete field.dataset.uiAppearanceMissing;
+        if (field.type === "checkbox") {
+          field.checked = Boolean(value);
+        } else if (missing && field.type === "color") {
+          field.value = "#000000";
+        } else if (missing && field.type === "range") {
+          field.value = field.min || "0";
+        } else {
+          field.value = value ?? "";
+        }
+      };
+
+      const fillUiAppearanceSettings = () => {
+        const settings = state.settings || clone(INITIAL_DATA.settings);
+        uiAppearanceFields.forEach((field) => {
+          const presetId = field.dataset.uiAppearancePreset;
+          const fieldPath = field.dataset.uiAppearanceField;
+          setUiAppearanceControlValue(
+            field,
+            getByPath(uiPresetSettings(settings, presetId), fieldPath),
+          );
+        });
+        state.uiAppearanceDirty = false;
+        renderUiAppearanceEditor();
+      };
+
+      const uiAppearanceInputIsDirty = (field, settings = state.settings || INITIAL_DATA.settings) => {
+        const presetId = field.dataset.uiAppearancePreset;
+        const fieldPath = field.dataset.uiAppearanceField;
+        const storedValue = getByPath(uiPresetSettings(settings, presetId), fieldPath);
+        return field.type === "checkbox"
+          ? uiAppearanceControlValue(field) !== Boolean(storedValue)
+          : uiAppearanceControlValue(field) !== String(storedValue ?? "");
+      };
+
+      const uiAppearanceInputsAreDirty = () => {
+        const settings = state.settings || INITIAL_DATA.settings;
+        return uiAppearanceFields.some((field) => uiAppearanceInputIsDirty(field, settings));
+      };
+
+      const collectUiAppearanceSettings = (presetId = state.uiAppearancePreset) => {
+        const settings = clone(state.settings || INITIAL_DATA.settings);
+        const preset = availableUiPresets.find((item) => item.id === presetId);
+        if (!preset) throw new Error("这个 UI 包不存在或已被移除");
+        const presetSettings = clone(uiPresetSettings(settings, presetId));
+        presetSettings.settingsVersion = preset.settingsVersion;
+        uiAppearanceFields
+          .filter((field) => field.dataset.uiAppearancePreset === presetId)
+          .forEach((field) => {
+            const fieldPath = field.dataset.uiAppearanceField;
+            const fieldDefinition = uiAppearanceFieldDefinitions(presetId)
+              .find((item) => item.path === fieldPath);
+            if (!fieldDefinition) {
+              throw new Error(`UI ${uiPresetCode(presetId)} 的参数定义已经失效，请刷新页面`);
+            }
+            if (field.dataset.uiAppearanceMissing === "true" && !fieldDefinition?.required) return;
+            setByPath(
+              presetSettings,
+              fieldPath,
+              normalizeAppearanceInputValue(
+                fieldDefinition,
+                uiAppearanceControlValue(field),
+              ),
+            );
+          });
+        if (!settings.ui || typeof settings.ui !== "object") settings.ui = {};
+        if (!settings.ui.presets || typeof settings.ui.presets !== "object") settings.ui.presets = {};
+        settings.ui.presets[presetId] = presetSettings;
+        return settings;
+      };
+
+      const validateUiAppearanceControls = (presetId) => {
+        const invalidField = uiAppearanceFields.find(
+          (field) => field.dataset.uiAppearancePreset === presetId && !field.checkValidity(),
+        );
+        if (!invalidField) return;
+        invalidField.reportValidity();
+        const definition = uiAppearanceFieldDefinitions(presetId)
+          .find((field) => field.path === invalidField.dataset.uiAppearanceField);
+        throw new Error(`请检查 UI ${uiPresetCode(presetId)} 的${definition?.label || "专属参数"}`);
+      };
+
+      const saveUiAppearanceSettings = async () => {
+        if (state.uiPresetDeploying) throw new Error("UI 正在部署，请等待本次提交完成");
+        requireWriteAccess();
+        const presetId = state.uiAppearancePreset;
+        validateUiAppearanceControls(presetId);
+        const settings = collectUiAppearanceSettings(presetId);
+        validateUiAppearanceSettings(settings, presetId);
+        queueSettingsChange({
+          content: stringifySettingsModule(settings),
+          scope: `ui:${presetId}`,
+          scopeLabel: `UI ${uiPresetCode(presetId)} 名称与参数`,
+          previewValue: uiAppearancePreviewValue(settings, presetId),
+        });
+        state.settings = settings;
+        state.uiAppearanceDirty = false;
+        fillUiAppearanceSettings();
+        renderUiPresetSelection();
+        setStatus(`UI ${uiPresetCode(presetId)} 名称与专属参数已暂存，其他 UI 未修改。确认后点“同步全部改动”。`);
+      };
+
+      const selectUiAppearancePreset = (presetId) => {
+        if (!uiPresetIds.has(presetId)) throw new Error("这个 UI 包不存在或已被移除");
+        if (presetId === state.uiAppearancePreset) return;
+        if (state.uiAppearanceDirty) {
+          if (uiAppearanceSelect) uiAppearanceSelect.value = state.uiAppearancePreset;
+          throw new Error("当前 UI 参数有未保存输入。请先保存，再切换编辑目标。");
+        }
+        state.uiAppearancePreset = presetId;
+        renderUiAppearanceEditor();
+      };
+
+      const renderUiPresetSelection = () => {
+        if (!uiPresetSelect) return;
+        const settingsPending = state.pendingChanges.files.some((item) => item.path === SETTINGS_PATH);
+        const displaySettings = state.settings || state.original.settings || INITIAL_DATA.settings;
+        const onlineSettings =
+          (settingsPending ? state.original.settings : state.settings) ||
+          state.original.settings ||
+          INITIAL_DATA.settings;
+        const onlinePreset =
+          onlineSettings?.ui?.activePreset ||
+          state.original.settings?.ui?.activePreset ||
+          INITIAL_DATA.settings?.ui?.activePreset ||
+          "";
+        const selectedPreset = uiPresetSelect.value;
+        const deploying = state.uiPresetDeploying;
+        const deployTarget = state.uiPresetDeployTarget;
+        const presetManager = $("[data-ui-preset-manager]");
+        if (presetManager) presetManager.setAttribute("aria-busy", String(deploying));
+
+        $$("[data-ui-preset-card]").forEach((card) => {
+          card.dataset.active = String(card.dataset.uiPresetCard === selectedPreset);
+        });
+        $$("[data-ui-preset-label]").forEach((label) => {
+          label.textContent = uiPresetWorkspaceLabel(label.dataset.uiPresetLabel, displaySettings);
+        });
+        $$("[data-ui-preset-option]").forEach((option) => {
+          const presetId = option.dataset.uiPresetOption;
+          option.textContent = `UI ${uiPresetCode(presetId)} · ${uiPresetWorkspaceLabel(presetId, displaySettings)}`;
+        });
+        $$("[data-ui-preset-default-badge]").forEach((badge) => {
+          badge.hidden = badge.dataset.uiPresetDefaultBadge !== onlinePreset;
+        });
+        $$("[data-ui-preset-set-default]").forEach((button) => {
+          const presetId = button.dataset.uiPresetSetDefault;
+          const presetCode = uiPresetCode(presetId);
+          const isOnline = presetId === onlinePreset;
+          button.disabled = deploying || isOnline || settingsPending || state.sharedSettingsDirty || state.uiAppearanceDirty;
+          button.textContent = deploying
+            ? presetId === deployTarget
+              ? `正在部署 UI ${presetCode}…`
+              : `UI ${uiPresetCode(deployTarget)} 部署中，暂不可操作`
+            : isOnline
+              ? `UI ${presetCode} 已是线上默认`
+              : settingsPending
+                ? "请先处理页面配置草稿"
+                : `一键部署上线 UI ${presetCode}`;
+        });
+        uiPresetSelect.disabled = deploying;
+        $$("[data-save-settings]").forEach((button) => {
+          button.disabled = deploying;
+        });
+        $$("[data-save-ui-appearance]").forEach((button) => {
+          button.disabled = deploying || uiAppearanceFieldDefinitions(state.uiAppearancePreset).length === 0;
+        });
+        const newCurrentButton = $("[data-new-current]");
+        if (newCurrentButton) newCurrentButton.disabled = deploying;
+        $$("[data-sync-media]").forEach((button) => {
+          button.disabled = deploying || allPendingMedia().length === 0;
+        });
+        const syncAllButton = $("[data-sync-all]");
+        if (syncAllButton) syncAllButton.disabled = deploying || allPendingChanges().length === 0;
+        const syncSelectedButton = $("[data-sync-selected-drafts]");
+        if (syncSelectedButton) syncSelectedButton.disabled = deploying || selectedPendingChanges().length === 0;
+
+        const currentBuild = $("[data-ui-current-build]");
+        if (currentBuild) {
+          currentBuild.textContent = `UI ${uiPresetCode(INITIAL_DATA.currentBuildPreset)} · ${uiPresetWorkspaceLabel(INITIAL_DATA.currentBuildPreset, displaySettings)}`;
+        }
+        const onlineDefault = $("[data-ui-online-default]");
+        if (onlineDefault) {
+          onlineDefault.textContent = `UI ${uiPresetCode(onlinePreset)} · ${uiPresetLabel(onlinePreset, onlineSettings)}`;
+        }
+
+        const localStatus = $("[data-ui-preset-status]");
+        if (!localStatus) return;
+        if (deploying) {
+          localStatus.textContent = `正在部署「${uiPresetWorkspaceLabel(deployTarget)}」（UI ${uiPresetCode(deployTarget)}）。部署按钮与同步入口已临时锁定，请勿重复操作。`;
+        } else if (state.sharedSettingsDirty || state.uiAppearanceDirty) {
+          localStatus.textContent = "页面中有未保存输入。请先保存或恢复，再部署 UI，避免旧输入覆盖线上配置。";
+        } else if (settingsPending) {
+          localStatus.textContent = `页面配置存在待同步草稿，线上默认仍是「${uiPresetLabel(onlinePreset, onlineSettings)}」。请先同步或撤销该草稿，再一键部署 UI。`;
+        } else if (selectedPreset && selectedPreset !== onlinePreset) {
+          localStatus.textContent = `已选择「${uiPresetWorkspaceLabel(selectedPreset)}」。点击“一键部署上线 UI ${uiPresetCode(selectedPreset)}”只会提交 UI 默认项，其他草稿不会一起发布。`;
+        } else {
+          localStatus.textContent = `当前构建是「${uiPresetWorkspaceLabel(INITIAL_DATA.currentBuildPreset)}」，线上默认是「${uiPresetLabel(onlinePreset, onlineSettings)}」。`;
+        }
+      };
+
+      const sharedSettingsFieldValue = (settings, key) => {
+        if (key === "navText") return stringifyNavText(settings.nav || []);
+        if (key === "codeLinesText") return stringifyCodeLines(settings.home?.codeLines || []);
+        if (key === "aboutSummaryText") return stringifyTextList(settings.pages?.about?.summary || []);
+        if (key === "aboutFocusText") return stringifyTextList(settings.pages?.about?.focus || []);
+        if (key === "aboutLinksText") return stringifyAboutLinks(settings.pages?.about?.links || []);
+        return getByPath(settings, key) ?? "";
+      };
+
+      const sharedSettingsInputIsDirty = (field, settings = state.settings || INITIAL_DATA.settings) =>
+        field.value !== String(sharedSettingsFieldValue(settings, field.dataset.settingsField));
+
+      const sharedSettingsInputsAreDirty = () => {
+        const settings = state.settings || INITIAL_DATA.settings;
+        return settingsFields.some((field) => sharedSettingsInputIsDirty(field, settings));
+      };
+
+      const fillSharedSettings = () => {
         const settings = state.settings || clone(INITIAL_DATA.settings);
         settingsFields.forEach((field) => {
           const key = field.dataset.settingsField;
-          if (key === "navText") {
-            field.value = stringifyNavText(settings.nav || []);
-            return;
-          }
-          if (key === "codeLinesText") {
-            field.value = stringifyCodeLines(settings.home?.codeLines || []);
-            return;
-          }
-          if (key === "aboutSummaryText") {
-            field.value = stringifyTextList(settings.pages?.about?.summary || []);
-            return;
-          }
-          if (key === "aboutFocusText") {
-            field.value = stringifyTextList(settings.pages?.about?.focus || []);
-            return;
-          }
-          if (key === "aboutLinksText") {
-            field.value = stringifyAboutLinks(settings.pages?.about?.links || []);
-            return;
-          }
-          field.value = getByPath(settings, key) ?? "";
+          field.value = sharedSettingsFieldValue(settings, key);
         });
+        state.sharedSettingsDirty = false;
+        renderUiPresetSelection();
+      };
+
+      const fillSettings = () => {
+        fillSharedSettings();
+        fillUiAppearanceSettings();
       };
 
       const collectSettings = () => {
@@ -3181,9 +3753,43 @@ const initialData = {
         return settings;
       };
 
+      const sharedSettingsStoragePath = (fieldKey) => ({
+        navText: "nav",
+        codeLinesText: "home.codeLines",
+        aboutSummaryText: "pages.about.summary",
+        aboutFocusText: "pages.about.focus",
+        aboutLinksText: "pages.about.links",
+      })[fieldKey] || fieldKey;
+
+      const mergeQueuedSettingsWithRemote = ({ remoteSettings, localSettings, baseSettings, settingsScopes }) => {
+        const sharedPaths = settingsFields.map((field) => {
+          const path = sharedSettingsStoragePath(field.dataset.settingsField);
+          return {
+            path,
+            label: field.closest("label")?.querySelector("span")?.textContent?.trim() || path,
+          };
+        });
+        const appearanceFieldsByPreset = Object.fromEntries(
+          availableUiPresets.map((preset) => [
+            preset.id,
+            [UI_PRESET_DISPLAY_NAME_FIELD, ...(preset.appearanceFields || [])],
+          ]),
+        );
+        return mergeScopedSiteSettings({
+          remoteSettings,
+          localSettings,
+          baseSettings,
+          settingsScopes,
+          sharedPaths,
+          appearanceFieldsByPreset,
+        });
+      };
+
       const saveSettings = async () => {
+        if (state.uiPresetDeploying) throw new Error("UI 正在部署，请等待本次提交完成");
         requireWriteAccess();
         const settings = collectSettings();
+        if (!uiPresetIds.has(settings.ui?.activePreset)) throw new Error("请选择有效的 UI 包");
         if (!settings.site?.title) throw new Error("请填写 SEO 标题");
         if (!settings.site?.author) throw new Error("请填写作者");
         if (!settings.home?.headline) throw new Error("请填写首页大标题");
@@ -3191,15 +3797,82 @@ const initialData = {
         ["articles", "gallery", "videos", "recommendations", "about"].forEach((key) => {
           if (!settings.pages?.[key]?.title) throw new Error(`请填写 ${key} 栏目标题`);
         });
-        queueContentChange({
-          path: SETTINGS_PATH,
+        queueSettingsChange({
           content: stringifySettingsModule(settings),
-          label: "页面配置",
-          previewValue: settings.home?.heroBackgroundImage,
+          scope: "shared",
+          scopeLabel: "共享内容",
+          previewValue: "",
         });
         state.settings = settings;
-        fillSettings();
-        setStatus("页面配置已暂存。确认无误后点“同步全部改动”一次提交。");
+        state.sharedSettingsDirty = false;
+        fillSharedSettings();
+        setStatus("共享内容已暂存，将同步到全部 UI。确认无误后点“同步全部改动”。");
+      };
+
+      const setDefaultUiPreset = async (presetId) => {
+        if (!uiPresetIds.has(presetId)) throw new Error("这个 UI 包不存在或已被移除");
+        if (!uiPresetSelect) throw new Error("UI 包选择器没有加载成功");
+        requireWriteAccess();
+        if (state.uiPresetDeploying) throw new Error("已有 UI 正在部署，请稍候");
+        if (state.sharedSettingsDirty || state.uiAppearanceDirty) {
+          throw new Error("页面中有未保存输入。请先保存或恢复，再一键部署 UI。");
+        }
+        if (state.pendingChanges.files.some((item) => item.path === SETTINGS_PATH)) {
+          throw new Error("页面配置已有待同步修改。请先同步或撤销该草稿，再一键部署 UI，避免改变草稿内容。");
+        }
+
+        uiPresetSelect.value = presetId;
+        state.uiPresetDeploying = true;
+        state.uiPresetDeployTarget = presetId;
+        renderUiPresetSelection();
+        setStatus(`正在读取 main 最新配置并部署 UI ${uiPresetCode(presetId)}...`);
+
+        try {
+          const remoteFile = await getFile(SETTINGS_PATH);
+          const latestSettings = readExportedValue(fromBase64(remoteFile.content), "siteSettings");
+          if (!latestSettings || typeof latestSettings !== "object") throw new Error("main 分支页面配置无法解析");
+          if (!remoteFile.sha) throw new Error("没有读取到 main 页面配置的版本号");
+
+          const deploymentSettings = clone(latestSettings);
+          setByPath(deploymentSettings, "ui.activePreset", presetId);
+          const serializedSettings = stringifySettingsModule(deploymentSettings);
+
+          if (latestSettings.ui?.activePreset !== presetId) {
+            const result = await putFile({
+              path: SETTINGS_PATH,
+              content: toBase64(serializedSettings),
+              sha: remoteFile.sha,
+              message: `Deploy UI ${uiPresetCode(presetId)} (${presetId})`,
+            });
+            state.files.settings = {
+              ...remoteFile,
+              content: toBase64(serializedSettings),
+              sha: result?.content?.sha || remoteFile.sha,
+            };
+          } else {
+            state.files.settings = remoteFile;
+          }
+
+          state.original.settings = clone(deploymentSettings);
+          state.settings = clone(deploymentSettings);
+          uiPresetSelect.value = presetId;
+          fillSettings();
+          setStatus(
+            latestSettings.ui?.activePreset === presetId
+              ? `UI ${uiPresetCode(presetId)} 已经是线上默认，无需重复提交。`
+              : `UI ${uiPresetCode(presetId)} 已提交到 main。GitHub Pages 重建完成后自动上线，其他草稿均未发布。`,
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "未知错误";
+          if (/409|conflict|sha|does not match|is at [a-f0-9]+ but expected/i.test(message)) {
+            throw new Error("线上页面配置刚被其他操作更新，本次没有覆盖它。请重新点击部署。");
+          }
+          throw error;
+        } finally {
+          state.uiPresetDeploying = false;
+          state.uiPresetDeployTarget = "";
+          renderUiPresetSelection();
+        }
       };
 
       const newPost = () => {
@@ -3833,6 +4506,10 @@ const initialData = {
       };
 
       const removePendingChange = (id) => {
+        const pendingSettingsDraft = state.pendingChanges.files.find(
+          (item) => draftChangeId(item) === id && item.path === SETTINGS_PATH,
+        );
+        const settingsInputState = pendingSettingsDraft ? captureSettingsInputState() : null;
         const removeFrom = (items) => {
           const index = items.findIndex((item) => draftChangeId(item) === id);
           if (index < 0) return null;
@@ -3848,6 +4525,7 @@ const initialData = {
         if (removedUpload?.previewUrl) URL.revokeObjectURL(removedUpload.previewUrl);
         if (removedFile?.path) revertContentPath(removedFile.path);
         if (removedDelete?.path) revertContentPath(removedDelete.path);
+        if (settingsInputState) restoreSettingsInputState(settingsInputState);
         if (removedUpload?.path) {
           state.images = state.images.filter((image) => image.path !== removedUpload.path);
           state.personalPhotoAssets = state.personalPhotoAssets.filter((image) => image.path !== removedUpload.path);
@@ -3859,7 +4537,11 @@ const initialData = {
         updateCounts();
         renderList();
         updatePendingChangesUi();
-        setStatus("已取消这条本地保存。");
+        setStatus(
+          settingsInputState && (settingsInputState.sharedDirty || settingsInputState.uiAppearanceDirty)
+            ? "已取消这条本地保存，尚未保存的页面配置输入仍然保留。"
+            : "已取消这条本地保存。",
+        );
       };
 
       const markSyncedContentAsOriginal = (files, deletes) => {
@@ -3901,7 +4583,12 @@ const initialData = {
         markSyncedContentAsOriginal(files, deletes);
       };
 
-      const syncPendingChanges = async (changes = allPendingChanges()) => {
+      const syncPendingChanges = async (changes = allPendingChanges(), options = {}) => {
+        if (state.uiPresetDeploying) throw new Error("UI 正在部署，请等待本次提交完成");
+        const {
+          skipConfirmation = false,
+          commitMessage = "",
+        } = options;
         const selectedIds = new Set(changes.map(draftChangeId));
         const uploads = state.pendingMedia.uploads.filter((item) => selectedIds.has(draftChangeId(item)));
         const mediaDeletes = state.pendingMedia.deletes.filter((item) => selectedIds.has(draftChangeId(item)));
@@ -3924,17 +4611,21 @@ const initialData = {
         const commitNotice = files.length || deletes.length || gitUploads.length || gitMediaDeletes.length
           ? "这会在 GitHub main 分支生成 1 次 commit。"
           : "这次只有 R2 媒体操作，不会生成 Git commit。";
-        if (!confirm("确定同步全部待处理改动吗？\n" + summary + "\n\n" + commitNotice)) return;
+        if (!skipConfirmation && !confirm("确定同步全部待处理改动吗？\n" + summary + "\n\n" + commitNotice)) return false;
 
-        if (remoteUploads.length || remoteDeletes.length) {
-          setStatus("同步 R2 媒体文件中...");
-          await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: remoteDeletes });
+        if (remoteUploads.length) {
+          setStatus("上传 R2 媒体文件中...");
+          await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: [] });
         }
 
         if (!files.length && !deletes.length && !gitUploads.length && !gitMediaDeletes.length) {
+          if (remoteDeletes.length) {
+            setStatus("删除 R2 媒体文件中...");
+            await syncRemoteMediaOperations({ uploads: [], deletes: remoteDeletes });
+          }
           clearSyncedPendingChanges(selectedIds, uploads, files, deletes);
           await refreshAfterMediaSync("R2 媒体操作已同步。", "R2 媒体操作已同步，但素材列表刷新失败");
-          return;
+          return true;
         }
 
         setStatus("创建 GitHub 批量提交中...");
@@ -3942,9 +4633,30 @@ const initialData = {
         const parentSha = branchRef.object.sha;
         const parentCommit = await getGitCommit(parentSha);
         const treeEntries = [];
+        let mergedSyncedSettings = null;
+        let mergedSettingsRemoteFile = null;
+        let mergedSettingsBlobSha = "";
 
         for (const file of files) {
-          const blob = await createGitBlob({ content: toBase64(file.content) });
+          let fileContent = file.content;
+          if (file.path === SETTINGS_PATH) {
+            if (!file.settingsScopes?.length) {
+              throw new Error("页面配置草稿缺少字段范围，请撤销这条草稿后重新保存，避免覆盖其他 UI 参数。");
+            }
+            const remoteFile = await getFile(SETTINGS_PATH, parentSha);
+            const remoteSettings = readExportedValue(fromBase64(remoteFile.content), "siteSettings");
+            const localSettings = readExportedValue(file.content, "siteSettings");
+            mergedSyncedSettings = mergeQueuedSettingsWithRemote({
+              remoteSettings,
+              localSettings,
+              baseSettings: state.original.settings || INITIAL_DATA.settings,
+              settingsScopes: file.settingsScopes,
+            });
+            mergedSettingsRemoteFile = remoteFile;
+            fileContent = stringifySettingsModule(mergedSyncedSettings);
+          }
+          const blob = await createGitBlob({ content: toBase64(fileContent) });
+          if (file.path === SETTINGS_PATH) mergedSettingsBlobSha = blob.sha;
           treeEntries.push({
             path: file.path,
             mode: "100644",
@@ -3975,16 +4687,46 @@ const initialData = {
           tree: treeEntries,
         });
         const commit = await createGitCommit({
-          message: `Sync site updates: ${summary}`,
+          message: commitMessage || `Sync site updates: ${summary}`,
           treeSha: tree.sha,
           parentSha,
         });
         await updateBranchRef(commit.sha);
 
-        clearSyncedPendingChanges(selectedIds, uploads, files, deletes);
+        const remoteDeleteIds = new Set(remoteDeletes.map(draftChangeId));
+        const committedIds = new Set(
+          [...selectedIds].filter((id) => !remoteDeleteIds.has(id)),
+        );
+
+        if (mergedSyncedSettings) {
+          const settingsInputState = captureSettingsInputState();
+          const serializedSettings = stringifySettingsModule(mergedSyncedSettings);
+          state.settings = clone(mergedSyncedSettings);
+          state.files.settings = {
+            ...(mergedSettingsRemoteFile || {}),
+            content: toBase64(serializedSettings),
+            sha: mergedSettingsBlobSha || mergedSettingsRemoteFile?.sha,
+          };
+          fillSettings();
+          restoreSettingsInputState(settingsInputState);
+        }
+        clearSyncedPendingChanges(committedIds, uploads, files, deletes);
+        if (remoteDeletes.length) {
+          updatePendingChangesUi();
+          setStatus("GitHub 内容已提交，正在删除 R2 媒体文件...");
+          try {
+            await syncRemoteMediaOperations({ uploads: [], deletes: remoteDeletes });
+          } catch (error) {
+            updatePendingChangesUi();
+            throw new Error(
+              `GitHub 内容已提交，但 R2 文件删除失败；删除草稿已保留，可直接重试：${describeMediaError(error)}`,
+            );
+          }
+          clearSyncedPendingChanges(remoteDeleteIds, [], [], []);
+        }
         if (remoteUploads.length || remoteDeletes.length) {
           await refreshAfterMediaSync("全部待处理改动已同步为 1 次 Git commit。", "全部待处理改动已同步，但素材列表刷新失败");
-          return;
+          return true;
         }
         selectImage(null);
         selectVideo(null);
@@ -3992,6 +4734,7 @@ const initialData = {
         renderList();
         updatePendingChangesUi();
         setStatus("全部待处理改动已同步为 1 次 Git commit。");
+        return true;
       };
 
       const syncSelectedPendingChanges = async () => {
@@ -4041,6 +4784,29 @@ const initialData = {
         return video;
       };
 
+      const applyUiAppearanceMediaValue = (mediaValue, pick, expectedKind) => {
+        const libraryKey = pick?.section || (expectedKind === "video" ? "personalVideoAssets" : "personalPhotoAssets");
+        const library = mediaLibraries[libraryKey];
+        if (!library || library.kind !== expectedKind) {
+          throw new Error(`这个 UI 字段需要 ${expectedKind === "video" ? "视频" : "图片"}素材库。`);
+        }
+        if (!isMediaLibraryValue(mediaValue, libraryKey)) {
+          throw new Error(`UI 资源只能选择 ${library.publicRoot} 素材库中的文件。`);
+        }
+        const presetId = pick?.presetId;
+        const fieldPath = pick?.fieldPath;
+        const field = uiAppearanceFields.find(
+          (candidate) =>
+            candidate.dataset.uiAppearancePreset === presetId &&
+            candidate.dataset.uiAppearanceField === fieldPath,
+        );
+        if (!field) throw new Error("没有找到对应的 UI 专属参数字段。");
+        setUiAppearanceControlValue(field, mediaValue);
+        state.uiAppearanceDirty = uiAppearanceInputsAreDirty();
+        renderUiAppearanceEditor();
+        renderUiPresetSelection();
+      };
+
       const imagePickTargets = {
         postCover: {
           section: "images",
@@ -4080,24 +4846,38 @@ const initialData = {
             renderPersonalVideoPreview();
           },
         },
-        heroBackground: {
+        uiAppearanceImage: {
           section: "personalPhotoAssets",
-          label: "首页背景图",
-          apply: (_image, imageValue) => {
-            const field = $('[data-settings-field="home.heroBackgroundImage"]');
-            field.value = imageValue;
+          label: "UI 专属图片",
+          apply: (_image, imageValue, pick) => {
+            applyUiAppearanceMediaValue(imageValue, pick, "image");
           },
         },
       };
 
-      const startImagePicker = (targetKey, sectionKey = "") => {
+      const videoPickTargets = {
+        uiAppearanceVideo: {
+          section: "personalVideoAssets",
+          label: "UI 专属视频",
+          apply: (_video, videoValue, pick) => {
+            applyUiAppearanceMediaValue(videoValue, pick, "video");
+          },
+        },
+      };
+
+      const startImagePicker = (targetKey, sectionKey = "", context = {}) => {
         const target = imagePickTargets[targetKey];
         if (!target) throw new Error("未知的图片选择目标。");
         const section = sectionKey || target.section;
+        if (!isMediaLibrarySection(section) || mediaLibraries[section].kind !== "image") {
+          throw new Error("这个 UI 字段引用的图片素材库尚未配置。");
+        }
         state.pendingImagePick = {
           target: targetKey,
           section,
           returnSection: state.section,
+          presetId: context.presetId || "",
+          fieldPath: context.fieldPath || "",
         };
         selectSection(section);
         setStatus(`请选择一张图片填入${target.label}。`);
@@ -4107,10 +4887,38 @@ const initialData = {
         const target = imagePickTargets[pick?.target];
         const imageValue = mediaContentValue(image);
         if (!target || !imageValue) return;
+        target.apply(image, imageValue, pick);
         state.pendingImagePick = null;
-        target.apply(image, imageValue);
         if (pick.returnSection) selectSection(pick.returnSection);
         setStatus(`已把选中的图片填入${target.label}。`);
+      };
+
+      const startVideoPicker = (targetKey, sectionKey = "", context = {}) => {
+        const target = videoPickTargets[targetKey];
+        if (!target) throw new Error("未知的视频选择目标。");
+        const section = sectionKey || target.section;
+        if (!isMediaLibrarySection(section) || mediaLibraries[section].kind !== "video") {
+          throw new Error("这个 UI 字段引用的视频素材库尚未配置。");
+        }
+        state.pendingVideoPick = {
+          target: targetKey,
+          section,
+          returnSection: state.section,
+          presetId: context.presetId || "",
+          fieldPath: context.fieldPath || "",
+        };
+        selectSection(section);
+        setStatus(`请选择一个视频填入${target.label}。`);
+      };
+
+      const applyPickedVideo = (pick, video) => {
+        const target = videoPickTargets[pick?.target];
+        const videoValue = mediaContentValue(video);
+        if (!target || !videoValue) return;
+        target.apply(video, videoValue, pick);
+        state.pendingVideoPick = null;
+        if (pick.returnSection) selectSection(pick.returnSection);
+        setStatus(`已把选中的视频填入${target.label}。`);
       };
 
       const selectImage = (image) => {
@@ -4138,6 +4946,7 @@ const initialData = {
         else preview.removeAttribute("src");
         $("[data-selected-video-path]").value = mediaContentValue(video);
         renderList();
+        if (state.pendingVideoPick && video?.publicPath) applyPickedVideo(state.pendingVideoPick, video);
       };
 
       const queueMediaUploads = async (files, kindOrSection) => {
@@ -4310,10 +5119,55 @@ const initialData = {
         setStatus("视频已删除。");
       };
 
+      const captureSettingsInputState = () => ({
+        sharedDirty: state.sharedSettingsDirty,
+        uiAppearanceDirty: state.uiAppearanceDirty,
+        uiAppearancePreset: state.uiAppearancePreset,
+        sharedValues: state.sharedSettingsDirty
+          ? settingsFields
+              .filter((field) => sharedSettingsInputIsDirty(field))
+              .map((field) => [field.dataset.settingsField, field.value])
+          : [],
+        appearanceValues: state.uiAppearanceDirty
+          ? uiAppearanceFields
+              .filter((field) => uiAppearanceInputIsDirty(field))
+              .map((field) => [
+                field.dataset.uiAppearancePreset,
+                field.dataset.uiAppearanceField,
+                uiAppearanceControlValue(field),
+              ])
+          : [],
+      });
+
+      const restoreSettingsInputState = (snapshot) => {
+        if (uiPresetIds.has(snapshot.uiAppearancePreset)) {
+          state.uiAppearancePreset = snapshot.uiAppearancePreset;
+        }
+        snapshot.sharedValues.forEach(([fieldPath, value]) => {
+          const field = settingsFields.find((candidate) => candidate.dataset.settingsField === fieldPath);
+          if (field) field.value = value;
+        });
+        snapshot.appearanceValues.forEach(([presetId, fieldPath, value]) => {
+          const field = uiAppearanceFields.find(
+            (candidate) =>
+              candidate.dataset.uiAppearancePreset === presetId &&
+              candidate.dataset.uiAppearanceField === fieldPath,
+          );
+          if (field) setUiAppearanceControlValue(field, value);
+        });
+        state.sharedSettingsDirty = snapshot.sharedDirty && sharedSettingsInputsAreDirty();
+        state.uiAppearanceDirty = snapshot.uiAppearanceDirty && uiAppearanceInputsAreDirty();
+        renderUiAppearanceEditor();
+        renderUiPresetSelection();
+      };
+
       const connect = async () => {
         const token = $("[data-token-input]").value.trim();
         const mediaToken = $("[data-media-token-input]").value.trim();
         if (!token && !mediaToken) return;
+        const settingsInputState = captureSettingsInputState();
+        const hasPendingContentWork =
+          state.pendingChanges.files.length > 0 || state.pendingChanges.deletes.length > 0;
         state.token = token;
         state.mediaToken = mediaToken;
         state.mode = "github";
@@ -4321,10 +5175,32 @@ const initialData = {
         sessionStorage.removeItem(MEDIA_TOKEN_KEY);
         if (token) sessionStorage.setItem(TOKEN_KEY, token);
         if (mediaToken) sessionStorage.setItem(MEDIA_TOKEN_KEY, mediaToken);
-        await loadAll();
+        if (hasPendingContentWork) {
+          const mediaStatus = await loadMediaLibrariesSafely();
+          updateCounts();
+          renderList();
+          renderUiPresetSelection();
+          setStatus(`凭据已更新。为保护待同步内容草稿，页面内容没有重新加载；${mediaStatus}`);
+          return;
+        }
+        const contentReady = await loadAll();
+        restoreSettingsInputState(settingsInputState);
+        if (allPendingMedia().length) {
+          setStatus(
+            contentReady
+              ? "GitHub 最新内容与素材库已刷新，待同步媒体队列和未保存的页面配置输入均已保留。"
+              : "素材库已刷新，待同步媒体队列和未保存的页面配置输入均已保留。",
+          );
+        } else if ((state.sharedSettingsDirty || state.uiAppearanceDirty) && contentReady) {
+          setStatus("GitHub 内容已刷新，连接前尚未保存的页面配置输入已保留。");
+        } else if (state.sharedSettingsDirty || state.uiAppearanceDirty) {
+          setStatus("连接前的页面配置输入已保留，但 GitHub 最新内容没有完整加载；请检查 Token 后重新连接。");
+        }
       };
 
       const clearToken = async () => {
+        const hasUnsavedWork =
+          allPendingChanges().length > 0 || state.sharedSettingsDirty || state.uiAppearanceDirty;
         state.token = "";
         state.mediaToken = "";
         sessionStorage.removeItem(TOKEN_KEY);
@@ -4332,6 +5208,12 @@ const initialData = {
         $("[data-token-input]").value = "";
         $("[data-media-token-input]").value = "";
         state.mode = "readonly";
+        if (hasUnsavedWork) {
+          renderUiPresetSelection();
+          setStatus("凭据已清除。为保护待同步草稿或未保存输入，当前内容没有重新加载。");
+          return;
+        }
+        state.remoteContentReady = false;
         await loadAll();
       };
 
@@ -4344,7 +5226,7 @@ const initialData = {
       };
 
       window.addEventListener("beforeunload", (event) => {
-        if (!allPendingChanges().length) return;
+        if (!allPendingChanges().length && !state.sharedSettingsDirty && !state.uiAppearanceDirty) return;
         event.preventDefault();
         event.returnValue = "";
       });
@@ -4374,7 +5256,24 @@ const initialData = {
       });
 
       $$("[data-image-pick-target]").forEach((button) => {
-        button.addEventListener("click", () => run(() => startImagePicker(button.dataset.imagePickTarget, button.dataset.imagePickSection)));
+        button.addEventListener("click", () => run(() => startImagePicker(
+          button.dataset.imagePickTarget,
+          button.dataset.imagePickSection,
+          {
+            presetId: button.dataset.imagePickPreset,
+            fieldPath: button.dataset.imagePickField,
+          },
+        )));
+      });
+      $$("[data-video-pick-target]").forEach((button) => {
+        button.addEventListener("click", () => run(() => startVideoPicker(
+          button.dataset.videoPickTarget,
+          button.dataset.videoPickSection,
+          {
+            presetId: button.dataset.videoPickPreset,
+            fieldPath: button.dataset.videoPickField,
+          },
+        )));
       });
 
       $("[data-save-post]").addEventListener("click", () => run(savePost));
@@ -4562,16 +5461,26 @@ const initialData = {
         state.pendingDraftSelection.clear();
         updatePendingChangesUi();
       });
+      $$("[data-ui-preset-set-default]").forEach((button) => {
+        button.addEventListener("click", () => run(() => setDefaultUiPreset(button.dataset.uiPresetSetDefault)));
+      });
+      uiPresetSelect?.addEventListener("change", renderUiPresetSelection);
+      uiAppearanceSelect?.addEventListener("change", () => run(() => selectUiAppearancePreset(uiAppearanceSelect.value)));
       $$("[data-save-settings]").forEach((button) => button.addEventListener("click", () => run(saveSettings)));
-      $("[data-use-selected-hero-background]").addEventListener("click", () => {
-        const field = $('[data-settings-field="home.heroBackgroundImage"]');
-        const imageValue = mediaContentValue(state.current.image);
-        if (!imageValue) {
-          setStatus("请先在 ARTICLE_IMAGE_ASSETS 中选择一张背景图。");
-          return;
-        }
-        field.value = imageValue;
-        setStatus("已把选中图片填入首页背景图路径，保存页面配置后生效。");
+      $$("[data-save-ui-appearance]").forEach((button) => button.addEventListener("click", () => run(saveUiAppearanceSettings)));
+      settingsFields.forEach((field) => {
+        field.addEventListener("input", () => {
+          state.sharedSettingsDirty = sharedSettingsInputsAreDirty();
+          renderUiPresetSelection();
+        });
+      });
+      uiAppearanceFields.forEach((field) => {
+        field.addEventListener("input", () => {
+          delete field.dataset.uiAppearanceMissing;
+          state.uiAppearanceDirty = uiAppearanceInputsAreDirty();
+          renderUiAppearanceEditor();
+          renderUiPresetSelection();
+        });
       });
 
       Object.values(postFields).forEach((field) => field.addEventListener("input", renderMarkdownPreview));

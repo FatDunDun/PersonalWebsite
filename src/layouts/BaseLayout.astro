@@ -1,8 +1,8 @@
 ---
-import Footer from "@/components/Footer.astro";
-import Header from "@/components/Header.astro";
-import "@/styles/global.css";
-import { absoluteUrl, assetUrl, homeConfig, siteConfig, withBase } from "@/utils/site";
+import SiteShell from "@ui-pack/SiteShell.astro";
+import PackHead from "@ui-pack/Head.astro";
+import { manifest } from "@ui-pack/manifest";
+import { absoluteUrl, assetUrl, siteConfig } from "@/utils/site";
 
 interface Props {
   title?: string;
@@ -22,12 +22,10 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
 const canonical = Astro.url.href;
 const resolvedOgImage = assetUrl(image);
 const ogImage = resolvedOgImage.startsWith("http") ? resolvedOgImage : absoluteUrl(image);
-const heroBackgroundImage = homeConfig.heroBackgroundImage || "/site-assets/home-exhibition-bg.jpg";
-const isHome = Astro.url.pathname === withBase("/");
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-ui-preset={manifest.id}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -45,6 +43,8 @@ const isHome = Astro.url.pathname === withBase("/");
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
+    <PackHead />
+
     <script is:inline>
       const savedTheme = localStorage.getItem("theme");
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -53,14 +53,9 @@ const isHome = Astro.url.pathname === withBase("/");
       }
     </script>
   </head>
-  <body
-    class:list={["site-body", isHome && "site-body--home"]}
-    style={`--exhibition-bg: url("${assetUrl(heroBackgroundImage)}")`}
-  >
-    <Header />
-    <main>
+  <body class="site-body">
+    <SiteShell>
       <slot />
-    </main>
-    <Footer />
+    </SiteShell>
   </body>
 </html>

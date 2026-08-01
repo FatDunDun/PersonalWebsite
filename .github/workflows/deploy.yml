@@ -33,11 +33,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Verify UI packs and site behavior
+        run: npm test
+
+      - name: Build every registered UI pack
+        run: npm run build:ui-packs
+
+      - name: Build selected UI for deployment
         env:
           PUBLIC_WALINE_SERVER_URL: ${{ vars.PUBLIC_WALINE_SERVER_URL }}
           PUBLIC_ASSET_BASE_URL: ${{ vars.PUBLIC_ASSET_BASE_URL }}
           PUBLIC_MEDIA_API_URL: ${{ vars.PUBLIC_MEDIA_API_URL }}
+          PUBLIC_IMAGE_API_URL: ${{ vars.PUBLIC_IMAGE_API_URL }}
         run: npm run build
 
       - name: Upload artifact

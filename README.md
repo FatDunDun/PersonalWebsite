@@ -107,9 +107,12 @@ https://personalwebsite-media-api.your-account.workers.dev
 ```bash
 PUBLIC_ASSET_BASE_URL="https://assets.example.com"
 PUBLIC_MEDIA_API_URL="https://personalwebsite-media-api.your-account.workers.dev"
+PUBLIC_IMAGE_API_URL="https://personalwebsite-media-api.your-account.workers.dev"
 ```
 
-`PUBLIC_ASSET_BASE_URL` 用于前台加载图片和视频，`PUBLIC_MEDIA_API_URL` 用于隐藏管理页连接 Worker。
+`PUBLIC_ASSET_BASE_URL` 用于前台加载图片和视频，`PUBLIC_MEDIA_API_URL` 用于隐藏管理页连接 Worker。`PUBLIC_IMAGE_API_URL` 可单独指定公开图片变体服务；不配置时会自动复用 `PUBLIC_MEDIA_API_URL`。
+
+Worker 的公开 `/image/<R2 key>?w=<宽度>&q=<质量>` 路由会按展示宽度输出自动格式的 WebP/AVIF，并保留 R2 原文件作为唯一源文件。JPG、PNG、WebP、AVIF 会生成边缘缓存变体，SVG、GIF 和视频仍直接读取原资源。
 
 ## 如何新增文章
 

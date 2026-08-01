@@ -1,44 +1,11 @@
 ---
-import { getCollection } from "astro:content";
+import ArticlesIndex from "@ui-pack/pages/ArticlesIndex.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { formatDate } from "@/utils/format";
-import { assetUrl, pageConfig, withBase } from "@/utils/site";
+import { pageConfig } from "@/utils/site";
 
-const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf(),
-);
 const pageCopy = pageConfig.articles;
 ---
 
 <BaseLayout title={pageCopy.title} description={pageCopy.description}>
-  <section class="container py-12 md:py-18">
-    <div class="page-hero grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-end">
-      <div>
-        <p class="page-kicker">{pageCopy.kicker}</p>
-        <h1 class="page-title mt-4 text-6xl md:text-8xl">{pageCopy.title}</h1>
-      </div>
-      <p class="note-rule max-w-2xl text-lg leading-8 text-[var(--muted)]">
-        {pageCopy.description}
-      </p>
-    </div>
-
-    <div class="mt-8 grid gap-4">
-      {posts.map((post, index) => (
-        <a href={withBase(`/articles/${post.id}/`)} class="artifact-card group grid gap-6 rounded-md p-4 transition hover:-translate-y-0.5 hover:border-[var(--foreground)] md:grid-cols-[92px_280px_1fr] md:items-center">
-          <span class="folio-number text-4xl">{String(index + 1).padStart(2, "0")}</span>
-          {post.data.cover && (
-            <img class="aspect-[16/10] w-full rounded-md border border-[var(--line)] object-cover transition duration-500 group-hover:saturate-110" src={assetUrl(post.data.cover)} alt="" />
-          )}
-          <div>
-            <div class="flex flex-wrap items-center gap-3 text-sm text-[var(--muted)]">
-              <time datetime={post.data.publishDate.toISOString()}>{formatDate(post.data.publishDate)}</time>
-              {post.data.tags.map((tag) => <span class="font-mono">{tag}</span>)}
-            </div>
-            <h2 class="literary-title mt-4 text-3xl leading-tight group-hover:text-[var(--accent)]">{post.data.title}</h2>
-            <p class="mt-3 max-w-2xl leading-7 text-[var(--muted)]">{post.data.description}</p>
-          </div>
-        </a>
-      ))}
-    </div>
-  </section>
+  <ArticlesIndex />
 </BaseLayout>

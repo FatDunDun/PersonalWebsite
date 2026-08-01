@@ -5,8 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
-    "test": "node tests/security-hardening.test.mjs && node tests/admin-media-sync.test.mjs && node tests/page-copy-settings.test.mjs && node tests/asset-url.test.mjs && node tests/r2-worker.test.mjs && node tests/deploy-workflow-actions.test.mjs && node tests/ui-regression.test.mjs",
+    "dev:classic": "UI_PRESET=classic ASTRO_TELEMETRY_DISABLED=1 astro dev --port 4322",
+    "dev:editorial": "UI_PRESET=editorial ASTRO_TELEMETRY_DISABLED=1 astro dev --port 4321",
+    "check:ui-packs": "node -e \"import('./astro.config.mjs').then(() => console.log('UI pack contract checks passed'))\"",
+    "test:ui-packs": "npm run check:ui-packs && node tests/ui-pack-isolation.test.mjs && node tests/settings-contract.test.mjs",
+    "test": "npm run test:ui-packs && node tests/security-hardening.test.mjs && node tests/admin-media-sync.test.mjs && node tests/page-copy-settings.test.mjs && node tests/asset-url.test.mjs && node tests/r2-worker.test.mjs && node tests/deploy-workflow-actions.test.mjs && node tests/ui-regression.test.mjs",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build:classic": "UI_PRESET=classic ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build:editorial": "UI_PRESET=editorial ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build:ui-packs": "node scripts/build-ui-packs.mjs",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview"
   },
   "dependencies": {

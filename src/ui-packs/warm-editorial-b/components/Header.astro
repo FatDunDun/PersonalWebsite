@@ -1,0 +1,58 @@
+---
+import ThemeToggle from "./ThemeToggle.astro";
+import { navItems, siteConfig, withBase } from "@/utils/site";
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="site-header sticky top-0 z-40">
+  <nav class="site-nav container flex min-h-14 items-center justify-between gap-5 px-3.5 md:px-4">
+    <a href={withBase("/")} class="site-brand group flex items-center gap-2.5 font-semibold">
+      <span class="site-brand__mark inverse-control grid size-8 place-items-center font-mono text-xs transition">
+        {siteConfig.logoText || "M"}
+      </span>
+      <span class="site-brand__name max-w-[42vw] truncate text-sm sm:max-w-none">{siteConfig.author}</span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <div class="site-nav__links hidden items-center p-1 md:flex">
+        {navItems.map((item) => {
+          const href = withBase(item.href);
+          const active = item.href === "/" ? currentPath === withBase("/") : currentPath.startsWith(href);
+          return (
+            <a
+              href={href}
+              aria-current={active ? "page" : undefined}
+              class:list={[
+                "site-nav__link rounded-full px-3.5 py-1.5 text-xs text-[var(--muted)] transition hover:text-[var(--foreground)]",
+                active && "nav-pill-active",
+              ]}
+            >
+              {item.label}
+            </a>
+          );
+        })}
+      </div>
+      <ThemeToggle />
+    </div>
+  </nav>
+
+  <div class="site-nav-mobile container flex gap-2 overflow-x-auto md:hidden">
+    {navItems.map((item) => {
+      const href = withBase(item.href);
+      const active = item.href === "/" ? currentPath === withBase("/") : currentPath.startsWith(href);
+      return (
+        <a
+          href={href}
+          aria-current={active ? "page" : undefined}
+          class:list={[
+            "shrink-0 rounded-full px-3 py-1.5 text-xs text-[var(--muted)]",
+            active && "nav-pill-active border-[var(--foreground)]",
+          ]}
+        >
+          {item.label}
+        </a>
+      );
+    })}
+  </div>
+</header>

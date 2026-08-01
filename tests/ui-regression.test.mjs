@@ -1,35 +1,43 @@
 import { readFileSync } from "node:fs";
 import { strict as assert } from "node:assert";
 
-const adminSource = readFileSync(new URL("../src/pages/silent-orbit-7429/index.astro", import.meta.url), "utf8");
-const footerSource = readFileSync(new URL("../src/components/Footer.astro", import.meta.url), "utf8");
-const headerSource = readFileSync(new URL("../src/components/Header.astro", import.meta.url), "utf8");
-const homeSource = readFileSync(new URL("../src/pages/index.astro", import.meta.url), "utf8");
+const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+const adminSource = read("src/pages/silent-orbit-7429/index.astro");
+const homeRouteSource = read("src/pages/index.astro");
+const { uiPresetCatalog } = await import(new URL("../src/ui-packs/catalog.mjs", import.meta.url));
+const uiPresetEntries = Array.isArray(uiPresetCatalog) ? uiPresetCatalog : Object.values(uiPresetCatalog);
+const editorialPreset = uiPresetEntries.find((preset) => preset.id === "editorial");
 
 assert.ok(!adminSource.includes("分享图路径"), "Admin settings should not show the unused share image path field");
 assert.ok(!adminSource.includes('data-settings-field="site.ogImage"'), "Admin settings should not edit site.ogImage");
+assert.ok(editorialPreset, "Expected the editorial preset to keep its dedicated visual regression baseline");
+
+assert.ok(
+  homeRouteSource.includes('import Home from "@ui-pack/pages/Home.astro"') &&
+    homeRouteSource.includes('import BaseLayout from "@/layouts/BaseLayout.astro"'),
+  "Home route should delegate visual structure to the active UI pack",
+);
+
+const footerSource = read(`${editorialPreset.directory}/components/Footer.astro`);
+const headerSource = read(`${editorialPreset.directory}/components/Header.astro`);
+const homeSource = read(`${editorialPreset.directory}/pages/Home.astro`);
 
 const footerMutedText = footerSource.match(/text-\[var\(--muted\)\]/g) || [];
-assert.equal(footerMutedText.length, 0, "Footer small text should use the same foreground color as the site name");
-
-assert.ok(
-  footerSource.includes("text-[var(--foreground)]"),
-  "Footer should explicitly use foreground text color for light mode readability",
-);
-
+assert.equal(footerMutedText.length, 0, "Editorial footer small text should use the same foreground color as the site name");
+assert.ok(footerSource.includes("text-[var(--foreground)]"), "Editorial footer should keep explicit light-mode readability");
 assert.ok(
   headerSource.includes("{siteConfig.author}") && !headerSource.includes("hidden font-mono text-sm tracking-wide sm:inline"),
-  "Header author name should stay visible on mobile instead of hiding below the sm breakpoint",
+  "Editorial header author name should stay visible on mobile",
 );
 
-assert.ok(!homeSource.includes("projectYearLabel"), "Home works section should not add maintenance-like timeline filler");
-assert.ok(!homeSource.includes("projectTagHighlights"), "Home works section should not add tag filler to solve layout");
-assert.ok(!homeSource.includes("作品索引"), "Home works section should not add extra explanatory content just to fill space");
-assert.ok(!homeSource.includes("pieces"), "Home works section should not show object counts as filler content");
-assert.ok(!homeSource.includes('md:grid-cols-[0.52fr_1.48fr]'), "Home works section should not use a separate left intro card");
+assert.ok(!homeSource.includes("projectYearLabel"), "Editorial home should not add maintenance-like timeline filler");
+assert.ok(!homeSource.includes("projectTagHighlights"), "Editorial home should not add tag filler to solve layout");
+assert.ok(!homeSource.includes("作品索引"), "Editorial home should not add extra explanatory content just to fill space");
+assert.ok(!homeSource.includes("pieces"), "Editorial home should not show object counts as filler content");
+assert.ok(!homeSource.includes('md:grid-cols-[0.52fr_1.48fr]'), "Editorial home should not use a separate left intro card");
 assert.ok(
   homeSource.includes("data-home-works") && homeSource.includes("data-home-works-list"),
-  "Home works section should be one unified panel with the project list beneath the heading",
+  "Editorial works section should remain one unified panel",
 );
 
 assert.ok(

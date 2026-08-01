@@ -5,9 +5,11 @@ interface Env {
   ALLOWED_ORIGIN?: string;
 }
 
-const MEDIA_ROOTS = ["article-assets", "article-videos", "images", "personal-photo", "personal-video", "videos"];
+const MEDIA_ROOTS = ["article-assets", "article-videos", "images", "personal-photo", "personal-video", "recommendation-assets", "videos"];
 const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "avif", "svg", "gif"];
 const VIDEO_EXTENSIONS = ["mp4", "webm", "mov", "m4v"];
+const TRANSFORMABLE_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "avif"];
+const IMAGE_CACHE_CONTROL = "public, max-age=31536000, immutable";
 
 const contentTypes: Record<string, string> = {
   avif: "image/avif",
@@ -115,6 +117,86 @@ function publicUrlForKey(env: Env, key: string) {
   return `${env.ASSET_BASE_URL.replace(/\/$/, "")}/${key}`;
 }
 
+function imageKeyFromPathname(pathname: string) {
+  const encodedKey = pathname.replace(/^\/image\//, "");
+  const key = encodedKey
+    .split("/")
+    .map((part) => decodeURIComponent(part))
+    .join("/");
+  const normalizedKey = normalizeKey(key);
+  const extension = normalizedKey.split(".").pop()?.toLowerCase() || "";
+  if (!TRANSFORMABLE_IMAGE_EXTENSIONS.includes(extension)) {
+    throw new Error("Image transformation only supports JPG, PNG, WebP, and AVIF");
+  }
+  return normalizedKey;
+}
+
+function imageDimension(value: string | null, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(value || "", 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function acceptedImageFormat(accept: string) {
+  if (accept.includes("image/avif")) return "avif";
+  if (accept.includes("image/webp")) return "webp";
+  return undefined;
+}
+
+async function originalImageResponse(env: Env, key: string) {
+  const object = await env.ASSETS_BUCKET.get(key);
+  if (!object) return new Response("Image not found", { status: 404 });
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("Cache-Control", IMAGE_CACHE_CONTROL);
+  headers.set("ETag", object.httpEtag);
+  headers.set("Vary", "Accept");
+  return new Response(object.body, { headers });
+}
+
+async function handleImage(request: Request, env: Env) {
+  const url = new URL(request.url);
+  const key = imageKeyFromPathname(url.pathname);
+  const width = imageDimension(url.searchParams.get("w"), 1280, 64, 2560);
+  const quality = imageDimension(url.searchParams.get("q"), 76, 45, 90);
+  const sourceUrl = publicUrlForKey(env, key);
+  const accept = request.headers.get("Accept") || "image/avif,image/webp,image/*,*/*";
+  const format = acceptedImageFormat(accept);
+
+  const transformed = await fetch(sourceUrl, {
+    headers: { Accept: accept },
+    cf: {
+      cacheEverything: true,
+      cacheTtl: 31536000,
+      image: {
+        fit: "scale-down",
+        ...(format ? { format } : {}),
+        metadata: "none",
+        quality,
+        width,
+      },
+    },
+  } as RequestInit & {
+    cf: {
+      cacheEverything: boolean;
+      cacheTtl: number;
+      image: Record<string, string | number>;
+    };
+  });
+
+  if (!transformed.ok) return originalImageResponse(env, key);
+
+  const headers = new Headers(transformed.headers);
+  headers.set("Cache-Control", IMAGE_CACHE_CONTROL);
+  headers.set("Vary", "Accept");
+  headers.delete("Set-Cookie");
+  return new Response(request.method === "HEAD" ? null : transformed.body, {
+    status: transformed.status,
+    headers,
+  });
+}
+
 async function handleList(request: Request, env: Env) {
   const url = new URL(request.url);
   const prefix = normalizePrefix(url.searchParams.get("prefix"));
@@ -193,12 +275,26 @@ async function handleDelete(request: Request, env: Env) {
 
 export default {
   async fetch(request: Request, env: Env) {
+    const url = new URL(request.url);
+    if (
+      (request.method === "GET" || request.method === "HEAD") &&
+      url.pathname.startsWith("/image/")
+    ) {
+      try {
+        return await handleImage(request, env);
+      } catch (error) {
+        return new Response(error instanceof Error ? error.message : "Image request failed", {
+          status: 400,
+          headers: { "Cache-Control": "no-store" },
+        });
+      }
+    }
+
     if (!originAllowed(request, env)) return forbiddenOrigin(env, request);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(env, request) });
     if (!requireAdmin(request, env)) return unauthorized(env, request);
 
     try {
-      const url = new URL(request.url);
       if (request.method === "GET" && url.pathname === "/media") return handleList(request, env);
       if (request.method === "POST" && url.pathname === "/media/upload") return handleUpload(request, env);
       if (request.method === "POST" && url.pathname === "/media/folder") return handleCreateFolder(request, env);

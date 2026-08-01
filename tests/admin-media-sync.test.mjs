@@ -87,8 +87,8 @@ assert.ok(
 );
 
 assert.ok(
-  source.includes('message: `Sync site updates: ${summary}`'),
-  "Expected full admin sync to use one summary commit message",
+  source.includes('message: commitMessage || `Sync site updates: ${summary}`'),
+  "Expected full admin sync to keep one summary commit while allowing an isolated UI-switch message",
 );
 
 assert.ok(
@@ -101,9 +101,53 @@ assert.ok(
   "Expected Git sync to exclude R2-backed media deletes",
 );
 
+const fullSyncSource = source.match(/const syncPendingChanges = async \([\s\S]*?\n      \};/)?.[0] || "";
+const remoteUploadCall = "await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: [] })";
+const remoteDeleteCall = "await syncRemoteMediaOperations({ uploads: [], deletes: remoteDeletes })";
+const branchUpdateCall = "await updateBranchRef(commit.sha)";
+const committedClearCall = "clearSyncedPendingChanges(committedIds, uploads, files, deletes)";
+const remoteDeleteClearCall = "clearSyncedPendingChanges(remoteDeleteIds, [], [], [])";
+const branchUpdateIndex = fullSyncSource.indexOf(branchUpdateCall);
+const mixedRemoteDeleteIndex = fullSyncSource.lastIndexOf(remoteDeleteCall);
+const committedClearIndex = fullSyncSource.indexOf(committedClearCall);
+const remoteDeleteClearIndex = fullSyncSource.indexOf(remoteDeleteClearCall);
 assert.ok(
-  source.includes("await syncRemoteMediaOperations({ uploads: remoteUploads, deletes: remoteDeletes })"),
-  "Expected sync to upload/delete remote media through the Worker before Git content commit",
+  fullSyncSource.includes(remoteUploadCall) &&
+    fullSyncSource.includes(remoteDeleteCall) &&
+    fullSyncSource.indexOf(remoteUploadCall) < branchUpdateIndex &&
+    branchUpdateIndex < mixedRemoteDeleteIndex,
+  "Expected R2 uploads before the Git commit and destructive R2 deletes only after updateBranchRef succeeds",
+);
+
+assert.match(
+  fullSyncSource,
+  /const remoteDeleteIds = new Set\(remoteDeletes\.map\(draftChangeId\)\);[\s\S]*?const committedIds = new Set\([\s\S]*?!remoteDeleteIds\.has\(id\)[\s\S]*?\);/,
+  "Expected committedIds to explicitly exclude retryable remoteDeleteIds",
+);
+assert.ok(
+  branchUpdateIndex < committedClearIndex &&
+    committedClearIndex < mixedRemoteDeleteIndex &&
+    mixedRemoteDeleteIndex < remoteDeleteClearIndex,
+  "Expected Git-confirmed drafts to clear first while R2 delete drafts remain until the remote delete succeeds",
+);
+
+const mixedDeleteFailureSection = fullSyncSource.slice(mixedRemoteDeleteIndex, remoteDeleteClearIndex);
+const runSource = source.match(/const run = async \(task\) => \{[\s\S]*?\n      \};/)?.[0] || "";
+assert.ok(
+  mixedDeleteFailureSection.includes("catch (error)") &&
+    mixedDeleteFailureSection.includes("GitHub 内容已提交，但 R2 文件删除失败；删除草稿已保留，可直接重试") &&
+    mixedDeleteFailureSection.includes("throw new Error(") &&
+    runSource.includes('setStatus(error.message || "操作失败")'),
+  "Expected a post-commit R2 delete failure to be shown while retaining its retryable delete draft",
+);
+
+const r2OnlyDeleteBranch = fullSyncSource.match(
+  /if \(!files\.length && !deletes\.length && !gitUploads\.length && !gitMediaDeletes\.length\) \{([\s\S]*?)\n        \}\n\n        setStatus\("创建 GitHub 批量提交中\.\.\."\);/,
+)?.[1] || "";
+assert.ok(
+  r2OnlyDeleteBranch.includes(remoteDeleteCall) &&
+    r2OnlyDeleteBranch.indexOf(remoteDeleteCall) < r2OnlyDeleteBranch.indexOf("clearSyncedPendingChanges(selectedIds, uploads, files, deletes)"),
+  "Expected an R2-only delete to clear its draft only after the awaited delete succeeds so failures can be retried",
 );
 
 assert.ok(
@@ -197,7 +241,9 @@ const requiredImagePickerSnippets = [
   'data-image-pick-target="recommendationImage"',
   'data-image-pick-target="galleryImage"',
   'data-image-pick-target="personalVideoPoster"',
-  'data-image-pick-target="heroBackground"',
+  'data-image-pick-target="uiAppearanceImage"',
+  "data-image-pick-preset",
+  "data-image-pick-field",
 ];
 
 for (const snippet of requiredImagePickerSnippets) {
@@ -207,7 +253,9 @@ for (const snippet of requiredImagePickerSnippets) {
 assert.ok(
   source.includes("applyPickedImage(state.pendingImagePick, image)") &&
     source.includes("selectSection(pick.returnSection)") &&
-    source.includes("galleryFields.image.value = imageValue"),
+    source.includes("galleryFields.image.value = imageValue") &&
+    source.includes("candidate.dataset.uiAppearancePreset === presetId") &&
+    source.includes("candidate.dataset.uiAppearanceField === fieldPath"),
   "Expected selecting an R2 image to fill the original image field and return to the editor",
 );
 

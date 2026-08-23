@@ -196,6 +196,7 @@ assert.ok(
   connectSource.includes("captureSettingsInputState()") &&
     connectSource.includes("restoreSettingsInputState(settingsInputState)") &&
     connectSource.includes("hasPendingContentWork") &&
+    connectSource.includes("validateGithubCredential()") &&
     connectSource.includes("loadMediaLibrariesSafely()") &&
     connectSource.includes("allPendingMedia().length"),
   "Expected credential connection to preserve drafts while still refreshing content for media-only work",

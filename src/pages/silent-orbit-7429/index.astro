@@ -441,6 +441,57 @@ const initialData = {
         backdrop-filter: blur(14px) saturate(1.02);
       }
 
+      .credential-status {
+        border: 1px solid var(--orbit-border);
+        border-radius: 0.75rem;
+        background: rgb(255 255 255 / 0.22);
+        padding: 0.65rem 0.7rem;
+      }
+
+      .credential-status-badge {
+        border-radius: 999px;
+        padding: 0.15rem 0.5rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        line-height: 1.25rem;
+      }
+
+      .credential-status[data-state="success"] {
+        border-color: rgb(66 108 102 / 0.42);
+        background: var(--orbit-accent-soft);
+      }
+
+      .credential-status[data-state="success"] .credential-status-badge {
+        background: var(--orbit-accent);
+        color: white;
+      }
+
+      .credential-status[data-state="error"] {
+        border-color: rgb(168 78 68 / 0.48);
+        background: rgb(168 78 68 / 0.09);
+      }
+
+      .credential-status[data-state="error"] .credential-status-badge {
+        background: var(--orbit-red);
+        color: white;
+      }
+
+      .credential-status[data-state="warning"] {
+        border-color: rgb(139 91 61 / 0.44);
+        background: var(--orbit-warm-soft);
+      }
+
+      .credential-status[data-state="warning"] .credential-status-badge {
+        background: var(--orbit-warm);
+        color: white;
+      }
+
+      .credential-status[data-state="checking"] .credential-status-badge,
+      .credential-status[data-state="idle"] .credential-status-badge {
+        background: var(--orbit-fill-hover);
+        color: var(--orbit-secondary);
+      }
+
       .orbit-workbench .literary-title {
         font-family:
           "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC",
@@ -679,6 +730,22 @@ const initialData = {
           <section class="orbit-status-card mt-4 border p-3">
             <p class="exhibition-meta text-xs uppercase tracking-[0.2em]">Status</p>
             <p class="mt-3 min-h-12 text-sm leading-6 text-[var(--muted)]" data-status role="status" aria-live="polite">正在读取公开内容。</p>
+            <div class="mt-3 grid gap-2" aria-label="凭据连接状态">
+              <div class="credential-status" data-credential-status="github" data-state="idle">
+                <div class="flex items-center justify-between gap-2">
+                  <strong class="text-xs text-[var(--foreground)]">GitHub Token</strong>
+                  <span class="credential-status-badge" data-credential-badge="github">未验证</span>
+                </div>
+                <p class="mt-1 text-xs leading-5 text-[var(--muted)]" data-credential-detail="github">尚未验证 GitHub 仓库访问权限。</p>
+              </div>
+              <div class="credential-status" data-credential-status="media" data-state="idle">
+                <div class="flex items-center justify-between gap-2">
+                  <strong class="text-xs text-[var(--foreground)]">Media Token</strong>
+                  <span class="credential-status-badge" data-credential-badge="media">未验证</span>
+                </div>
+                <p class="mt-1 text-xs leading-5 text-[var(--muted)]" data-credential-detail="media">尚未验证 R2 Worker 访问权限。</p>
+              </div>
+            </div>
           </section>
 
           <section class="orbit-status-card mt-3 border p-3">
@@ -1787,6 +1854,10 @@ const initialData = {
         remoteContentReady: false,
         token: sessionStorage.getItem(TOKEN_KEY) || "",
         mediaToken: sessionStorage.getItem(MEDIA_TOKEN_KEY) || "",
+        credentialStatus: {
+          github: { state: "idle", badge: "未验证", detail: "尚未验证 GitHub 仓库访问权限。" },
+          media: { state: "idle", badge: "未验证", detail: "尚未验证 R2 Worker 访问权限。" },
+        },
         section: "posts",
         posts: [],
         projects: [],
@@ -1991,6 +2062,48 @@ const initialData = {
         status.textContent = message;
       };
 
+      const setCredentialStatus = (service, nextState, badge, detail) => {
+        state.credentialStatus[service] = { state: nextState, badge, detail };
+        const card = $(`[data-credential-status="${service}"]`);
+        const badgeNode = $(`[data-credential-badge="${service}"]`);
+        const detailNode = $(`[data-credential-detail="${service}"]`);
+        if (card) card.dataset.state = nextState;
+        if (badgeNode) badgeNode.textContent = badge;
+        if (detailNode) detailNode.textContent = detail;
+      };
+
+      const serviceRequestError = (service, statusCode, message) => {
+        const error = new Error(message);
+        error.service = service;
+        error.statusCode = statusCode;
+        return error;
+      };
+
+      const describeGithubCredentialError = (error) => {
+        const message = error instanceof Error ? error.message : "未知错误";
+        if (error?.statusCode === 401 || /bad credentials/i.test(message)) {
+          return { badge: "Token 无效", detail: "GitHub Token 错误、已过期或已被撤销，请重新生成后再连接。" };
+        }
+        if (error?.statusCode === 403) {
+          return { badge: "权限不足", detail: "GitHub Token 可以识别，但缺少仓库 Contents 读写权限。" };
+        }
+        if (error?.statusCode === 404) {
+          return { badge: "无仓库权限", detail: `GitHub Token 无法访问 ${OWNER}/${REPO}，请把该仓库加入 Token 授权范围。` };
+        }
+        return { badge: "连接异常", detail: `GitHub API 请求失败：${message}` };
+      };
+
+      const describeMediaCredentialError = (error) => {
+        const message = error instanceof Error ? error.message : "未知错误";
+        if (error?.statusCode === 401 || error?.statusCode === 403 || /unauthorized/i.test(message)) {
+          return { badge: "Token 无效", detail: "Media Token 与 Cloudflare Worker 的 ADMIN_TOKEN 不一致，请重置后再连接。" };
+        }
+        if (!message || message === "Failed to fetch") {
+          return { badge: "服务不可达", detail: "无法访问 R2 Worker，请检查 Worker 地址、部署状态或 CORS 配置。" };
+        }
+        return { badge: "连接异常", detail: `R2 Worker 请求失败：${message}` };
+      };
+
       const escapeHtml = (value = "") =>
         String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 
@@ -2138,10 +2251,12 @@ const initialData = {
             },
           });
         } catch (error) {
-          throw new Error(describeMediaError(error));
+          throw serviceRequestError("media", 0, describeMediaError(error));
         }
         const data = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(data?.message || `Media API error ${response.status}`);
+        if (!response.ok) {
+          throw serviceRequestError("media", response.status, data?.message || `Media API error ${response.status}`);
+        }
         return data;
       };
 
@@ -2245,17 +2360,24 @@ const initialData = {
         const method = options.method || "GET";
         const isWrite = method !== "GET";
         if (isWrite && !state.token) throw new Error("保存、删除、上传需要先输入 GitHub Token");
-        const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}${path}`, {
-          ...options,
-          headers: {
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-            ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
-            ...(options.headers || {}),
-          },
-        });
+        let response;
+        try {
+          response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}${path}`, {
+            ...options,
+            headers: {
+              Accept: "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+              ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
+              ...(options.headers || {}),
+            },
+          });
+        } catch (error) {
+          throw serviceRequestError("github", 0, error instanceof Error ? error.message : "GitHub API 无法访问");
+        }
         const data = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(data?.message || `GitHub API error ${response.status}`);
+        if (!response.ok) {
+          throw serviceRequestError("github", response.status, data?.message || `GitHub API error ${response.status}`);
+        }
         return data;
       };
 
@@ -2371,6 +2493,12 @@ const initialData = {
 
       const readExportedValue = (content, exportName) => {
         return readExportedJson(content, exportName);
+      };
+
+      const readExportedArray = (content, exportName) => {
+        const value = readExportedValue(content, exportName);
+        if (!Array.isArray(value)) throw new Error(`${exportName} 不是有效的数组数据`);
+        return value;
       };
 
       const stringifyArrayModule = (exportName, items) => `export const ${exportName} = ${JSON.stringify(items, null, 2)};\n`;
@@ -3316,13 +3444,25 @@ const initialData = {
       const loadMediaLibrariesSafely = async () => {
         if (mediaStorageMode() === "r2" && !state.mediaToken) {
           applyInitialMediaLibraries();
+          setCredentialStatus("media", "idle", "未填写", "请填写 Media Token；它对应 Cloudflare Worker 的 ADMIN_TOKEN。");
           return "R2 素材库需要 Media Token，当前只显示仓库内置兜底素材。";
         }
         try {
+          if (mediaStorageMode() === "r2") {
+            setCredentialStatus("media", "checking", "验证中", "正在验证 Media Token 并读取 R2 素材库…");
+          }
           await loadAllMediaLibraries();
+          setCredentialStatus(
+            "media",
+            "success",
+            "已连接",
+            mediaStorageMode() === "r2" ? "Media Token 正确，R2 素材库已连接。" : "当前使用 GitHub 仓库素材，无需 Media Token。",
+          );
           return mediaStorageMode() === "r2" ? "R2 素材库已连接。" : "仓库素材库已加载。";
         } catch (error) {
           applyInitialMediaLibraries();
+          const credentialError = describeMediaCredentialError(error);
+          setCredentialStatus("media", "error", credentialError.badge, credentialError.detail);
           return `素材库暂时没有加载成功：${error instanceof Error ? error.message : "未知错误"}。文章、主页照片条目和页面配置仍可编辑。`;
         }
       };
@@ -3351,9 +3491,27 @@ const initialData = {
         if (state.current.personalVideoIndex < 0) newPersonalVideo();
       };
 
+      const validateGithubCredential = async () => {
+        if (!state.token) {
+          setCredentialStatus("github", "idle", "未填写", "请填写具有仓库 Contents 读写权限的 GitHub Token。");
+          return false;
+        }
+        setCredentialStatus("github", "checking", "验证中", `正在验证 GitHub Token 对 ${OWNER}/${REPO} 的访问权限…`);
+        try {
+          await github("");
+          setCredentialStatus("github", "success", "已连接", `GitHub Token 正确，已连接 ${OWNER}/${REPO}。`);
+          return true;
+        } catch (error) {
+          const credentialError = describeGithubCredentialError(error);
+          setCredentialStatus("github", "error", credentialError.badge, credentialError.detail);
+          return false;
+        }
+      };
+
       const loadAll = async () => {
         if (!state.token) {
           state.remoteContentReady = false;
+          setCredentialStatus("github", "idle", "未填写", "请填写具有仓库 Contents 读写权限的 GitHub Token。");
           setStatus("读取当前网站内置内容中...");
           applyInitialData();
           if (mediaStorageMode() === "r2" && state.mediaToken) {
@@ -3369,12 +3527,24 @@ const initialData = {
 
         state.mode = "github";
         state.remoteContentReady = false;
+        setCredentialStatus("github", "checking", "验证中", `正在验证 GitHub Token 对 ${OWNER}/${REPO} 的访问权限…`);
         setStatus("GitHub 模式：同步仓库内容中...");
         applyInitialData();
         try {
           await loadContentFiles();
           rememberOriginalContent();
         } catch (error) {
+          if (error?.service === "github") {
+            const credentialError = describeGithubCredentialError(error);
+            setCredentialStatus("github", "error", credentialError.badge, credentialError.detail);
+          } else {
+            setCredentialStatus(
+              "github",
+              "warning",
+              "Token 已通过",
+              `GitHub Token 已通过验证，但管理页解析仓库内容失败：${error instanceof Error ? error.message : "未知错误"}`,
+            );
+          }
           const mediaStatus = await loadMediaLibrariesSafely();
           updateCounts();
           renderList();
@@ -3382,6 +3552,7 @@ const initialData = {
           return false;
         }
         state.remoteContentReady = true;
+        setCredentialStatus("github", "success", "已连接", `GitHub Token 正确，已连接 ${OWNER}/${REPO} 的 main 分支。`);
         const mediaStatus = await loadMediaLibrariesSafely();
         updateCounts();
         renderList();
@@ -5176,6 +5347,7 @@ const initialData = {
         if (token) sessionStorage.setItem(TOKEN_KEY, token);
         if (mediaToken) sessionStorage.setItem(MEDIA_TOKEN_KEY, mediaToken);
         if (hasPendingContentWork) {
+          await validateGithubCredential();
           const mediaStatus = await loadMediaLibrariesSafely();
           updateCounts();
           renderList();
@@ -5203,6 +5375,8 @@ const initialData = {
           allPendingChanges().length > 0 || state.sharedSettingsDirty || state.uiAppearanceDirty;
         state.token = "";
         state.mediaToken = "";
+        setCredentialStatus("github", "idle", "未填写", "GitHub Token 已清除。");
+        setCredentialStatus("media", "idle", "未填写", "Media Token 已清除。");
         sessionStorage.removeItem(TOKEN_KEY);
         sessionStorage.removeItem(MEDIA_TOKEN_KEY);
         $("[data-token-input]").value = "";

@@ -39,6 +39,11 @@ const requiredSnippets = [
   "mediaStorageMode",
   "loadMediaLibrariesSafely",
   "loadContentFiles",
+  "data-credential-status=\"github\"",
+  "data-credential-status=\"media\"",
+  "setCredentialStatus",
+  "describeGithubCredentialError",
+  "describeMediaCredentialError",
   "mediaContentValue",
   "mediaUrlFromPublicPath",
   "mergeMediaAssets",
@@ -199,6 +204,21 @@ assert.ok(
 assert.ok(
   source.includes("applyInitialData();\n        try {\n          await loadContentFiles();"),
   "Expected GitHub mode to show built-in content before remote content synchronization",
+);
+
+assert.ok(
+    source.includes('error?.statusCode === 401') &&
+    source.includes('error?.statusCode === 403') &&
+    source.includes('error?.statusCode === 404') &&
+    source.includes('"github",\n              "warning",\n              "Token 已通过"') &&
+    source.includes('setCredentialStatus("media", "error", credentialError.badge, credentialError.detail)'),
+  "Expected the admin to distinguish invalid GitHub/Media credentials from repository parsing and service errors",
+);
+
+assert.ok(
+  source.includes("const readExportedArray = (content, exportName) =>") &&
+    source.includes("if (!Array.isArray(value))"),
+  "Expected remote array exports to use a defined, type-checked parser",
 );
 
 const requiredMediaRoots = [

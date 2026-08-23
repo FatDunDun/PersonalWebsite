@@ -75,22 +75,22 @@ export const siteSettings = {
   "pages": {
     "articles": {
       "kicker": "Journal / field notes",
-      "title": "文章",
+      "title": "留忆",
       "description": "面向长期维护的 Markdown/MDX 文章索引。记录技术复盘、产品想法、读书笔记和一些个人观察。"
     },
     "gallery": {
       "kicker": "Frames / captured light",
-      "title": "图集",
+      "title": "片刻",
       "description": "以网格方式保存图片样本。默认呈现原始色彩，适合照片、日常记录和视觉作品的长期整理。"
     },
     "videos": {
       "kicker": "PersonalVideo / moving frames",
-      "title": "视频",
+      "title": "悦动",
       "description": "用短视频保存日常、旅行和 vlog 片段。适合压缩后的 MP4 或 WebM，让动态记忆也能长期整理。"
     },
     "recommendations": {
       "kicker": "Taste / private index",
-      "title": "推荐",
+      "title": "偏爱",
       "description": "把长期喜欢、反复回看或想郑重推荐的书籍、影视、歌曲和游戏放在这里。它不是榜单，更像一份慢慢变化的个人品味索引。"
     },
     "about": {

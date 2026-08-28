@@ -1,7 +1,7 @@
 export const siteSettings = {
   "schemaVersion": 2,
   "ui": {
-    "activePreset": "editorial",
+    "activePreset": "classic",
     "presets": {
       "classic": {
         "displayName": "经典沉浸版",

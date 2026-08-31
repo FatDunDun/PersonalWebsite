@@ -1,5 +1,6 @@
 ---
 import "@/styles/global.css";
+import "@phosphor-icons/web/regular";
 import { galleryItems } from "@/data/gallery";
 import { projects } from "@/data/projects";
 import { recommendations } from "@/data/recommendations";
@@ -643,133 +644,1295 @@ const initialData = {
           grid-column: auto;
         }
       }
+
+      /* Task-oriented admin shell */
+      .orbit-shell {
+        background: var(--orbit-surface-solid);
+      }
+
+      .orbit-workbench::before,
+      .orbit-workbench::after {
+        display: none;
+      }
+
+      .orbit-stage {
+        width: 100%;
+        background: var(--orbit-surface-solid);
+      }
+
+      .orbit-app-shell {
+        display: grid;
+        min-height: 100vh;
+        grid-template-columns: 232px minmax(0, 1fr);
+      }
+
+      .orbit-sidebar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+        border-right: 1px solid var(--orbit-border);
+        background: color-mix(in srgb, var(--orbit-fill) 36%, var(--orbit-surface-solid));
+        padding: 1.35rem 0.85rem 1rem;
+      }
+
+      .orbit-brand {
+        padding: 0.25rem 0.65rem 1.4rem;
+      }
+
+      .orbit-brand .exhibition-kicker {
+        font-size: 0.78rem;
+        font-style: italic;
+        letter-spacing: 0.08em;
+      }
+
+      .orbit-brand .literary-title {
+        margin-top: 0.35rem;
+        font-size: 1.75rem;
+        line-height: 1.2;
+      }
+
+      .orbit-nav-disclosure {
+        min-height: 0;
+        flex: 1;
+      }
+
+      .orbit-mobile-nav-trigger {
+        display: none;
+      }
+
+      .orbit-nav {
+        display: grid;
+        gap: 1.2rem;
+      }
+
+      .orbit-nav-group {
+        display: grid;
+        gap: 0.25rem;
+      }
+
+      .orbit-nav-group h2 {
+        margin: 0 0 0.25rem;
+        padding: 0 0.65rem;
+        color: var(--orbit-secondary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+      }
+
+      .orbit-nav-item {
+        display: grid;
+        min-height: 2.65rem;
+        grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.55rem;
+        border: 0;
+        border-radius: 0.6rem;
+        background: transparent;
+        padding: 0.55rem 0.65rem;
+        color: var(--orbit-ink);
+        text-align: left;
+        transition: background 150ms ease, color 150ms ease;
+      }
+
+      .orbit-nav-item > i {
+        color: var(--orbit-secondary);
+        font-size: 1.08rem;
+      }
+
+      .orbit-nav-item > span:last-child {
+        min-width: 1.45rem;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--orbit-secondary);
+        font-size: 0.72rem;
+        text-align: center;
+      }
+
+      .orbit-nav-item:hover,
+      .orbit-nav-item:focus-visible {
+        background: var(--orbit-fill-hover);
+      }
+
+      .orbit-nav-item:focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--orbit-accent) 48%, transparent);
+        outline-offset: 1px;
+      }
+
+      .orbit-nav-item[data-active="true"] {
+        background: var(--orbit-accent);
+        color: #fffdf8;
+        box-shadow: none;
+      }
+
+      .orbit-nav-item[data-active="true"] > i,
+      .orbit-nav-item[data-active="true"] > span:last-child {
+        color: #fffdf8;
+      }
+
+      .orbit-nav-item[data-active="true"] > span:last-child {
+        background: rgb(255 255 255 / 0.15);
+      }
+
+      .orbit-nav-publish:not([data-active="true"]) {
+        color: var(--orbit-warm);
+      }
+
+      .orbit-sidebar-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        border-top: 1px solid var(--orbit-border);
+        padding: 1rem 0.65rem 0;
+        color: var(--orbit-secondary);
+        font-size: 0.74rem;
+        line-height: 1.55;
+      }
+
+      .orbit-sidebar-note i {
+        margin-top: 0.1rem;
+        color: var(--orbit-accent);
+        font-size: 1rem;
+      }
+
+      .orbit-workspace {
+        min-width: 0;
+        background: var(--orbit-surface-solid);
+      }
+
+      .orbit-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        min-height: 5.25rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid var(--orbit-border);
+        background: color-mix(in srgb, var(--orbit-surface-solid) 94%, transparent);
+        padding: 0.8rem 1.5rem;
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+      }
+
+      .orbit-connection-strip {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .orbit-topbar .credential-status {
+        border: 1px solid var(--orbit-border);
+        border-radius: 0.65rem;
+        background: var(--orbit-surface-solid);
+        padding: 0.55rem 0.7rem;
+        box-shadow: none;
+      }
+
+      .credential-status-main {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+      }
+
+      .credential-status-main > i {
+        font-size: 1.1rem;
+      }
+
+      .credential-status-main strong {
+        font-size: 0.78rem;
+      }
+
+      .orbit-topbar .credential-status > p {
+        display: none;
+        max-width: 18rem;
+        margin-top: 0.35rem;
+        color: var(--orbit-secondary);
+        font-size: 0.7rem;
+        line-height: 1.45;
+      }
+
+      .orbit-topbar .credential-status[data-state="error"] > p,
+      .orbit-topbar .credential-status[data-state="warning"] > p {
+        display: block;
+      }
+
+      .orbit-topbar .credential-status-badge {
+        background: transparent;
+        color: var(--orbit-secondary);
+        font-size: 0.7rem;
+        font-weight: 650;
+      }
+
+      .orbit-topbar .credential-status-badge::before {
+        content: "";
+        display: inline-block;
+        width: 0.42rem;
+        height: 0.42rem;
+        margin-right: 0.3rem;
+        border-radius: 50%;
+        background: var(--orbit-secondary);
+        vertical-align: 0.05rem;
+      }
+
+      .orbit-topbar .credential-status[data-state="success"] .credential-status-badge {
+        background: transparent;
+        color: var(--orbit-accent);
+      }
+
+      .orbit-topbar .credential-status[data-state="success"] .credential-status-badge::before {
+        background: var(--orbit-accent);
+      }
+
+      .orbit-topbar .credential-status[data-state="error"] .credential-status-badge {
+        background: transparent;
+        color: var(--orbit-red);
+      }
+
+      .orbit-topbar .credential-status[data-state="error"] .credential-status-badge::before {
+        background: var(--orbit-red);
+      }
+
+      .orbit-topbar .credential-status[data-state="warning"] .credential-status-badge {
+        background: transparent;
+        color: var(--orbit-warm);
+      }
+
+      .orbit-topbar .credential-status[data-state="warning"] .credential-status-badge::before {
+        background: var(--orbit-warm);
+      }
+
+      .orbit-connection-panel {
+        position: relative;
+      }
+
+      .orbit-manage-connection {
+        min-height: 2.65rem;
+        border-radius: 0.55rem;
+        padding: 0.7rem 0.8rem;
+        color: var(--orbit-ink);
+        font-size: 0.78rem;
+        font-weight: 650;
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .orbit-manage-connection::-webkit-details-marker,
+      .orbit-mobile-nav-trigger::-webkit-details-marker,
+      .post-editor-section > summary::-webkit-details-marker,
+      .post-more-actions > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .orbit-manage-connection:hover,
+      .orbit-manage-connection:focus-visible {
+        background: var(--orbit-fill-hover);
+      }
+
+      .orbit-manage-connection:focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--orbit-accent) 48%, transparent);
+      }
+
+      .orbit-connection-popover {
+        position: absolute;
+        top: calc(100% + 0.65rem);
+        left: 0;
+        z-index: 60;
+        width: min(46rem, calc(100vw - 280px));
+        border: 1px solid var(--orbit-border);
+        border-radius: 0.85rem;
+        background: var(--orbit-surface-solid);
+        padding: 1rem;
+        box-shadow: 0 18px 42px rgb(39 40 36 / 0.14);
+      }
+
+      .orbit-connection-popover > div > h2 {
+        margin-top: 0.2rem;
+        font-size: 1.2rem;
+      }
+
+      .orbit-connection-popover > div > p:last-child {
+        margin-top: 0.35rem;
+        color: var(--orbit-secondary);
+        font-size: 0.78rem;
+      }
+
+      .orbit-auth-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 0.7rem;
+        margin-top: 1rem;
+      }
+
+      .orbit-auth-form label > span {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: var(--orbit-secondary);
+        font-size: 0.72rem;
+        font-weight: 650;
+      }
+
+      .orbit-auth-actions {
+        display: flex;
+        gap: 0.45rem;
+      }
+
+      .orbit-publish-strip {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.9rem;
+      }
+
+      .orbit-publish-strip > p {
+        max-width: 24rem;
+        color: var(--orbit-secondary);
+        font-size: 0.76rem;
+        line-height: 1.5;
+        text-align: right;
+      }
+
+      .orbit-publish-strip .orbit-button {
+        display: inline-flex;
+        min-height: 3rem;
+        align-items: center;
+        gap: 0.45rem;
+        padding-inline: 1.15rem;
+        white-space: nowrap;
+      }
+
+      .orbit-live-status {
+        display: flex;
+        min-height: 2.6rem;
+        align-items: center;
+        gap: 0.55rem;
+        border-bottom: 1px solid var(--orbit-border);
+        background: color-mix(in srgb, var(--orbit-accent-soft) 42%, var(--orbit-surface-solid));
+        padding: 0.55rem 1.5rem;
+        color: var(--orbit-secondary);
+        font-size: 0.76rem;
+      }
+
+      .orbit-live-status i {
+        color: var(--orbit-accent);
+        font-size: 1rem;
+      }
+
+      .orbit-content-layout {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: 318px minmax(0, 1fr);
+      }
+
+      .orbit-list-panel {
+        min-width: 0;
+        min-height: calc(100vh - 7.85rem);
+        border-right: 1px solid var(--orbit-border);
+        padding: 1.1rem 1rem;
+      }
+
+      .orbit-list-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .orbit-list-heading .exhibition-meta {
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+      }
+
+      .orbit-list-heading h2 {
+        margin-top: 0.15rem;
+        font-size: 1.35rem;
+      }
+
+      .orbit-list-search {
+        display: grid;
+        min-height: 2.75rem;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 0.45rem;
+        margin-top: 0.9rem;
+        border: 1px solid var(--orbit-border);
+        border-radius: 0.65rem;
+        background: var(--orbit-fill);
+        padding: 0 0.75rem;
+        color: var(--orbit-secondary);
+      }
+
+      .orbit-list-search:focus-within {
+        border-color: var(--orbit-accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-accent) 24%, transparent);
+      }
+
+      .orbit-list-search input {
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        padding: 0.65rem 0;
+        color: var(--orbit-ink);
+        font-size: 0.78rem;
+        outline: 0;
+      }
+
+      .orbit-list {
+        display: grid;
+        max-height: calc(100vh - 15rem);
+        gap: 0;
+        margin-top: 0.8rem;
+        overflow: auto;
+      }
+
+      .orbit-list > .orbit-card {
+        border-width: 0 0 1px;
+        border-radius: 0;
+        background: transparent;
+        padding: 0.85rem 0.4rem;
+        box-shadow: none;
+      }
+
+      .orbit-list > .orbit-card:hover,
+      .orbit-list > .orbit-card[data-active="true"] {
+        border-color: var(--orbit-border);
+        border-radius: 0.55rem;
+        background: var(--orbit-fill);
+        box-shadow: none;
+        transform: none;
+      }
+
+      .orbit-list > .orbit-card[data-active="true"] {
+        box-shadow: inset 3px 0 0 var(--orbit-accent);
+      }
+
+      .orbit-editor-panel {
+        min-width: 0;
+        padding: 1.1rem 1.25rem 2rem;
+      }
+
+      .orbit-panel,
+      .orbit-card,
+      .orbit-field-panel,
+      .orbit-status-card {
+        background: var(--orbit-surface-solid);
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+
+      .orbit-panel::before,
+      .orbit-card::before {
+        display: none;
+      }
+
+      .orbit-input {
+        min-height: 2.75rem;
+        border-radius: 0.55rem;
+        background: var(--orbit-surface-solid);
+        box-shadow: none;
+      }
+
+      .orbit-button {
+        min-height: 2.75rem;
+        border-radius: 0.55rem;
+        box-shadow: none;
+      }
+
+      .orbit-button:hover:not(:disabled) {
+        box-shadow: none;
+        transform: none;
+      }
+
+      .orbit-button:focus-visible,
+      button.orbit-card:focus-visible,
+      .orbit-card[role="button"]:focus-visible {
+        outline-color: color-mix(in srgb, var(--orbit-accent) 58%, transparent);
+      }
+
+      .post-editor-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0 0 1rem;
+      }
+
+      .post-editor-heading .exhibition-meta {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+      }
+
+      .post-editor-heading h2 {
+        margin-top: 0.15rem;
+        font-size: 1.45rem;
+      }
+
+      .post-editor-heading > p {
+        max-width: 26rem;
+        color: var(--orbit-secondary);
+        font-size: 0.76rem;
+        line-height: 1.55;
+        text-align: right;
+      }
+
+      .post-editor-layout {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1fr) 190px;
+        gap: 1.25rem;
+      }
+
+      .post-editor-main {
+        display: grid;
+        min-width: 0;
+        gap: 0.8rem;
+      }
+
+      .post-editor-section {
+        border: 1px solid var(--orbit-border);
+        border-radius: 0.7rem;
+        background: var(--orbit-surface-solid);
+        overflow: clip;
+      }
+
+      .post-editor-section > summary {
+        display: grid;
+        min-height: 3.5rem;
+        grid-template-columns: auto auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.75rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .post-editor-section > summary:focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--orbit-accent) 48%, transparent);
+        outline-offset: -3px;
+      }
+
+      .post-editor-section > summary > i:last-child {
+        color: var(--orbit-secondary);
+        transition: transform 150ms ease;
+      }
+
+      .post-editor-section[open] > summary > i:last-child {
+        transform: rotate(180deg);
+      }
+
+      .post-section-number {
+        display: inline-grid;
+        width: 1.45rem;
+        height: 1.45rem;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--orbit-fill);
+        color: var(--orbit-secondary);
+        font-size: 0.72rem;
+      }
+
+      .post-editor-section[open] .post-section-number {
+        background: var(--orbit-accent);
+        color: white;
+      }
+
+      .post-section-content {
+        border-top: 1px solid var(--orbit-border);
+        padding: 1rem;
+      }
+
+      .post-basic-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(13rem, 0.9fr) minmax(10rem, 0.6fr);
+        gap: 0.9rem;
+      }
+
+      .post-field {
+        display: block;
+      }
+
+      .post-field > span:first-child {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: var(--orbit-secondary);
+        font-size: 0.74rem;
+        font-weight: 650;
+      }
+
+      .post-field > span b {
+        color: var(--orbit-red);
+        font-weight: 700;
+      }
+
+      .post-field-tags {
+        grid-column: 1 / 3;
+      }
+
+      .post-draft-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        border-radius: 0.55rem;
+        background: var(--orbit-fill);
+        padding: 0.65rem 0.75rem;
+      }
+
+      .post-draft-toggle > span {
+        display: grid;
+        gap: 0.1rem;
+      }
+
+      .post-draft-toggle strong {
+        font-size: 0.74rem;
+      }
+
+      .post-draft-toggle small {
+        color: var(--orbit-secondary);
+        font-size: 0.66rem;
+        line-height: 1.35;
+      }
+
+      .post-cover-summary {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--orbit-secondary);
+        font-size: 0.74rem;
+        font-weight: 450;
+      }
+
+      .post-cover-summary img {
+        width: 4.7rem;
+        height: 2.75rem;
+        flex: none;
+        border-radius: 0.35rem;
+        object-fit: cover;
+      }
+
+      .post-cover-summary > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .post-cover-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        gap: 0.9rem;
+      }
+
+      .post-cover-grid textarea {
+        min-height: 5.4rem;
+        line-height: 1.6;
+      }
+
+      .post-cover-actions {
+        display: flex;
+        grid-column: 2;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .post-cover-actions .orbit-button,
+      .post-markdown-toolbar button,
+      .post-action-rail .orbit-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+      }
+
+      .post-body-meta,
+      .post-preview-hint {
+        justify-self: end;
+        color: var(--orbit-secondary);
+        font-size: 0.72rem;
+        font-weight: 450;
+      }
+
+      .post-markdown-editor {
+        border-top: 1px solid var(--orbit-border);
+      }
+
+      .post-markdown-toolbar {
+        display: flex;
+        min-height: 3.2rem;
+        align-items: center;
+        gap: 0.2rem;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--orbit-border);
+        padding: 0.45rem 0.55rem;
+      }
+
+      .post-markdown-toolbar button {
+        min-width: 2.35rem;
+        min-height: 2.25rem;
+        flex: none;
+        border: 0;
+        border-radius: 0.4rem;
+        background: transparent;
+        padding: 0.4rem 0.55rem;
+        color: var(--orbit-ink);
+        font-size: 0.74rem;
+      }
+
+      .post-markdown-toolbar button:hover,
+      .post-markdown-toolbar button:focus-visible {
+        background: var(--orbit-fill-hover);
+      }
+
+      .post-markdown-toolbar button:focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--orbit-accent) 48%, transparent);
+      }
+
+      .post-toolbar-divider {
+        width: 1px;
+        height: 1.45rem;
+        flex: none;
+        margin: 0 0.25rem;
+        background: var(--orbit-border);
+      }
+
+      [data-post-field="body"] {
+        width: 100%;
+        min-height: 27rem;
+        resize: vertical;
+        border: 0;
+        background: var(--orbit-surface-solid);
+        padding: 1rem 1.1rem;
+        color: var(--orbit-ink);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.82rem;
+        line-height: 1.85;
+        outline: 0;
+      }
+
+      [data-post-field="body"]:focus {
+        box-shadow: inset 3px 0 0 var(--orbit-accent);
+      }
+
+      .post-editor-help {
+        border-top: 1px solid var(--orbit-border);
+        padding: 0.6rem 0.9rem;
+        color: var(--orbit-secondary);
+        font-size: 0.68rem;
+        line-height: 1.55;
+      }
+
+      .post-preview {
+        border-top: 1px solid var(--orbit-border);
+        padding: 1.2rem;
+      }
+
+      .post-action-rail {
+        position: sticky;
+        top: 7rem;
+        align-self: start;
+        border-left: 1px solid var(--orbit-border);
+        padding-left: 1rem;
+      }
+
+      .post-action-rail > .orbit-button {
+        width: 100%;
+      }
+
+      .post-action-rail > p {
+        margin: 0.65rem 0 1rem;
+        color: var(--orbit-secondary);
+        font-size: 0.7rem;
+        line-height: 1.55;
+      }
+
+      .post-action-rail > .orbit-button + .orbit-button {
+        margin-top: 0.45rem;
+      }
+
+      .post-more-actions {
+        margin-top: 1rem;
+        border-top: 1px solid var(--orbit-border);
+        padding-top: 0.8rem;
+      }
+
+      .post-more-actions summary {
+        padding: 0.5rem 0;
+        color: var(--orbit-secondary);
+        font-size: 0.74rem;
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .post-more-actions .orbit-danger {
+        width: 100%;
+        margin-top: 0.45rem;
+      }
+
+      body[data-active-section="images"] .orbit-content-layout,
+      body[data-active-section="personalPhotoAssets"] .orbit-content-layout,
+      body[data-active-section="videos"] .orbit-content-layout,
+      body[data-active-section="personalVideoAssets"] .orbit-content-layout,
+      body[data-active-section="settings"] .orbit-content-layout,
+      body[data-active-section="pageCopy"] .orbit-content-layout,
+      body[data-active-section="drafts"] .orbit-content-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body[data-active-section="images"] .orbit-list-panel,
+      body[data-active-section="personalPhotoAssets"] .orbit-list-panel,
+      body[data-active-section="videos"] .orbit-list-panel,
+      body[data-active-section="personalVideoAssets"] .orbit-list-panel,
+      body[data-active-section="settings"] .orbit-list-panel,
+      body[data-active-section="pageCopy"] .orbit-list-panel,
+      body[data-active-section="drafts"] .orbit-list-panel {
+        display: none;
+      }
+
+      body[data-active-section="settings"] .orbit-editor-panel,
+      body[data-active-section="pageCopy"] .orbit-editor-panel,
+      body[data-active-section="drafts"] .orbit-editor-panel {
+        max-width: 1100px;
+        width: 100%;
+        margin-inline: auto;
+        padding-top: 1.5rem;
+      }
+
+      @media (max-width: 1279px) {
+        .orbit-stage {
+          gap: 0;
+        }
+
+        .orbit-content-layout {
+          grid-template-columns: 280px minmax(0, 1fr);
+        }
+
+        .post-editor-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .post-action-rail {
+          position: sticky;
+          bottom: 0;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          gap: 0.55rem;
+          border: 1px solid var(--orbit-border);
+          border-radius: 0.65rem;
+          background: color-mix(in srgb, var(--orbit-surface-solid) 94%, transparent);
+          padding: 0.65rem;
+          box-shadow: 0 -8px 24px rgb(39 40 36 / 0.07);
+          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(16px);
+        }
+
+        .post-action-rail > .orbit-button {
+          width: auto;
+        }
+
+        .post-action-rail > p {
+          flex: 1;
+          margin: 0;
+        }
+
+        .post-more-actions {
+          margin: 0;
+          border: 0;
+          padding: 0;
+        }
+
+        .post-more-actions summary {
+          min-height: 2.75rem;
+          padding: 0.7rem;
+        }
+
+        .post-more-actions[open] {
+          position: relative;
+        }
+
+        .post-more-actions[open] .orbit-danger {
+          position: absolute;
+          right: 0;
+          bottom: calc(100% + 0.5rem);
+          width: 10rem;
+          background: var(--orbit-surface-solid);
+        }
+      }
+
+      @media (max-width: 1023px) {
+        .orbit-app-shell {
+          display: block;
+        }
+
+        .orbit-sidebar {
+          position: relative;
+          z-index: 45;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--orbit-border);
+          padding: 0.7rem 1rem;
+        }
+
+        .orbit-brand {
+          display: flex;
+          align-items: baseline;
+          gap: 0.65rem;
+          padding: 0;
+        }
+
+        .orbit-brand .literary-title {
+          margin: 0;
+          font-size: 1.25rem;
+        }
+
+        .orbit-nav-disclosure {
+          margin-top: 0.55rem;
+        }
+
+        .orbit-mobile-nav-trigger {
+          display: flex;
+          min-height: 2.75rem;
+          align-items: center;
+          justify-content: space-between;
+          border-radius: 0.55rem;
+          background: var(--orbit-fill);
+          padding: 0.6rem 0.75rem;
+          font-size: 0.78rem;
+          font-weight: 700;
+          list-style: none;
+          cursor: pointer;
+        }
+
+        .orbit-mobile-nav-trigger span {
+          display: flex;
+          align-items: center;
+          gap: 0.45rem;
+        }
+
+        .orbit-nav-disclosure[open] .orbit-mobile-nav-trigger > i {
+          transform: rotate(180deg);
+        }
+
+        .orbit-nav {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.8rem;
+          padding-top: 0.7rem;
+        }
+
+        .orbit-nav-group {
+          align-content: start;
+        }
+
+        .orbit-sidebar-note {
+          display: none;
+        }
+
+        .orbit-topbar {
+          position: relative;
+          align-items: flex-start;
+          padding: 0.8rem 1rem;
+        }
+
+        .orbit-connection-strip {
+          flex-wrap: wrap;
+        }
+
+        .orbit-connection-popover {
+          left: 0;
+          width: min(42rem, calc(100vw - 2rem));
+        }
+
+        .orbit-content-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .orbit-list-panel {
+          min-height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--orbit-border);
+        }
+
+        .orbit-list {
+          max-height: 22rem;
+        }
+
+        .post-basic-grid {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+
+        .post-field-title,
+        .post-field-tags {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 639px) {
+        .orbit-nav {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .orbit-topbar {
+          display: grid;
+          gap: 0.7rem;
+        }
+
+        .orbit-topbar .credential-status {
+          flex: 1;
+        }
+
+        .orbit-manage-connection {
+          display: grid;
+          min-height: 2.75rem;
+          place-items: center;
+          background: var(--orbit-fill);
+        }
+
+        .orbit-connection-popover {
+          position: fixed;
+          inset: 0.75rem;
+          width: auto;
+          max-height: calc(100vh - 1.5rem);
+          overflow: auto;
+        }
+
+        .orbit-auth-form {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .orbit-auth-actions {
+          flex-wrap: wrap;
+        }
+
+        .orbit-publish-strip {
+          justify-content: stretch;
+        }
+
+        .orbit-publish-strip > p {
+          flex: 1;
+          text-align: left;
+        }
+
+        .orbit-publish-strip .orbit-button {
+          min-height: 2.75rem;
+        }
+
+        .orbit-live-status {
+          padding-inline: 1rem;
+        }
+
+        .orbit-list-panel,
+        .orbit-editor-panel {
+          padding: 1rem;
+        }
+
+        .post-editor-heading {
+          display: block;
+        }
+
+        .post-editor-heading > p {
+          margin-top: 0.4rem;
+          text-align: left;
+        }
+
+        .post-basic-grid,
+        .post-cover-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .post-field-tags,
+        .post-cover-actions {
+          grid-column: auto;
+        }
+
+        .post-cover-summary {
+          display: none;
+        }
+
+        .post-editor-section > summary {
+          grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+
+        .post-body-meta,
+        .post-preview-hint {
+          display: none;
+        }
+
+        .post-markdown-toolbar button span:not(.sr-only) {
+          display: none;
+        }
+
+        .post-action-rail {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto auto;
+        }
+
+        .post-action-rail > p {
+          display: none;
+        }
+
+        .post-action-rail > .orbit-button:first-child {
+          width: 100%;
+        }
+      }
     </style>
   </head>
-  <body class="orbit-shell orbit-workbench min-h-screen text-[var(--foreground)]">
-    <main class="orbit-stage mx-auto flex min-h-screen w-[min(1680px,calc(100%-1.25rem))] flex-col gap-5 py-4 md:w-[min(1680px,calc(100%-2rem))] md:py-6">
-      <header class="orbit-panel exhibition-panel p-5 md:p-7">
-        <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
+  <body class="orbit-shell orbit-workbench min-h-screen text-[var(--foreground)]" data-active-section="posts">
+    <main class="orbit-stage min-h-screen">
+      <div class="orbit-app-shell">
+        <aside class="orbit-sidebar" aria-label="后台主导航">
+          <div class="orbit-brand">
             <p class="exhibition-kicker">Silent Orbit</p>
-            <h1 class="literary-title mt-3 text-4xl leading-tight md:text-5xl">内容工作台</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              文章、项目、推荐、PersonalPhoto、PersonalVideo、素材库和页面配置统一在这里维护。先把分项改动暂存到当前页面，确认后再一次同步到 GitHub main 分支。
-            </p>
+            <h1 class="literary-title">内容工作台</h1>
           </div>
 
-          <form class="grid gap-3 lg:min-w-[500px] lg:grid-cols-[1fr_1fr_auto] lg:items-end" data-auth-form>
-            <label class="block">
-              <span class="font-mono text-xs text-[var(--muted)]">GitHub Token</span>
-              <input
-                class="orbit-input mt-2 font-mono text-sm"
-                data-token-input
-                type="password"
-                autocomplete="off"
-                placeholder="github_pat_..."
-              />
-            </label>
-            <label class="block">
-              <span class="font-mono text-xs text-[var(--muted)]">Media Token</span>
-              <input
-                class="orbit-input mt-2 font-mono text-sm"
-                data-media-token-input
-                type="password"
-                autocomplete="off"
-                placeholder="Worker ADMIN_TOKEN"
-              />
-            </label>
-            <div class="flex flex-wrap items-center gap-2">
-              <button class="orbit-button orbit-button-primary" data-save-token type="button">connect</button>
-              <button class="orbit-button" data-clear-token type="button">clear</button>
-            </div>
-          </form>
-        </div>
-      </header>
+          <details class="orbit-nav-disclosure" data-nav-disclosure open>
+            <summary class="orbit-mobile-nav-trigger">
+              <span><i class="ph ph-list" aria-hidden="true"></i> 功能菜单</span>
+              <i class="ph ph-caret-down" aria-hidden="true"></i>
+            </summary>
+            <nav class="orbit-nav">
+              <section class="orbit-nav-group" aria-labelledby="nav-content-title">
+                <h2 id="nav-content-title">内容</h2>
+                <button class="orbit-nav-item" data-section="posts" data-active="true" type="button">
+                  <i class="ph ph-article" aria-hidden="true"></i><span>文章</span><span data-count="posts">0</span>
+                </button>
+                <button class="orbit-nav-item" data-section="projects" type="button">
+                  <i class="ph ph-briefcase" aria-hidden="true"></i><span>项目</span><span data-count="projects">0</span>
+                </button>
+                <button class="orbit-nav-item" data-section="recommendations" type="button">
+                  <i class="ph ph-star" aria-hidden="true"></i><span>推荐</span><span data-count="recommendations">0</span>
+                </button>
+                <button class="orbit-nav-item" data-section="gallery" data-section-group="gallery" type="button">
+                  <i class="ph ph-image" aria-hidden="true"></i><span>照片</span><span data-count="gallery">0</span>
+                </button>
+                <button class="orbit-nav-item" data-section="personalVideos" data-section-group="personalVideos" type="button">
+                  <i class="ph ph-film-strip" aria-hidden="true"></i><span>视频</span><span data-count="personalVideos">0</span>
+                </button>
+              </section>
 
-      <div class="grid flex-1 gap-5 xl:grid-cols-[220px_minmax(0,1fr)]">
-        <aside class="orbit-panel exhibition-panel p-3 xl:sticky xl:top-6 xl:self-start">
-          <nav class="grid gap-1.5">
-            <button class="orbit-button flex items-center justify-between text-left" data-section="posts" data-active="true" type="button">
-              <span>文章</span>
-              <span class="text-[var(--muted)]" data-count="posts">0</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="projects" type="button">
-              <span>项目</span>
-              <span class="text-[var(--muted)]" data-count="projects">0</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="recommendations" type="button">
-              <span>推荐</span>
-              <span class="text-[var(--muted)]" data-count="recommendations">0</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="gallery" data-section-group="gallery" type="button">
-              <span>PERSONAL_PHOTO</span>
-              <span class="text-[var(--muted)]" data-count="gallery">0</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="personalVideos" data-section-group="personalVideos" type="button">
-              <span>PERSONAL_VIDEO</span>
-              <span class="text-[var(--muted)]" data-count="personalVideos">0</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="images" data-section-group="articleAssets" type="button">
-              <span>ARTICLE_ASSETS</span>
-              <span class="text-[var(--muted)]" data-count="articleAssets">0</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="settings" type="button">
-              <span>页面配置</span>
-              <span class="text-[var(--muted)]" data-count="settings">编辑</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="pageCopy" type="button">
-              <span>栏目文案</span>
-              <span class="text-[var(--muted)]" data-count="pageCopy">编辑</span>
-            </button>
-            <button class="orbit-button flex items-center justify-between text-left" data-section="drafts" type="button">
-              <span>本地保存</span>
-              <span class="text-[var(--muted)]" data-count="drafts">0</span>
-            </button>
-          </nav>
+              <!-- ARTICLE_ASSETS remains the shared compatibility name for article image and video libraries. -->
+              <section class="orbit-nav-group" aria-labelledby="nav-assets-title">
+                <h2 id="nav-assets-title">素材</h2>
+                <button class="orbit-nav-item" data-section="images" data-section-group="articleAssets" type="button" title="ARTICLE_IMAGE_ASSETS">
+                  <i class="ph ph-images" aria-hidden="true"></i><span>图片库</span><span data-count="images">0</span>
+                </button>
+                <button class="orbit-nav-item" data-section="videos" type="button" title="ARTICLE_VIDEO_ASSETS">
+                  <i class="ph ph-video" aria-hidden="true"></i><span>视频库</span><span data-count="videos">0</span>
+                </button>
+              </section>
 
-          <section class="orbit-status-card mt-4 border p-3">
-            <p class="exhibition-meta text-xs uppercase tracking-[0.2em]">Status</p>
-            <p class="mt-3 min-h-12 text-sm leading-6 text-[var(--muted)]" data-status role="status" aria-live="polite">正在读取公开内容。</p>
-            <div class="mt-3 grid gap-2" aria-label="凭据连接状态">
-              <div class="credential-status" data-credential-status="github" data-state="idle">
-                <div class="flex items-center justify-between gap-2">
-                  <strong class="text-xs text-[var(--foreground)]">GitHub Token</strong>
-                  <span class="credential-status-badge" data-credential-badge="github">未验证</span>
-                </div>
-                <p class="mt-1 text-xs leading-5 text-[var(--muted)]" data-credential-detail="github">尚未验证 GitHub 仓库访问权限。</p>
-              </div>
-              <div class="credential-status" data-credential-status="media" data-state="idle">
-                <div class="flex items-center justify-between gap-2">
-                  <strong class="text-xs text-[var(--foreground)]">Media Token</strong>
-                  <span class="credential-status-badge" data-credential-badge="media">未验证</span>
-                </div>
-                <p class="mt-1 text-xs leading-5 text-[var(--muted)]" data-credential-detail="media">尚未验证 R2 Worker 访问权限。</p>
-              </div>
-            </div>
-          </section>
+              <section class="orbit-nav-group" aria-labelledby="nav-site-title">
+                <h2 id="nav-site-title">网站</h2>
+                <button class="orbit-nav-item" data-section="settings" type="button">
+                  <i class="ph ph-palette" aria-hidden="true"></i><span>界面与资料</span><span data-count="settings">编辑</span>
+                </button>
+                <button class="orbit-nav-item" data-section="pageCopy" type="button">
+                  <i class="ph ph-text-aa" aria-hidden="true"></i><span>栏目文案</span><span data-count="pageCopy">编辑</span>
+                </button>
+              </section>
 
-          <section class="orbit-status-card mt-3 border p-3">
-            <p class="exhibition-meta text-xs uppercase tracking-[0.2em]">Publish</p>
-            <p class="mt-3 text-sm leading-6 text-[var(--muted)]" data-pending-summary role="status" aria-live="polite">暂无待同步改动。</p>
-            <button class="orbit-button orbit-button-primary mt-3 w-full" data-sync-all type="button">同步全部改动</button>
-          </section>
+              <section class="orbit-nav-group" aria-labelledby="nav-publish-title">
+                <h2 id="nav-publish-title">发布</h2>
+                <button class="orbit-nav-item orbit-nav-publish" data-section="drafts" type="button">
+                  <i class="ph ph-tray" aria-hidden="true"></i><span>待发布改动</span><span data-count="drafts">0</span>
+                </button>
+              </section>
+            </nav>
+          </details>
+
+          <div class="orbit-sidebar-note">
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span>修改会先暂存，确认后才发布上线。</span>
+          </div>
         </aside>
 
-        <div class="grid min-w-0 gap-5 xl:grid-cols-[300px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)]">
-        <section class="orbit-panel exhibition-panel p-4">
-          <div class="flex items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
-            <div>
-              <p class="exhibition-meta text-xs uppercase tracking-[0.2em]" data-list-kicker>Posts</p>
-              <h2 class="orbit-panel-title mt-1 text-2xl" data-list-title>文章列表</h2>
-            </div>
-            <button class="orbit-button orbit-button-primary" data-new-current type="button">new</button>
-          </div>
-          <div class="orbit-list mt-3 grid max-h-[calc(100vh-250px)] gap-2 overflow-auto pr-1" data-list>
-            <p class="text-sm text-[var(--muted)]">连接后加载内容。</p>
-          </div>
-        </section>
+        <section class="orbit-workspace exhibition-panel">
+          <header class="orbit-topbar">
+            <div class="orbit-connection-strip" aria-label="连接状态">
+              <div class="credential-status" data-credential-status="github" data-state="idle">
+                <div class="credential-status-main">
+                  <i class="ph ph-github-logo" aria-hidden="true"></i>
+                  <strong>GitHub</strong>
+                  <span class="credential-status-badge" data-credential-badge="github">未验证</span>
+                </div>
+                <p data-credential-detail="github">尚未验证 GitHub 仓库访问权限。</p>
+              </div>
+              <div class="credential-status" data-credential-status="media" data-state="idle">
+                <div class="credential-status-main">
+                  <i class="ph ph-cloud" aria-hidden="true"></i>
+                  <strong>素材服务</strong>
+                  <span class="credential-status-badge" data-credential-badge="media">未验证</span>
+                </div>
+                <p data-credential-detail="media">尚未验证 R2 Worker 访问权限。</p>
+              </div>
 
-        <section class="orbit-panel exhibition-panel min-w-0 p-4 md:p-5">
+              <details class="orbit-connection-panel">
+                <summary class="orbit-manage-connection">管理连接</summary>
+                <div class="orbit-connection-popover">
+                  <div>
+                    <p class="exhibition-kicker">连接设置</p>
+                    <h2 class="orbit-panel-title">连接内容与素材服务</h2>
+                    <p>Token 只保存在当前浏览器会话中，不会写入网站代码。</p>
+                  </div>
+                  <form class="orbit-auth-form" data-auth-form>
+                    <label>
+                      <span>GitHub Token</span>
+                      <input class="orbit-input" data-token-input type="password" autocomplete="off" placeholder="github_pat_..." />
+                    </label>
+                    <label>
+                      <span>Media Token</span>
+                      <input class="orbit-input" data-media-token-input type="password" autocomplete="off" placeholder="Worker ADMIN_TOKEN" />
+                    </label>
+                    <div class="orbit-auth-actions">
+                      <button class="orbit-button orbit-button-primary" data-save-token type="button">连接并验证</button>
+                      <button class="orbit-button" data-clear-token type="button">清除凭据</button>
+                    </div>
+                  </form>
+                </div>
+              </details>
+            </div>
+
+            <div class="orbit-publish-strip">
+              <p data-pending-summary role="status" aria-live="polite">暂无待发布改动。</p>
+              <button class="orbit-button orbit-button-primary" data-sync-all type="button">
+                <i class="ph ph-cloud-arrow-up" aria-hidden="true"></i><span>发布到线上</span>
+              </button>
+            </div>
+          </header>
+
+          <div class="orbit-live-status" role="region" aria-label="操作状态">
+            <i class="ph ph-info" aria-hidden="true"></i>
+            <p data-status role="status" aria-live="polite">正在读取公开内容。</p>
+          </div>
+
+          <div class="orbit-content-layout">
+            <section class="orbit-list-panel">
+              <div class="orbit-list-heading">
+                <div>
+                  <p class="exhibition-meta" data-list-kicker>Posts</p>
+                  <h2 class="orbit-panel-title" data-list-title>文章列表</h2>
+                </div>
+                <button class="orbit-button orbit-button-primary" data-new-current type="button">新建文章</button>
+              </div>
+              <label class="orbit-list-search">
+                <span class="sr-only">搜索当前列表</span>
+                <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+                <input data-list-search type="search" placeholder="搜索文章标题或内容" autocomplete="off" />
+              </label>
+              <div class="orbit-list" data-list>
+                <p class="text-sm text-[var(--muted)]">正在加载内容。</p>
+              </div>
+            </section>
+
+            <section class="orbit-editor-panel">
           <section class="orbit-view" data-view="drafts" hidden>
             <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -797,76 +1960,126 @@ const initialData = {
           </section>
 
           <section class="orbit-view" data-view="posts">
-            <div class="flex flex-col gap-3 border-b border-[var(--line)] pb-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="post-editor-heading">
               <div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Post Editor</p>
-                <h2 class="mt-1 text-2xl font-semibold" data-post-title>新建文章</h2>
+                <p class="exhibition-meta">编辑文章</p>
+                <h2 class="orbit-panel-title" data-post-title>新建文章</h2>
               </div>
-              <div class="orbit-actions">
-                <button class="orbit-button" data-post-upload-cover type="button">封面</button>
-                <button class="orbit-button" data-post-upload-body-image type="button">插入图片</button>
-                <button class="orbit-button" data-image-pick-target="postBody" data-image-pick-section="images" type="button">选图插入</button>
-                <button class="orbit-button" data-post-upload-video type="button">插入视频</button>
-                <button class="orbit-button" data-post-insert-selected-image type="button">用选中图</button>
-                <button class="orbit-button orbit-button-primary" data-save-post type="button">保存文章</button>
-                <button class="orbit-button orbit-danger" data-delete-post type="button">删除文章</button>
-                <input class="hidden" data-post-cover-file type="file" accept="image/jpeg,image/png,image/webp,image/avif" />
-                <input class="hidden" data-post-body-image-file type="file" accept="image/jpeg,image/png,image/webp,image/avif" />
-                <input class="hidden" data-post-video-file type="file" accept="video/mp4,video/webm,video/quicktime,.mov" />
-              </div>
+              <p>按顺序填写，保存后会进入“待发布改动”，不会立即上线。</p>
             </div>
 
-            <div class="mt-4 grid gap-4 2xl:grid-cols-[1fr_0.8fr]">
-              <form class="grid gap-4">
-                <div class="grid gap-4 md:grid-cols-2">
-                  <label>
-                    <span class="font-mono text-xs text-[var(--muted)]">Slug</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="slug" placeholder="my-new-post" />
-                  </label>
-                  <label>
-                    <span class="font-mono text-xs text-[var(--muted)]">Publish Date</span>
-                    <input class="orbit-input mt-2 font-mono text-sm" data-post-field="publishDate" type="date" />
-                  </label>
-                </div>
-                <label>
-                  <span class="font-mono text-xs text-[var(--muted)]">Title</span>
-                  <input class="orbit-input mt-2 text-sm" data-post-field="title" placeholder="文章标题" />
-                </label>
-                <label>
-                  <span class="font-mono text-xs text-[var(--muted)]">Description</span>
-                  <textarea class="orbit-input mt-2 min-h-20 text-sm leading-6" data-post-field="description" placeholder="文章摘要"></textarea>
-                </label>
-                <div class="grid gap-4 md:grid-cols-2">
-                  <label>
-                    <span class="font-mono text-xs text-[var(--muted)]">Cover</span>
-                    <div class="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
-                      <input class="orbit-input font-mono text-sm" data-post-field="cover" placeholder="/article-assets/cover.png" />
-                      <button class="orbit-button" data-image-pick-target="postCover" data-image-pick-section="images" type="button">选择图片</button>
+            <div class="post-editor-layout">
+              <form class="post-editor-main">
+                <details class="post-editor-section" open>
+                  <summary>
+                    <span class="post-section-number">1</span>
+                    <span>基本信息</span>
+                    <i class="ph ph-caret-down" aria-hidden="true"></i>
+                  </summary>
+                  <div class="post-section-content post-basic-grid">
+                    <label class="post-field post-field-title">
+                      <span>标题 <b aria-hidden="true">*</b></span>
+                      <input class="orbit-input" data-post-field="title" placeholder="文章标题" />
+                    </label>
+                    <label class="post-field">
+                      <span>别名（Slug） <b aria-hidden="true">*</b></span>
+                      <input class="orbit-input font-mono" data-post-field="slug" placeholder="my-new-post" />
+                    </label>
+                    <label class="post-field">
+                      <span>发布日期 <b aria-hidden="true">*</b></span>
+                      <input class="orbit-input font-mono" data-post-field="publishDate" type="date" />
+                    </label>
+                    <label class="post-field post-field-tags">
+                      <span>标签</span>
+                      <input class="orbit-input" data-post-field="tags" placeholder="生活, 前端, 随笔" />
+                    </label>
+                    <label class="post-draft-toggle">
+                      <input data-post-field="draft" type="checkbox" />
+                      <span><strong>保留为草稿</strong><small>文章发布后仍不会出现在公开列表中。</small></span>
+                    </label>
+                  </div>
+                </details>
+
+                <details class="post-editor-section post-cover-section">
+                  <summary>
+                    <span class="post-section-number">2</span>
+                    <span>封面与摘要</span>
+                    <span class="post-cover-summary">
+                      <img data-post-cover-preview alt="" hidden />
+                      <span data-post-cover-summary>尚未设置封面和摘要</span>
+                    </span>
+                    <i class="ph ph-caret-down" aria-hidden="true"></i>
+                  </summary>
+                  <div class="post-section-content post-cover-grid">
+                    <label class="post-field">
+                      <span>文章摘要</span>
+                      <textarea class="orbit-input" data-post-field="description" placeholder="用一两句话说明这篇文章讲什么"></textarea>
+                    </label>
+                    <label class="post-field">
+                      <span>封面图片</span>
+                      <input class="orbit-input font-mono" data-post-field="cover" placeholder="/article-assets/cover.png" />
+                    </label>
+                    <div class="post-cover-actions" aria-label="封面操作">
+                      <button class="orbit-button" data-post-upload-cover type="button"><i class="ph ph-upload-simple" aria-hidden="true"></i> 上传封面</button>
+                      <button class="orbit-button" data-image-pick-target="postCover" data-image-pick-section="images" type="button"><i class="ph ph-images" aria-hidden="true"></i> 从图片库选择</button>
                     </div>
-                  </label>
-                  <label>
-                    <span class="font-mono text-xs text-[var(--muted)]">Tags</span>
-                    <input class="orbit-input mt-2 text-sm" data-post-field="tags" placeholder="生活, 前端, 随笔" />
-                  </label>
-                </div>
-                <label class="flex items-center gap-2 text-sm text-[var(--muted)]">
-                  <input data-post-field="draft" type="checkbox" />
-                  保存为草稿
-                </label>
-                <label>
-                  <span class="font-mono text-xs text-[var(--muted)]">Body</span>
-                  <span class="ml-2 text-xs text-[var(--muted)]">图片会进入 ARTICLE_IMAGE_ASSETS；视频会进入 ARTICLE_VIDEO_ASSETS，并插入到光标位置。</span>
-                  <textarea class="orbit-input mt-2 min-h-[420px] font-mono text-sm leading-7" data-post-field="body" placeholder="开始写 Markdown / MDX..."></textarea>
-                </label>
+                  </div>
+                </details>
+
+                <details class="post-editor-section post-body-section" open>
+                  <summary>
+                    <span class="post-section-number">3</span>
+                    <span>正文（Markdown）</span>
+                    <span class="post-body-meta" data-post-body-meta>0 字</span>
+                    <i class="ph ph-caret-down" aria-hidden="true"></i>
+                  </summary>
+                  <div class="post-markdown-editor">
+                    <div class="post-markdown-toolbar" role="toolbar" aria-label="Markdown 编辑工具">
+                      <button type="button" data-post-format="heading" title="二级标题">H2</button>
+                      <button type="button" data-post-format="bold" title="加粗"><i class="ph ph-text-b" aria-hidden="true"></i><span class="sr-only">加粗</span></button>
+                      <button type="button" data-post-format="italic" title="斜体"><i class="ph ph-text-italic" aria-hidden="true"></i><span class="sr-only">斜体</span></button>
+                      <button type="button" data-post-format="code" title="行内代码"><i class="ph ph-code" aria-hidden="true"></i><span class="sr-only">行内代码</span></button>
+                      <button type="button" data-post-format="link" title="链接"><i class="ph ph-link" aria-hidden="true"></i><span class="sr-only">插入链接</span></button>
+                      <span class="post-toolbar-divider" aria-hidden="true"></span>
+                      <button type="button" data-post-upload-body-image title="上传并插入图片"><i class="ph ph-image" aria-hidden="true"></i><span>上传图片</span></button>
+                      <button type="button" data-image-pick-target="postBody" data-image-pick-section="images" title="从图片库插入"><i class="ph ph-images" aria-hidden="true"></i><span>图片库</span></button>
+                      <button type="button" data-post-upload-video title="上传并插入视频"><i class="ph ph-video" aria-hidden="true"></i><span>插入视频</span></button>
+                      <button type="button" data-post-insert-selected-image title="插入当前选中的图片"><i class="ph ph-cursor-click" aria-hidden="true"></i><span>插入已选</span></button>
+                    </div>
+                    <label class="sr-only" for="post-body-editor">文章正文</label>
+                    <textarea id="post-body-editor" data-post-field="body" placeholder="开始写 Markdown / MDX..."></textarea>
+                  </div>
+                  <p class="post-editor-help">图片会进入 ARTICLE_IMAGE_ASSETS；视频会进入 ARTICLE_VIDEO_ASSETS，并插入到当前光标位置。</p>
+                </details>
+
+                <details class="post-editor-section post-preview-section" data-post-preview-section>
+                  <summary>
+                    <span class="post-section-number"><i class="ph ph-eye" aria-hidden="true"></i></span>
+                    <span>阅读预览</span>
+                    <span class="post-preview-hint">检查标题、段落和媒体显示效果</span>
+                    <i class="ph ph-caret-down" aria-hidden="true"></i>
+                  </summary>
+                  <article class="prose post-preview" data-post-preview></article>
+                </details>
               </form>
 
-              <section class="orbit-field-panel quiet-card p-4">
-                <div class="flex items-center justify-between border-b border-[var(--line)] pb-3">
-                  <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Preview</p>
-                  <span class="font-mono text-xs text-[var(--muted)]">Markdown</span>
-                </div>
-                <article class="prose mt-4 max-w-none" data-post-preview></article>
-              </section>
+              <aside class="post-action-rail" aria-label="文章操作">
+                <button class="orbit-button orbit-button-primary" data-save-post type="button">
+                  <i class="ph ph-check" aria-hidden="true"></i><span>保存到待发布</span>
+                </button>
+                <p>保存只会加入待发布列表，确认后再统一上线。</p>
+                <button class="orbit-button" data-post-preview-toggle type="button">
+                  <i class="ph ph-eye" aria-hidden="true"></i><span>查看预览</span>
+                </button>
+                <details class="post-more-actions">
+                  <summary><i class="ph ph-dots-three" aria-hidden="true"></i> 更多操作</summary>
+                  <button class="orbit-button orbit-danger" data-delete-post type="button"><i class="ph ph-trash" aria-hidden="true"></i> 删除文章</button>
+                </details>
+              </aside>
+
+              <input class="hidden" data-post-cover-file type="file" accept="image/jpeg,image/png,image/webp,image/avif" />
+              <input class="hidden" data-post-body-image-file type="file" accept="image/jpeg,image/png,image/webp,image/avif" />
+              <input class="hidden" data-post-video-file type="file" accept="video/mp4,video/webm,video/quicktime,.mov" />
             </div>
           </section>
 
@@ -1806,7 +3019,8 @@ const initialData = {
             </div>
           </section>
         </section>
-        </div>
+          </div>
+        </section>
       </div>
     </main>
 
@@ -1925,6 +3139,7 @@ const initialData = {
       const list = $("[data-list]");
       const listKicker = $("[data-list-kicker]");
       const listTitle = $("[data-list-title]");
+      const listSearch = $("[data-list-search]");
       const pendingSummary = $("[data-pending-summary]");
 
       const postFields = {
@@ -1983,18 +3198,18 @@ const initialData = {
       const uiAppearanceSelect = $("[data-ui-appearance-select]");
 
       const labels = {
-        posts: { kicker: "Posts", title: "文章列表", empty: "暂无文章。" },
-        projects: { kicker: "Projects", title: "项目列表", empty: "暂无项目。" },
-        recommendations: { kicker: "Taste", title: "推荐列表", empty: "暂无推荐。" },
-        gallery: { kicker: "PersonalPhoto", title: "生活照片", empty: "暂无照片。" },
-        personalVideos: { kicker: "PersonalVideo", title: "视频记录", empty: "暂无视频记录。" },
-        images: { kicker: "ARTICLE_IMAGE_ASSETS", title: "ARTICLE_IMAGE_ASSETS", empty: "暂无 ARTICLE_IMAGE_ASSETS。" },
-        personalPhotoAssets: { kicker: "PersonalPhoto Assets", title: "PersonalPhoto文件", empty: "暂无 PersonalPhoto 文件。" },
-        videos: { kicker: "ARTICLE_VIDEO_ASSETS", title: "ARTICLE_VIDEO_ASSETS", empty: "暂无 ARTICLE_VIDEO_ASSETS。" },
-        personalVideoAssets: { kicker: "PersonalVideo Assets", title: "PersonalVideo文件", empty: "暂无 PersonalVideo 文件。" },
-        settings: { kicker: "Settings", title: "页面配置", empty: "在右侧编辑网站配置。" },
+        posts: { kicker: "内容", title: "文章", empty: "暂无文章。", search: "搜索文章标题或内容" },
+        projects: { kicker: "内容", title: "项目", empty: "暂无项目。", search: "搜索项目名称或标签" },
+        recommendations: { kicker: "内容", title: "推荐", empty: "暂无推荐。", search: "搜索推荐名称或作者" },
+        gallery: { kicker: "内容", title: "照片", empty: "暂无照片。", search: "搜索照片标题或路径" },
+        personalVideos: { kicker: "内容", title: "视频", empty: "暂无视频记录。", search: "搜索视频标题或路径" },
+        images: { kicker: "素材", title: "图片库", empty: "暂无 ARTICLE_IMAGE_ASSETS。", search: "搜索图片名称或路径" },
+        personalPhotoAssets: { kicker: "素材", title: "个人照片素材", empty: "暂无 PersonalPhoto 文件。", search: "搜索照片素材" },
+        videos: { kicker: "素材", title: "视频库", empty: "暂无 ARTICLE_VIDEO_ASSETS。", search: "搜索视频名称或路径" },
+        personalVideoAssets: { kicker: "素材", title: "个人视频素材", empty: "暂无 PersonalVideo 文件。", search: "搜索视频素材" },
+        settings: { kicker: "网站", title: "界面与资料", empty: "在右侧编辑网站配置。", search: "" },
         pageCopy: { kicker: "Page Copy", title: "栏目文案", empty: "在右侧编辑栏目文案。" },
-        drafts: { kicker: "LOCAL_DRAFTS", title: "本地保存", empty: "暂无本地保存。" },
+        drafts: { kicker: "发布", title: "待发布改动", empty: "暂无待发布改动。", search: "" },
       };
 
       const mediaLibraries = {
@@ -2608,6 +3823,26 @@ const initialData = {
           .map((block) => (/^<(h[1-3]|img|video)\b/.test(block) ? block : `<p>${block.replace(/\n/g, "<br />")}</p>`))
           .join("");
         $("[data-post-preview]").innerHTML = html || "<p>预览会显示在这里。</p>";
+        const bodyMeta = $("[data-post-body-meta]");
+        if (bodyMeta) {
+          const characterCount = body.replace(/\s/g, "").length;
+          bodyMeta.textContent = `${characterCount} 字`;
+        }
+        const coverValue = postFields.cover.value.trim();
+        const description = postFields.description.value.trim();
+        const coverPreview = $("[data-post-cover-preview]");
+        const coverSummary = $("[data-post-cover-summary]");
+        if (coverPreview) {
+          coverPreview.hidden = !coverValue;
+          if (coverValue) coverPreview.src = assetPreviewForValue(coverValue);
+          else coverPreview.removeAttribute("src");
+        }
+        if (coverSummary) {
+          coverSummary.textContent = [
+            coverValue ? "封面已设置" : "未设置封面",
+            description || "尚未填写摘要",
+          ].join(" · ");
+        }
       };
 
       const insertMarkdownAtCursor = (snippet) => {
@@ -2622,6 +3857,27 @@ const initialData = {
         const cursor = before.length + prefix.length + snippet.length;
         textarea.focus();
         textarea.setSelectionRange(cursor, cursor);
+        renderMarkdownPreview();
+      };
+
+      const applyMarkdownFormat = (format) => {
+        const textarea = postFields.body;
+        const start = textarea.selectionStart ?? textarea.value.length;
+        const end = textarea.selectionEnd ?? textarea.value.length;
+        const selected = textarea.value.slice(start, end);
+        const formats = {
+          heading: { before: "## ", after: "", fallback: "二级标题" },
+          bold: { before: "**", after: "**", fallback: "加粗文字" },
+          italic: { before: "*", after: "*", fallback: "斜体文字" },
+          code: { before: "`", after: "`", fallback: "code" },
+          link: { before: "[", after: "](https://)", fallback: "链接文字" },
+        };
+        const rule = formats[format];
+        if (!rule) return;
+        const content = selected || rule.fallback;
+        const replacement = `${rule.before}${content}${rule.after}`;
+        textarea.setRangeText(replacement, start, end, "end");
+        textarea.focus();
         renderMarkdownPreview();
       };
 
@@ -3073,17 +4329,23 @@ const initialData = {
       const selectSection = (section) => {
         const cancelledMediaPick = cancelPendingMediaPickOutside(section);
         state.section = section;
+        document.body.dataset.activeSection = section;
+        const hasDirectSectionButton = !!$(`[data-section="${section}"]`);
         $$("[data-section]").forEach((button) => {
           const group = button.dataset.sectionGroup;
           const active =
             button.dataset.section === section ||
-            (group === "articleAssets" && ["images", "videos"].includes(section)) ||
-            (group === "gallery" && ["gallery", "personalPhotoAssets"].includes(section)) ||
-            (group === "personalVideos" && ["personalVideos", "personalVideoAssets"].includes(section));
+            (!hasDirectSectionButton && group === "articleAssets" && ["images", "videos"].includes(section)) ||
+            (!hasDirectSectionButton && group === "gallery" && ["gallery", "personalPhotoAssets"].includes(section)) ||
+            (!hasDirectSectionButton && group === "personalVideos" && ["personalVideos", "personalVideoAssets"].includes(section));
           button.dataset.active = String(active);
+          if (active) button.setAttribute("aria-current", "page");
+          else button.removeAttribute("aria-current");
         });
         $$("[data-switch-section]").forEach((button) => {
-          button.dataset.active = String(button.dataset.switchSection === section);
+          const active = button.dataset.switchSection === section;
+          button.dataset.active = String(active);
+          button.setAttribute("aria-pressed", String(active));
         });
         $$("[data-view]").forEach((view) => {
           view.hidden = view.dataset.view !== section;
@@ -3091,16 +4353,30 @@ const initialData = {
         listKicker.textContent = labels[section].kicker;
         listTitle.textContent = labels[section].title;
         const newButton = $("[data-new-current]");
+        const newLabels = {
+          posts: "新建文章",
+          projects: "新建项目",
+          recommendations: "新建推荐",
+          gallery: "新建照片",
+          personalVideos: "新建视频",
+        };
         newButton.hidden = isMediaLibrarySection(section) || section === "drafts" || section === "pageCopy";
-        newButton.textContent = section === "settings" ? "save" : "new";
+        if (!newLabels[section]) newButton.hidden = true;
+        newButton.textContent = newLabels[section] || "新建";
+        if (listSearch) {
+          listSearch.value = "";
+          listSearch.placeholder = labels[section].search || "搜索当前列表";
+        }
         renderList();
+        const navDisclosure = $("[data-nav-disclosure]");
+        if (navDisclosure && window.matchMedia("(max-width: 1023px)").matches) navDisclosure.open = false;
         if (cancelledMediaPick) setStatus("已取消尚未完成的素材选择，未修改任何字段。");
       };
 
       const renderList = () => {
         list.innerHTML = "";
         const section = state.section;
-        const items =
+        const allItems =
           section === "posts"
             ? state.posts
             : section === "projects"
@@ -3114,9 +4390,13 @@ const initialData = {
                     : isMediaLibrarySection(section)
                       ? visibleMediaAssets(section)
                       : [];
+        const searchQuery = listSearch?.value.trim().toLocaleLowerCase("zh-CN") || "";
+        const items = searchQuery
+          ? allItems.filter((item) => JSON.stringify(item).toLocaleLowerCase("zh-CN").includes(searchQuery))
+          : allItems;
 
         if (!items.length) {
-          list.innerHTML = `<p class="text-sm text-[var(--muted)]">${labels[section].empty}</p>`;
+          list.innerHTML = `<p class="text-sm text-[var(--muted)]">${searchQuery ? "没有找到匹配内容。" : labels[section].empty}</p>`;
           renderMediaGrids();
           return;
         }
@@ -4127,7 +5407,7 @@ const initialData = {
         updateCounts();
         if (wasNew) newPost();
         else renderList();
-        setStatus("文章已暂存。确认无误后点“同步全部改动”一次提交。");
+        setStatus("文章已加入待发布改动。确认无误后可在顶部发布到线上。");
       };
 
       const deletePost = async () => {
@@ -4139,7 +5419,7 @@ const initialData = {
         state.posts = state.posts.filter((post) => post.path !== current.path);
         updateCounts();
         newPost();
-        setStatus("文章删除已暂存。确认无误后点“同步全部改动”一次提交。");
+        setStatus("文章删除已加入待发布改动。确认无误后可在顶部发布到线上。");
       };
 
       const newProject = () => {
@@ -5392,10 +6672,21 @@ const initialData = {
       };
 
       const run = async (task) => {
+        const trigger = document.activeElement;
+        const actionButton = trigger instanceof HTMLButtonElement ? trigger : null;
+        if (actionButton) {
+          actionButton.disabled = true;
+          actionButton.setAttribute("aria-busy", "true");
+        }
         try {
           await task();
         } catch (error) {
           setStatus(error.message || "操作失败");
+        } finally {
+          if (actionButton) {
+            actionButton.disabled = false;
+            actionButton.removeAttribute("aria-busy");
+          }
         }
       };
 
@@ -5410,6 +6701,18 @@ const initialData = {
       });
       $$("[data-switch-section]").forEach((button) => {
         button.addEventListener("click", () => selectSection(button.dataset.switchSection));
+      });
+      listSearch?.addEventListener("input", renderList);
+
+      $$("[data-post-format]").forEach((button) => {
+        button.addEventListener("click", () => applyMarkdownFormat(button.dataset.postFormat));
+      });
+      $("[data-post-preview-toggle]")?.addEventListener("click", () => {
+        const previewSection = $("[data-post-preview-section]");
+        if (!previewSection) return;
+        previewSection.open = true;
+        renderMarkdownPreview();
+        previewSection.scrollIntoView({ behavior: "smooth", block: "start" });
       });
 
       $("[data-save-token]").addEventListener("click", () => run(connect));
@@ -5678,6 +6981,8 @@ const initialData = {
       };
 
       const initialize = async () => {
+        const navDisclosure = $("[data-nav-disclosure]");
+        if (navDisclosure && window.matchMedia("(max-width: 1023px)").matches) navDisclosure.open = false;
         if (state.token) $("[data-token-input]").value = state.token;
         await detectLocalApi();
         await loadAll();
